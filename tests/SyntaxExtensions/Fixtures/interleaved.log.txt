@@ -1,0 +1,7 @@
+{"time":"2026-09-01T09:00:01Z","level":"info","requestId":"req-41","msg":"received"}
+{"time":"2026-09-01T09:00:02Z","level":"info","requestId":"req-410","msg":"related to req-41"}
+{"log":"{\"level\":50,\"requestId\":\"req-41\",\"msg\":\"database timeout\"}\n","stream":"stderr","time":"2026-09-01T09:00:03Z"}
+    at Database.connect (database.ts:17:4)
+    at ApiController.open (controller.ts:22:8)
+[Nest] 264  - 09/01/2026, 9:00:04 AM   WARN [Gateway] req-42 retrying
+2026-09-01T09:00:05Z INFO req-41 complete

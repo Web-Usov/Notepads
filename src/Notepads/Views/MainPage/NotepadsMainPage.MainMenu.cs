@@ -16,6 +16,8 @@ namespace Notepads.Views.MainPage
     using Windows.UI.Xaml.Controls.Primitives;
     using Windows.UI.Xaml.Media;
     using Notepads.Services;
+    using Notepads.Controls.TextEditor;
+    using Notepads.SyntaxExtensions;
 
     public sealed partial class NotepadsMainPage
     {
@@ -70,6 +72,8 @@ namespace Notepads.Views.MainPage
         {
             var selectedTextEditor = NotepadsCore.GetSelectedTextEditor();
 
+            PopulateExtensionCommands(selectedTextEditor as TextEditor);
+
             if (selectedTextEditor == null)
             {
                 MenuSaveButton.IsEnabled = false;
@@ -109,6 +113,25 @@ namespace Notepads.Views.MainPage
                     ? "App_ExitCompactOverlayMode_Text"
                     : "App_EnterCompactOverlayMode_Text");
             MenuSaveAllButton.IsEnabled = NotepadsCore.HaveUnsavedTextEditor();
+        }
+
+        private void PopulateExtensionCommands(TextEditor editor)
+        {
+            MenuExtensionCommands.Items.Clear();
+            if (editor != null && editor.IsEditorEnabled())
+            {
+                foreach (var extension in ExtensionCatalog.Extensions.Where(e => ExtensionCatalog.IsEnabled(e.Id)))
+                {
+                    foreach (var command in extension.Commands.Where(c => c.AppliesTo(editor.CommandFileExtension)))
+                    {
+                        var item = new MenuFlyoutItem { Text = command.Title };
+                        item.Click += async (sender, args) => await editor.RunExtensionCommandAsync(command,
+                            () => ReferenceEquals(editor, NotepadsCore.GetSelectedTextEditor()));
+                        MenuExtensionCommands.Items.Add(item);
+                    }
+                }
+            }
+            MenuExtensionCommands.Visibility = MenuExtensionCommands.Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private async Task BuildOpenRecentButtonSubItemsAsync()

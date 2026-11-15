@@ -450,4 +450,46 @@
   <data name="Extensions_FolderError" xml:space="preserve">
     <value>Windows не удалось открыть папку расширений.</value>
   </data>
+  <data name="Extensions_InstallUrl.Content" xml:space="preserve">
+    <value>Установить по ссылке…</value>
+  </data>
+  <data name="Extensions_InstallUrlTitle" xml:space="preserve">
+    <value>Установить по ссылке</value>
+  </data>
+  <data name="Extensions_UrlLabel" xml:space="preserve">
+    <value>Ссылка на манифест, ZIP или репозиторий GitHub</value>
+  </data>
+  <data name="Extensions_Preview" xml:space="preserve">
+    <value>Показать сведения</value>
+  </data>
+  <data name="Extensions_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Extensions_InstallTitle" xml:space="preserve">
+    <value>Установить расширение?</value>
+  </data>
+  <data name="Extensions_Details" xml:space="preserve">
+    <value>{0}
+ID: {1}
+Версия: {2}
+Источник: {3}</value>
+  </data>
+  <data name="Extensions_Confirm" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Extensions_CheckUpdates" xml:space="preserve">
+    <value>Проверить обновления</value>
+  </data>
+  <data name="Extensions_NoUpdate" xml:space="preserve">
+    <value>Установлена актуальная версия {0} ({1}).</value>
+  </data>
+  <data name="Extensions_Revision" xml:space="preserve">
+    <value>Ревизия: {0}</value>
+  </data>
+  <data name="Extensions_Replaces" xml:space="preserve">
+    <value>Установленная версия: {0}</value>
+  </data>
+  <data name="Extensions_Installed" xml:space="preserve">
+    <value>Установлено: {0} {1}.</value>
+  </data>
 </root>

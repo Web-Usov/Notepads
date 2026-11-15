@@ -450,4 +450,46 @@
   <data name="Extensions_FolderError" xml:space="preserve">
     <value>Windows could not open the extensions folder.</value>
   </data>
+  <data name="Extensions_InstallUrl.Content" xml:space="preserve">
+    <value>Install from URL…</value>
+  </data>
+  <data name="Extensions_InstallUrlTitle" xml:space="preserve">
+    <value>Install from URL</value>
+  </data>
+  <data name="Extensions_UrlLabel" xml:space="preserve">
+    <value>Manifest, ZIP or GitHub repository URL</value>
+  </data>
+  <data name="Extensions_Preview" xml:space="preserve">
+    <value>Show details</value>
+  </data>
+  <data name="Extensions_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Extensions_InstallTitle" xml:space="preserve">
+    <value>Install extension?</value>
+  </data>
+  <data name="Extensions_Details" xml:space="preserve">
+    <value>{0}
+ID: {1}
+Version: {2}
+Source: {3}</value>
+  </data>
+  <data name="Extensions_Confirm" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Extensions_CheckUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Extensions_NoUpdate" xml:space="preserve">
+    <value>{0} {1} is up to date.</value>
+  </data>
+  <data name="Extensions_Revision" xml:space="preserve">
+    <value>Revision: {0}</value>
+  </data>
+  <data name="Extensions_Replaces" xml:space="preserve">
+    <value>Currently installed: {0}</value>
+  </data>
+  <data name="Extensions_Installed" xml:space="preserve">
+    <value>Installed {0} {1}.</value>
+  </data>
 </root>

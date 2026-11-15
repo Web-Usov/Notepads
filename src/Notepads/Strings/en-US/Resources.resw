@@ -709,4 +709,67 @@
     <value>Warning</value>
     <comment>SessionCorruptionErrorDialog: "Title" display text.</comment>
   </data>
+  <data name="MainMenu_ExtensionCommands.Text" xml:space="preserve">
+    <value>Extension commands</value>
+  </data>
+  <data name="ExtensionPanel_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="ExtensionPanel_CloseName" xml:space="preserve">
+    <value>Close {0}</value>
+  </data>
+  <data name="ExtensionPanel_Filter" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="ExtensionPanel_Placeholder" xml:space="preserve">
+    <value>Request ID or text</value>
+  </data>
+  <data name="ExtensionPanel_FilterName" xml:space="preserve">
+    <value>Filter results by request ID or literal text</value>
+  </data>
+  <data name="ExtensionPanel_Severity" xml:space="preserve">
+    <value>Severity</value>
+  </data>
+  <data name="ExtensionPanel_SeverityName" xml:space="preserve">
+    <value>Filter results by severity</value>
+  </data>
+  <data name="ExtensionPanel_SeverityAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="ExtensionPanel_SeverityTrace" xml:space="preserve">
+    <value>Trace</value>
+  </data>
+  <data name="ExtensionPanel_SeverityDebug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="ExtensionPanel_SeverityInfo" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="ExtensionPanel_SeverityWarn" xml:space="preserve">
+    <value>Warn</value>
+  </data>
+  <data name="ExtensionPanel_SeverityError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="ExtensionPanel_SeverityFatal" xml:space="preserve">
+    <value>Fatal</value>
+  </data>
+  <data name="ExtensionPanel_ResultsName" xml:space="preserve">
+    <value>{0} results by source line</value>
+  </data>
+  <data name="ExtensionPanel_Searching" xml:space="preserve">
+    <value>Searching…</value>
+  </data>
+  <data name="ExtensionPanel_NoMatches" xml:space="preserve">
+    <value>No matching lines.</value>
+  </data>
+  <data name="ExtensionPanel_OneMatch" xml:space="preserve">
+    <value>1 matching line.</value>
+  </data>
+  <data name="ExtensionPanel_ManyMatches" xml:space="preserve">
+    <value>{0} matching lines.</value>
+  </data>
+  <data name="ExtensionPanel_LoadError" xml:space="preserve">
+    <value>Could not load results. {0}</value>
+  </data>
 </root>

@@ -5,9 +5,11 @@
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../src/Notepads/SyntaxExtensions/GrammarRegistry.cs" Link="GrammarRegistry.cs" />
-    <Compile Include="../../src/Notepads/SyntaxExtensions/SyntaxExtension.cs" Link="SyntaxExtension.cs" />
-    <None Include="../../src/Notepads/Assets/Extensions/json.notepads-extension.json"
-          CopyToOutputDirectory="PreserveNewest" Link="json.notepads-extension.json" />
+    <Compile Include="../../src/Notepads/SyntaxExtensions/*.cs" Exclude="../../src/Notepads/SyntaxExtensions/ExtensionCatalog.cs"
+             Link="%(Filename)%(Extension)" />
+    <None Include="../../src/Notepads/Assets/Extensions/*.notepads-extension.json"
+          CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+    <None Include="../../docs/examples/wrap.notepads-extension.json" Link="wrap.notepads-extension.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/interleaved.log.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -139,9 +139,9 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="SyntaxExtensions\SyntaxExtension.cs" />
-    <Compile Include="SyntaxExtensions\GrammarRegistry.cs" />
-    <Compile Include="SyntaxExtensions\ExtensionCatalog.cs" />
+    <Compile Include="SyntaxExtensions\*.cs" />
+    <Compile Include="Controls\TextEditor\TextEditor.ExtensionCommands.cs" />
+    <Compile Include="Controls\TextEditor\ExtensionResultsView.cs" />
     <Compile Include="Controls\TextEditor\SyntaxInkBrush.cs" />
     <Compile Include="Controls\TextEditor\TextEditorCore.SyntaxHighlighting.cs" />
     <Compile Include="Commands\IMouseCommand.cs" />

@@ -105,7 +105,7 @@ jobs:
           }
           if ($inner.Package.Identity.Version -ne $version) { throw 'Packaged version differs from the source manifest.' }
           "version=$version" >> $env:GITHUB_OUTPUT
-          foreach ($file in 'Notepads.exe', 'Assets/Extensions/json.notepads-extension.json') {
+          foreach ($file in 'Notepads.exe', 'Assets/Extensions/json.notepads-extension.json', 'Assets/Extensions/log-lens.notepads-extension.json') {
             if (!(Test-Path "$layout/$file")) { throw "Missing app content: $file" }
           }
           if (!(Test-Path "$dir/Install.ps1") -or !(Test-Path "$dir/Add-AppDevPackage.ps1")) {
@@ -127,6 +127,25 @@ jobs:
           path: ${{ steps.package.outputs.folder }}/
           if-no-files-found: error
           retention-days: 30
+
+  editor-smoke:
+    name: Exercise the installed editor
+    if: github.event_name == 'pull_request'
+    needs: installer
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: Notepads-Dev-Windows-x64
+          path: ${{ runner.temp }}/notepads-smoke-package
+      - name: Verify editing, Undo and source navigation
+        shell: powershell
+        run: powershell.exe -NoProfile -STA -File tests/SyntaxExtensions/WindowsEditorSmoke.ps1 -PackageFolder "$env:RUNNER_TEMP\notepads-smoke-package"
 
   publish:
     name: Publish Windows x64 release
@@ -159,9 +178,9 @@ jobs:
           cat > notes.md <<'NOTES'
           ## What’s new
 
-          - Get live syntax highlighting for JSON keys, strings, numbers, literals and punctuation.
-          - Install, enable and reload language extensions in **Settings → Advanced → Extensions**. Each extension is a JSON manifest.
-          - Use the English authoring guide, local grammar tester and repository agent skill to build your own language extensions.
+          - Format or minify a JSON selection or document under **Extension commands**. Invalid JSON points to the error and leaves the text intact.
+          - Use **Open Log Lens** to filter log lines by request ID and severity. Select a result to reveal the original line.
+          - Install extensions from a local JSON or ZIP, an HTTPS download, or a public GitHub repository or release. API v2 adds commands and read-only results panels alongside existing v1 grammars.
 
           ## Install on Windows x64
 

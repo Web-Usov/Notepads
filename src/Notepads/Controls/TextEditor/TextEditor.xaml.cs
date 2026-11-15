@@ -101,10 +101,12 @@
 
             TextEditorCore.SetSyntaxExtension(System.IO.Path.GetExtension(EditingFileName ?? FileNamePlaceholder));
 
+            if (_panelCommand != null && !_panelCommand.AppliesTo(CommandFileExtension)) CloseExtensionPanel();
+
             // Hide content preview if current file type is not supported for previewing
             if (!FileTypeUtility.IsPreviewSupported(FileType))
             {
-                if (SplitPanel != null && SplitPanel.Visibility == Visibility.Visible)
+                if (_isContentPreviewPanelOpened)
                 {
                     ShowHideContentPreview();
                 }
@@ -219,6 +221,8 @@
         // Unhook events and clear state
         public void Dispose()
         {
+            _extensionRevision++;
+            CloseExtensionPanel();
             StopCheckingFileStatus();
 
             TextEditorCore.TextChanging -= TextEditorCore_OnTextChanging;
@@ -364,6 +368,8 @@
 
         private void TextEditor_Unloaded(object sender, RoutedEventArgs e)
         {
+            _extensionRevision++;
+            CloseExtensionPanel();
             Unloaded?.Invoke(this, e);
             StopCheckingFileStatus();
         }
@@ -614,6 +620,7 @@
 
         public void ShowHideContentPreview()
         {
+            CloseExtensionPanel();
             if (_contentPreviewExtension == null)
             {
                 _contentPreviewExtension = ExtensionProvider?.GetContentPreviewExtension(FileType);
@@ -640,6 +647,8 @@
             if (string.Equals(LastSavedSnapshot.Content, TextEditorCore.GetText())) return;
             if (Mode == TextEditorMode.DiffPreview) return;
             if (SideBySideDiffViewer == null) LoadSideBySideDiffViewer();
+            _extensionRevision++;
+            CloseExtensionPanel();
             Mode = TextEditorMode.DiffPreview;
             TextEditorCore.IsEnabled = false;
             EditorRowDefinition.Height = new GridLength(0);
@@ -921,7 +930,10 @@
 
         private void TextEditorCore_OnTextChanging(RichEditBox textEditor, RichEditBoxTextChangingEventArgs args)
         {
-            if (!args.IsContentChanging || !_loaded) return;
+            if (!args.IsContentChanging) return;
+            _extensionRevision++;
+            if (_extensionView != null) _extensionView.Refresh(CaptureExtensionSnapshot());
+            if (!_loaded) return;
             if (IsModified)
             {
                 IsModified = !NoChangesSinceLastSaved();
