@@ -48,6 +48,7 @@ namespace Notepads.Controls.TextEditor
             {
                 FontFamily = new FontFamily(fontFamily);
                 SetDefaultTabStopAndLineSpacing(FontFamily, FontSize);
+                QueueSyntaxPaint();
             });
         }
 
@@ -64,6 +65,7 @@ namespace Notepads.Controls.TextEditor
             await Dispatcher.CallOnUIThreadAsync(() =>
             {
                 FontStyle = fontStyle;
+                QueueSyntaxPaint();
             });
         }
 
@@ -72,6 +74,7 @@ namespace Notepads.Controls.TextEditor
             await Dispatcher.CallOnUIThreadAsync(() =>
             {
                 FontWeight = fontWeight;
+                QueueSyntaxPaint();
             });
         }
 

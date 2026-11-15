@@ -1,0 +1,109 @@
+name: Windows preview installer
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installer:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: microsoft/setup-msbuild@v3
+
+      - name: Build the x64 sideload bundle
+        shell: pwsh
+        run: |
+          $publisher = 'CN=Web-Usov Notepads Preview'
+          foreach ($file in 'Package.appxmanifest', 'Package.StoreAssociation.xml') {
+            $path = Join-Path "$PWD/src/Notepads" $file
+            [xml]$xml = Get-Content -LiteralPath $path -Raw
+            if ($file -eq 'Package.appxmanifest') {
+              $xml.Package.Identity.SetAttribute('Publisher', $publisher)
+              $xml.Package.Properties.PublisherDisplayName = 'Web-Usov'
+            } else {
+              $xml.StoreAssociation.Publisher = $publisher
+              $xml.StoreAssociation.PublisherDisplayName = 'Web-Usov'
+            }
+            $xml.Save($path)
+          }
+
+          msbuild src/Notepads.sln /restore /m /p:Configuration=Release /p:Platform=x64 `
+            /p:AppxPackageDir="$env:RUNNER_TEMP\Sideload\" /p:UapAppxPackageBuildMode=SideloadOnly `
+            /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:AppxPackageSigningEnabled=false
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Sign and verify the installer
+        id: package
+        shell: pwsh
+        run: |
+          $bundles = @(Get-ChildItem "$env:RUNNER_TEMP/Sideload" -Recurse -Filter '*.msixbundle')
+          if ($bundles.Count -ne 1) { throw "Expected one MSIX bundle, found $($bundles.Count)." }
+          $bundle = $bundles[0]
+          $dir = $bundle.DirectoryName
+          $sdk = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.0.22621.0\x64"
+          $publisher = 'CN=Web-Usov Notepads Preview'
+
+          # The private key stays on this runner. Distribute only the public certificate.
+          $cert = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature `
+            -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My `
+            -NotAfter (Get-Date).AddDays(60) -HashAlgorithm SHA256 `
+            -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
+          try {
+            & "$sdk\signtool.exe" sign /fd SHA256 /sha1 $cert.Thumbprint $bundle.FullName
+            if ($LASTEXITCODE) { throw 'SignTool could not sign the bundle.' }
+            Export-Certificate -Cert $cert -FilePath "$dir/$($bundle.BaseName).cer" | Out-Null
+            $signature = Get-AuthenticodeSignature -LiteralPath $bundle.FullName
+            if ($signature.SignerCertificate.Thumbprint -ne $cert.Thumbprint -or $signature.Status -eq 'HashMismatch') {
+              throw "Unexpected bundle signature: $($signature.Status)"
+            }
+          } finally {
+            Remove-Item "Cert:\CurrentUser\My\$($cert.Thumbprint)" -DeleteKey
+          }
+
+          $unbundled = "$env:RUNNER_TEMP/Unbundled"
+          & "$sdk\MakeAppx.exe" unbundle /p $bundle.FullName /d $unbundled /o
+          if ($LASTEXITCODE) { throw 'Could not unpack the signed bundle.' }
+          $zip = [IO.Compression.ZipFile]::OpenRead($bundle.FullName)
+          try {
+            $reader = [IO.StreamReader]::new($zip.GetEntry('AppxMetadata/AppxBundleManifest.xml').Open())
+            try { [xml]$manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
+          } finally { $zip.Dispose() }
+          $app = @($manifest.Bundle.Packages.Package | Where-Object { $_.Type -eq 'application' -and $_.Architecture -eq 'x64' })
+          if ($app.Count -ne 1) { throw 'Expected one x64 application package.' }
+          $layout = "$env:RUNNER_TEMP/VerifyApp"
+          & "$sdk\MakeAppx.exe" unpack /p "$unbundled/$($app[0].FileName)" /d $layout /o
+          if ($LASTEXITCODE) { throw 'Could not unpack the x64 application.' }
+
+          [xml]$inner = Get-Content "$layout/AppxManifest.xml" -Raw
+          if ($inner.Package.Identity.Name -ne 'Notepads-Dev' -or $inner.Package.Identity.Publisher -ne $publisher) {
+            throw 'Unexpected preview package identity.'
+          }
+          foreach ($file in 'Notepads.exe', 'Assets/Extensions/json.notepads-extension.json') {
+            if (!(Test-Path "$layout/$file")) { throw "Missing app content: $file" }
+          }
+          if (!(Test-Path "$dir/Install.ps1") -or !(Test-Path "$dir/Add-AppDevPackage.ps1")) {
+            throw 'SDK sideload installer scripts are missing.'
+          }
+          foreach ($dependency in 'Microsoft.NET.Native.Runtime.2.2', 'Microsoft.NET.Native.Framework.2.2',
+                                   'Microsoft.Services.Store.Engagement.x64.10.0', 'Microsoft.VCLibs.x64.14.00') {
+            if (!(Test-Path "$dir/Dependencies/x64/$dependency.appx")) { throw "Missing $dependency" }
+          }
+          if (Get-ChildItem $dir -Recurse -Include *.pfx,*.p12) { throw 'Unexpected private key file.' }
+          Get-ChildItem $dir -Recurse -Filter '*.appxsym' | Remove-Item
+          "folder=$dir" >> $env:GITHUB_OUTPUT
+          "Installer SHA-256: $((Get-FileHash $bundle.FullName).Hash)" >> $env:GITHUB_STEP_SUMMARY
+          "Certificate SHA-256: $((Get-FileHash "$dir/$($bundle.BaseName).cer").Hash)" >> $env:GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Notepads-Dev-Windows-x64
+          path: ${{ steps.package.outputs.folder }}/
+          if-no-files-found: error
+          retention-days: 30

@@ -429,4 +429,25 @@
     <value>Exit app when closing last tab</value>
     <comment>AdvancedPage AppLifecyclePreferenceSettings ExitingLastTabClosesWindowToggleSwitch On display text.</comment>
   </data>
+  <data name="Extensions_Title.Text" xml:space="preserve">
+    <value>Extensions</value>
+  </data>
+  <data name="Extensions_Install.Content" xml:space="preserve">
+    <value>Install from file…</value>
+  </data>
+  <data name="Extensions_OpenFolder.Content" xml:space="preserve">
+    <value>Open extensions folder</value>
+  </data>
+  <data name="Extensions_Reload.Content" xml:space="preserve">
+    <value>Reload extensions</value>
+  </data>
+  <data name="Extensions_LoadErrors" xml:space="preserve">
+    <value>Could not load: {0}</value>
+  </data>
+  <data name="Extensions_ActionError" xml:space="preserve">
+    <value>Extension operation failed: {0}</value>
+  </data>
+  <data name="Extensions_FolderError" xml:space="preserve">
+    <value>Windows could not open the extensions folder.</value>
+  </data>
 </root>

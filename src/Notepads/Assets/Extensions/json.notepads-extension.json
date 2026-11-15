@@ -1,0 +1,36 @@
+{
+  "apiVersion": 1,
+  "id": "notepads.json",
+  "displayName": "JSON",
+  "contributes": {
+    "grammars": [
+      {
+        "fileExtensions": [
+          ".json"
+        ],
+        "rules": [
+          {
+            "scope": "property",
+            "match": "\"(?:[^\"\\\\\\r\\n]|\\\\[^\\r\\n])*\"(?=[ \\t\\r\\n]*:)"
+          },
+          {
+            "scope": "string",
+            "match": "\"(?:[^\"\\\\\\r\\n]|\\\\[^\\r\\n])*(?:\"|\\\\?(?=\\r|\\n|\\z))"
+          },
+          {
+            "scope": "number",
+            "match": "(?<![\\w.+-])-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?(?![\\w.])"
+          },
+          {
+            "scope": "keyword",
+            "match": "(?<!\\w)(?:true|false|null)(?!\\w)"
+          },
+          {
+            "scope": "punctuation",
+            "match": "[{}\\[\\],:]"
+          }
+        ]
+      }
+    ]
+  }
+}

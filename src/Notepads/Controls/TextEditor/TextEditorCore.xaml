@@ -112,6 +112,10 @@
                                 VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
                                 VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                                 ZoomMode="Disabled"/>
+                                <Canvas x:Name="SyntaxViewport" FlowDirection="LeftToRight"
+                                        IsHitTestVisible="False" AutomationProperties.AccessibilityView="Raw">
+                                    <Canvas x:Name="SyntaxLayer"/>
+                                </Canvas>
                             </Grid>
                         </Grid>
                         <TextBlock 

@@ -6,6 +6,12 @@
 namespace Notepads.Views.Settings
 {
     using Notepads.Services;
+    using Notepads.SyntaxExtensions;
+    using System;
+    using System.Threading.Tasks;
+    using Windows.ApplicationModel.Resources;
+    using Windows.Storage.Pickers;
+    using Windows.System;
     using Notepads.Utilities;
     using System.Collections.Generic;
     using System.Linq;
@@ -54,7 +60,7 @@ namespace Notepads.Views.Settings
             Unloaded += AdvancedSettings_Unloaded;
         }
 
-        private void AdvancedSettings_Loaded(object sender, RoutedEventArgs e)
+        private async void AdvancedSettings_Loaded(object sender, RoutedEventArgs e)
         {
             ShowStatusBarToggleSwitch.Toggled += ShowStatusBarToggleSwitch_Toggled;
             EnableSmartCopyToggleSwitch.Toggled += EnableSmartCopyToggleSwitch_Toggled;
@@ -62,6 +68,7 @@ namespace Notepads.Views.Settings
             ExitWhenLastTabClosedToggleSwitch.Toggled += ExitWhenLastTabClosedToggleSwitch_Toggled;
             AlwaysOpenNewWindowToggleSwitch.Toggled += AlwaysOpenNewWindowToggleSwitch_Toggled;
             LanguagePicker.SelectionChanged += LanguagePicker_SelectionChanged;
+            await RunExtensionActionAsync(ExtensionCatalog.InitializeAsync);
         }
 
         private void AdvancedSettings_Unloaded(object sender, RoutedEventArgs e)
@@ -72,6 +79,77 @@ namespace Notepads.Views.Settings
             ExitWhenLastTabClosedToggleSwitch.Toggled -= ExitWhenLastTabClosedToggleSwitch_Toggled;
             AlwaysOpenNewWindowToggleSwitch.Toggled -= AlwaysOpenNewWindowToggleSwitch_Toggled;
             LanguagePicker.SelectionChanged -= LanguagePicker_SelectionChanged;
+        }
+
+        private static string ExtensionLabel(string name)
+        {
+            return ResourceLoader.GetForCurrentView().GetString("/Settings/Extensions_" + name);
+        }
+
+        private async Task RunExtensionActionAsync(Func<Task> action)
+        {
+            ExtensionControls.IsEnabled = false;
+            try
+            {
+                await action();
+                ExtensionList.Children.Clear();
+                foreach (var extension in ExtensionCatalog.Extensions)
+                {
+                    var suffixes = extension.Grammars.SelectMany(grammar => grammar.FileExtensions);
+                    var toggle = new CheckBox
+                    {
+                        Content = extension.DisplayName + " (" + string.Join(", ", suffixes) + ")",
+                        IsChecked = ExtensionCatalog.IsEnabled(extension.Id),
+                        Tag = extension.Id
+                    };
+                    toggle.Click += ToggleExtension_Click;
+                    ExtensionList.Children.Add(toggle);
+                }
+                var errors = ExtensionCatalog.LoadErrors;
+                ExtensionStatus.Text = errors.Count == 0 ? string.Empty
+                    : string.Format(ExtensionLabel("LoadErrors"), string.Join(", ", errors));
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex);
+                ExtensionStatus.Text = string.Format(ExtensionLabel("ActionError"), ex.Message);
+            }
+            finally
+            {
+                ExtensionControls.IsEnabled = true;
+            }
+        }
+
+        private async void ToggleExtension_Click(object sender, RoutedEventArgs e)
+        {
+            var toggle = (CheckBox)sender;
+            await RunExtensionActionAsync(() => ExtensionCatalog.SetEnabledAsync((string)toggle.Tag, toggle.IsChecked == true));
+            toggle.IsChecked = ExtensionCatalog.IsEnabled((string)toggle.Tag);
+        }
+
+        private async void InstallExtension_Click(object sender, RoutedEventArgs e)
+        {
+            await RunExtensionActionAsync(async () =>
+            {
+                var picker = new FileOpenPicker();
+                picker.FileTypeFilter.Add(".json");
+                var file = await picker.PickSingleFileAsync();
+                if (file != null) await ExtensionCatalog.InstallAsync(file);
+            });
+        }
+
+        private async void OpenExtensionsFolder_Click(object sender, RoutedEventArgs e)
+        {
+            await RunExtensionActionAsync(async () =>
+            {
+                if (!await Launcher.LaunchFolderAsync(await ExtensionCatalog.GetUserFolderAsync()))
+                    throw new InvalidOperationException(ExtensionLabel("FolderError"));
+            });
+        }
+
+        private async void ReloadExtensions_Click(object sender, RoutedEventArgs e)
+        {
+            await RunExtensionActionAsync(ExtensionCatalog.ReloadAsync);
         }
 
         private void EnableSmartCopyToggleSwitch_Toggled(object sender, RoutedEventArgs e)

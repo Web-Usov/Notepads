@@ -429,4 +429,25 @@
     <value>Закрыть приложение при закрытии последней вкладки.</value>
     <comment>AdvancedPage AppLifecyclePreferenceSettings ExitingLastTabClosesWindowToggleSwitch On display text.</comment>
   </data>
+  <data name="Extensions_Title.Text" xml:space="preserve">
+    <value>Расширения</value>
+  </data>
+  <data name="Extensions_Install.Content" xml:space="preserve">
+    <value>Установить из файла…</value>
+  </data>
+  <data name="Extensions_OpenFolder.Content" xml:space="preserve">
+    <value>Открыть папку расширений</value>
+  </data>
+  <data name="Extensions_Reload.Content" xml:space="preserve">
+    <value>Перезагрузить расширения</value>
+  </data>
+  <data name="Extensions_LoadErrors" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="Extensions_ActionError" xml:space="preserve">
+    <value>Ошибка при работе с расширениями: {0}</value>
+  </data>
+  <data name="Extensions_FolderError" xml:space="preserve">
+    <value>Windows не удалось открыть папку расширений.</value>
+  </data>
 </root>

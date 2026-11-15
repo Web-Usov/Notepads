@@ -139,6 +139,11 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="SyntaxExtensions\SyntaxExtension.cs" />
+    <Compile Include="SyntaxExtensions\GrammarRegistry.cs" />
+    <Compile Include="SyntaxExtensions\ExtensionCatalog.cs" />
+    <Compile Include="Controls\TextEditor\SyntaxInkBrush.cs" />
+    <Compile Include="Controls\TextEditor\TextEditorCore.SyntaxHighlighting.cs" />
     <Compile Include="Commands\IMouseCommand.cs" />
     <Compile Include="Commands\IKeyboardCommand.cs" />
     <Compile Include="Commands\ICommandHandler.cs" />
@@ -284,6 +289,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Package.StoreAssociation.xml" />
+    <Content Include="Assets\Extensions\*.notepads-extension.json" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Resource\MiddleClickScrolling-CursorType.res" />
     <Content Include="Resource\Text Document.txt" />
