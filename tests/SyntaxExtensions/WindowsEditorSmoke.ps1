@@ -162,6 +162,85 @@ try {
     Assert-Document 'panel interactions preserved the original Undo history' $rawOriginal
     if ([IO.File]::ReadAllText($inputPath) -cne $original) { throw 'The test commands modified the saved file.' }
     Write-Output 'PASS the saved file is unchanged'
+
+    # Exercise the user-facing installer with the exact v2 example shipped in this checkout.
+    # Pin the URL to HEAD rather than master or GITHUB_SHA (a PR job can use a synthetic merge SHA).
+    $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
+    $manifestPath = 'docs/examples/wrap.notepads-extension.json'
+    $fixture = [IO.File]::ReadAllText((Join-Path $root $manifestPath)) | ConvertFrom-Json
+    $sha = git -C $root rev-parse HEAD
+    if ($LASTEXITCODE -ne 0 -or $sha -notmatch '^[a-f0-9]{40}$') { throw 'Could not resolve the fixture commit.' }
+    $source = "https://raw.githubusercontent.com/Web-Usov/Notepads/$sha/$manifestPath"
+    $storedFile = Join-Path $data "Extensions\ext-$($fixture.id).notepads-extension.json"
+    if (Test-Path -LiteralPath $storedFile) { throw 'The example extension is already installed.' }
+    Write-Output "Verifying the v2 package installer with $source"
+
+    Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
+    Invoke-Control (Wait-For 'Settings in the main menu' { Find-AppControl $byId 'MenuSettingsButton' })
+    $navigation = Wait-For 'the settings navigation view' { Find-AppControl $byId 'SettingsNavigationView' }
+    $advanced = Wait-For 'the Advanced settings item' { Find-Control $navigation $byName 'Advanced' }
+    $advanced.SetFocus()
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+    $urlButton = Wait-For 'Install from URL in Advanced settings' {
+        Find-AppControl $byName ('Install from URL' + [char]0x2026)
+    }
+    Invoke-Control $urlButton
+    $urlInput = Wait-For 'the extension source URL input' {
+        $box = Find-AppControl $byName 'Manifest, ZIP or GitHub repository URL'
+        if ($box -and $box.Current.ControlType -eq [System.Windows.Automation.ControlType]::Edit) { return $box }
+        # Some UWP versions expose the header as a separate peer. Inspect its labeled
+        # dialog's edit field rather than matching the hidden document editor.
+        $show = Find-AppControl $byName 'Show details'
+        if (!$show) { return }
+        $peer = $show
+        while ($peer) {
+            $peer = [System.Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($peer)
+            if (!$peer -or $peer.Current.ControlType -eq [System.Windows.Automation.ControlType]::Window) { break }
+            $condition = [System.Windows.Automation.PropertyCondition]::new(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
+            $edits = $peer.FindAll($subtree, $condition)
+            if ($edits.Count -eq 1) { return $edits[0] }
+        }
+    }
+    $urlInput.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($source)
+    $previewButton = Wait-For 'the enabled preview action' {
+        $button = Find-AppControl $byName 'Show details'
+        if ($button -and $button.Current.IsEnabled) { return $button }
+    }
+    Invoke-Control $previewButton
+    # The details TextBlock exposes its entire text as its accessible name. Line endings
+    # in a .resw are normalized by XML; match the actual fields across LF/CRLF forms.
+    $previewText = ('{0}\s+ID:\s*{1}\s+Version:\s*{2}\s+Source:\s*{3}' -f
+        [regex]::Escape($fixture.displayName), [regex]::Escape($fixture.id),
+        [regex]::Escape($fixture.version), [regex]::Escape($source))
+    $null = Wait-For 'the preview displaying the expected name, ID, version and source' {
+        $status = Find-AppControl $byId 'ExtensionStatus'
+        if ($status -and $status.Current.Name -like 'Extension operation failed:*') { throw $status.Current.Name }
+        $condition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Text)
+        $roots = @($window) + @($desktop.FindAll([System.Windows.Automation.TreeScope]::Children, $ownedByEditor))
+        foreach ($owner in $roots) {
+            foreach ($label in $owner.FindAll($subtree, $condition)) {
+                if ($label.Current.Name -match $previewText) { return $true }
+            }
+        }
+    } 45
+    if (Test-Path -LiteralPath $storedFile) { throw 'The package was installed before confirmation.' }
+    Write-Output "PASS confirmation preview for $($fixture.id) $($fixture.version)"
+
+    Invoke-Control (Wait-For 'the Install confirmation button' { Find-AppControl $byName 'Install' })
+    $null = Wait-For 'the installed package manifest' { Test-Path -LiteralPath $storedFile }
+    $stored = [IO.File]::ReadAllText($storedFile) | ConvertFrom-Json
+    if ($stored.apiVersion -ne 2 -or $stored.id -cne $fixture.id -or $stored.version -cne $fixture.version -or
+        $stored._notepadsInstall.remote -ne $true -or $stored._notepadsInstall.source -cne $source) {
+        throw 'The installed extension or its recorded update source does not match the confirmed package.'
+    }
+    $toggle = Wait-For 'the newly registered extension' {
+        Find-AppControl $byName ($fixture.displayName + '  ' + $fixture.version)
+    }
+    $state = $toggle.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Current.ToggleState
+    if ($state -ne [System.Windows.Automation.ToggleState]::On) { throw 'The imported extension is not enabled.' }
+    Write-Output 'PASS installed v2 extension, registered enabled state and persisted source receipt'
 }
 finally {
     if ($installed) { Remove-AppxPackage -Package $installed.PackageFullName -ErrorAction Continue }
