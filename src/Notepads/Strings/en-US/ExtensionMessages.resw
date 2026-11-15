@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="HttpsUrl" xml:space="preserve">
+    <value>Enter an HTTPS URL without credentials or a fragment.</value>
+  </data>
+  <data name="SourceTimeout" xml:space="preserve">
+    <value>The extension source took too long to respond.</value>
+  </data>
+  <data name="ReleaseAssets" xml:space="preserve">
+    <value>The GitHub release must attach one extension manifest or ZIP. Paste a direct asset URL to choose one.</value>
+  </data>
+  <data name="RepositoryManifest" xml:space="preserve">
+    <value>The repository has no published release and needs one root *.notepads-extension.json manifest.</value>
+  </data>
+  <data name="UnexpectedBlob" xml:space="preserve">
+    <value>GitHub returned an unexpected manifest blob.</value>
+  </data>
+  <data name="DownloadHttps" xml:space="preserve">
+    <value>The extension source returned a non-HTTPS download address.</value>
+  </data>
+  <data name="RedirectLocation" xml:space="preserve">
+    <value>The extension source redirected without a destination.</value>
+  </data>
+  <data name="DownloadSize" xml:space="preserve">
+    <value>The extension source exceeds the download size limit.</value>
+  </data>
+  <data name="RedirectLimit" xml:space="preserve">
+    <value>Too many redirects while downloading the extension.</value>
+  </data>
+  <data name="InstalledChanged" xml:space="preserve">
+    <value>The installed extension changed. Reload extensions and check again.</value>
+  </data>
+  <data name="ZipEntryCount" xml:space="preserve">
+    <value>The ZIP contains more than 256 entries.</value>
+  </data>
+  <data name="ZipManifestCount" xml:space="preserve">
+    <value>The ZIP must contain exactly one *.notepads-extension.json manifest.</value>
+  </data>
+  <data name="ZipManifestLocation" xml:space="preserve">
+    <value>Place the manifest at the ZIP root or in one wrapper directory.</value>
+  </data>
+  <data name="ZipManifestSize" xml:space="preserve">
+    <value>The archived manifest exceeds 64 KiB.</value>
+  </data>
+  <data name="ManifestSize" xml:space="preserve">
+    <value>The manifest exceeds 64 KiB.</value>
+  </data>
+  <data name="DownloadByteLimit" xml:space="preserve">
+    <value>The download exceeds the size limit ({0} bytes).</value>
+  </data>
+  <data name="SourceLength" xml:space="preserve">
+    <value>The installation source is too long.</value>
+  </data>
+  <data name="ManifestObject" xml:space="preserve">
+    <value>Expected an extension manifest object.</value>
+  </data>
+  <data name="UpdateId" xml:space="preserve">
+    <value>The update contains a different extension ID.</value>
+  </data>
+  <data name="ManifestEmpty" xml:space="preserve">
+    <value>Extension manifest is empty or too large.</value>
+  </data>
+  <data name="ApiVersion" xml:space="preserve">
+    <value>Unsupported extension apiVersion. Expected 1 or 2.</value>
+  </data>
+  <data name="GrammarSuffixes" xml:space="preserve">
+    <value>File extensions must be unique suffixes such as .json.</value>
+  </data>
+  <data name="TokenScope" xml:space="preserve">
+    <value>Unknown token scope: {0}</value>
+  </data>
+  <data name="MissingContributions" xml:space="preserve">
+    <value>Declare at least one grammar or command.</value>
+  </data>
+  <data name="InvalidJsonManifest" xml:space="preserve">
+    <value>Invalid extension JSON.</value>
+  </data>
+  <data name="ManifestField" xml:space="preserve">
+    <value>Missing or invalid manifest field: {0}</value>
+  </data>
+  <data name="EntryCount" xml:space="preserve">
+    <value>Invalid number of entries in {0}.</value>
+  </data>
+  <data name="EmptyField" xml:space="preserve">
+    <value>Empty or oversized manifest field: {0}</value>
+  </data>
+  <data name="EmptySyntaxRule" xml:space="preserve">
+    <value>A syntax rule must consume text.</value>
+  </data>
+  <data name="InvalidPattern" xml:space="preserve">
+    <value>Invalid regular expression for scope {0}.</value>
+  </data>
+  <data name="PatternTimeout" xml:space="preserve">
+    <value>Regular expression timed out during validation.</value>
+  </data>
+  <data name="InvalidId" xml:space="preserve">
+    <value>Invalid extension or contribution id.</value>
+  </data>
+  <data name="LabelControl" xml:space="preserve">
+    <value>Invalid control character in {0}.</value>
+  </data>
+  <data name="VersionNumber" xml:space="preserve">
+    <value>Expected a numeric major.minor.patch version.</value>
+  </data>
+  <data name="PanelHandler" xml:space="preserve">
+    <value>Unknown panel handler or duplicate panel id.</value>
+  </data>
+  <data name="DuplicateCommand" xml:space="preserve">
+    <value>Duplicate command id: {0}</value>
+  </data>
+  <data name="UnknownPanel" xml:space="preserve">
+    <value>The command refers to an unknown panel.</value>
+  </data>
+  <data name="WrapDelimiters" xml:space="preserve">
+    <value>Use 1–512 printable characters for the prefix and suffix together.</value>
+  </data>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>Unknown command handler: {0}</value>
+  </data>
+  <data name="CommandSuffix" xml:space="preserve">
+    <value>Invalid or duplicate command file extension.</value>
+  </data>
+  <data name="InvalidTranslations" xml:space="preserve">
+    <value>Invalid translations for {0}.</value>
+  </data>
+  <data name="CommandFailed" xml:space="preserve">
+    <value>Extension command failed: {0}</value>
+  </data>
+  <data name="JsonMinifyLimit" xml:space="preserve">
+    <value>JSON input exceeds 4,194,304 characters.</value>
+  </data>
+  <data name="JsonFormatLimit" xml:space="preserve">
+    <value>JSON input exceeds 1,048,576 characters.</value>
+  </data>
+  <data name="JsonOutputLimit" xml:space="preserve">
+    <value>Formatted JSON exceeds 4,194,304 characters.</value>
+  </data>
+  <data name="JsonUnicode" xml:space="preserve">
+    <value>Invalid Unicode character.</value>
+  </data>
+  <data name="JsonLocation" xml:space="preserve">
+    <value>JSON error at line {0}, column {1}: {2}</value>
+  </data>
+  <data name="JsonSyntax" xml:space="preserve">
+    <value>JSON error at line {0}, column {1}: {2}</value>
+  </data>
+</root>

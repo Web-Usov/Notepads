@@ -44,16 +44,16 @@ namespace Notepads.SyntaxExtensions
                 {
                     var entries = archive.Entries;
                     if (entries.Count > 256)
-                        throw new FormatException("The ZIP contains more than 256 entries.");
+                        throw new FormatException(ExtensionMessages.Get("ZipEntryCount"));
                     var manifests = entries.Where(e => e.FullName.EndsWith(ManifestSuffix, StringComparison.OrdinalIgnoreCase)).ToArray();
                     if (manifests.Length != 1)
-                        throw new FormatException("The ZIP must contain exactly one *.notepads-extension.json manifest.");
+                        throw new FormatException(ExtensionMessages.Get("ZipManifestCount"));
                     var entry = manifests[0];
                     var path = entry.FullName.Split('/');
                     if (path.Length > 2 || path.Any(p => p.Length == 0 || p == "." || p == ".." || p.Contains("\\") || p.Contains(":")))
-                        throw new FormatException("Place the manifest at the ZIP root or in one wrapper directory.");
+                        throw new FormatException(ExtensionMessages.Get("ZipManifestLocation"));
                     if (entry.Length > SyntaxExtension.MaxManifestLength)
-                        throw new FormatException("The archived manifest exceeds 64 KiB.");
+                        throw new FormatException(ExtensionMessages.Get("ZipManifestSize"));
                     // Only the manifest stream is consumed; other entries never become installed files.
                     using (var stream = entry.Open())
                         manifest = Decode(await ReadBytesAsync(stream, SyntaxExtension.MaxManifestLength, cancellationToken));
@@ -64,7 +64,7 @@ namespace Notepads.SyntaxExtensions
                 // A locally exported installed manifest can include a host-generated receipt.
                 // Strip it and stamp the actual source of this import.
                 if (bytes.Length > MaxInstalledBytes)
-                    throw new FormatException("The manifest exceeds 64 KiB.");
+                    throw new FormatException(ExtensionMessages.Get("ManifestSize"));
                 manifest = Decode(bytes);
             }
             return new ExtensionPackage(Unwrap(manifest, out _), source, remote, revision);
@@ -85,7 +85,7 @@ namespace Notepads.SyntaxExtensions
                 while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
                 {
                     if (output.Length + read > limit)
-                        throw new FormatException("The download exceeds the size limit (" + limit + " bytes).");
+                        throw new FormatException(ExtensionMessages.Get("DownloadByteLimit", limit));
                     output.Write(buffer, 0, read);
                 }
                 return output.ToArray();
@@ -100,7 +100,7 @@ namespace Notepads.SyntaxExtensions
             int end = Manifest.LastIndexOf('}');
             var bytes = Utf8.GetBytes(Manifest.Insert(end, ",\n  \"" + ReceiptKey + "\": {\"source\":" + receipt + "}\n"));
             if (bytes.Length > MaxInstalledBytes)
-                throw new FormatException("The installation source is too long.");
+                throw new FormatException(ExtensionMessages.Get("SourceLength"));
             return bytes;
         }
 
@@ -111,7 +111,7 @@ namespace Notepads.SyntaxExtensions
             {
                 var root = doc.RootElement;
                 if (root.ValueKind != JsonValueKind.Object)
-                    throw new FormatException("Expected an extension manifest object.");
+                    throw new FormatException(ExtensionMessages.Get("ManifestObject"));
 
                 if (root.TryGetProperty(ReceiptKey, out var receipt))
                 {
@@ -128,14 +128,14 @@ namespace Notepads.SyntaxExtensions
                 }
             }
             if (Utf8.GetByteCount(text) > SyntaxExtension.MaxManifestLength)
-                throw new FormatException("The manifest exceeds 64 KiB.");
+                throw new FormatException(ExtensionMessages.Get("ManifestSize"));
             return text;
         }
 
         public bool IsNewerThan(SyntaxExtension installed)
         {
             if (!string.Equals(Extension.Id, installed.Id, StringComparison.Ordinal))
-                throw new FormatException("The update contains a different extension ID.");
+                throw new FormatException(ExtensionMessages.Get("UpdateId"));
             return Version.Parse(Extension.Version).CompareTo(Version.Parse(installed.Version)) > 0;
         }
     }

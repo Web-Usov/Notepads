@@ -390,11 +390,11 @@
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>Выберите собственный язык для игнорирования языка системы используемого в Notepads. Требуется перезагрузка для сохранения изменений.</value>
+    <value>Выберите язык интерфейса Notepads или используйте язык системы. Изменение вступит в силу при следующем запуске приложения.</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*Перезагрузите Notepads чтобы сохранить изменения.</value>
+    <value>Перезапустите Notepads, чтобы применить новый язык.</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">

@@ -55,7 +55,7 @@ namespace Notepads.Controls.TextEditor
             catch (Exception ex)
             {
                 LoggingService.LogException(ex);
-                if (isActive()) NotificationCenter.Instance.PostNotification("Extension command failed: " + command.Title, 4000);
+                if (isActive()) NotificationCenter.Instance.PostNotification(ExtensionMessages.Get("CommandFailed", command.Title), 4000);
             }
         }
 

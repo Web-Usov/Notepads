@@ -140,6 +140,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SyntaxExtensions\*.cs" />
+    <Compile Include="..\..\plugins\json\JsonTools.cs">
+      <Link>Plugins\json\JsonTools.cs</Link>
+    </Compile>
+    <Compile Include="..\..\plugins\log-lens\LogLens.cs">
+      <Link>Plugins\log-lens\LogLens.cs</Link>
+    </Compile>
     <Compile Include="Controls\TextEditor\TextEditor.ExtensionCommands.cs" />
     <Compile Include="Controls\TextEditor\ExtensionResultsView.cs" />
     <Compile Include="Controls\TextEditor\SyntaxInkBrush.cs" />
@@ -289,7 +295,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Package.StoreAssociation.xml" />
-    <Content Include="Assets\Extensions\*.notepads-extension.json" />
+    <Content Include="..\..\plugins\*\*.notepads-extension.json">
+      <Link>Assets\Extensions\%(Filename)%(Extension)</Link>
+    </Content>
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Resource\MiddleClickScrolling-CursorType.res" />
     <Content Include="Resource\Text Document.txt" />

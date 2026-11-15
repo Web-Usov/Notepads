@@ -64,11 +64,11 @@ namespace Notepads.SyntaxExtensions
                     {
                         var file = await folder.TryGetItemAsync(name) as StorageFile;
                         if (file == null || previousSource == null)
-                            throw new InvalidOperationException("The installed extension changed. Reload extensions and check again.");
+                            throw new InvalidOperationException(ExtensionMessages.Get("InstalledChanged"));
                         var contents = ExtensionPackage.Unwrap(await ReadInstalledAsync(file), out var currentSource);
                         var current = SyntaxExtension.Parse(contents);
                         if (current.Version != previous.Version || currentSource != previousSource || !package.IsNewerThan(current))
-                            throw new InvalidOperationException("The installed extension changed. Reload extensions and check again.");
+                            throw new InvalidOperationException(ExtensionMessages.Get("InstalledChanged"));
                     }
 
                     // Commit the validated manifest and source receipt together. Reload ignores temporary files.

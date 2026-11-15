@@ -105,8 +105,17 @@ jobs:
           }
           if ($inner.Package.Identity.Version -ne $version) { throw 'Packaged version differs from the source manifest.' }
           "version=$version" >> $env:GITHUB_OUTPUT
-          foreach ($file in 'Notepads.exe', 'Assets/Extensions/json.notepads-extension.json', 'Assets/Extensions/log-lens.notepads-extension.json') {
-            if (!(Test-Path "$layout/$file")) { throw "Missing app content: $file" }
+          if (!(Test-Path "$layout/Notepads.exe")) { throw 'The application executable is missing.' }
+          $manifests = @(Get-ChildItem "$PWD/plugins/*/*.notepads-extension.json" -File)
+          $packaged = @(Get-ChildItem "$layout/Assets/Extensions" -File -Recurse)
+          if (!$manifests.Count -or $packaged.Count -ne $manifests.Count) {
+            throw 'The package must contain exactly the bundled plugin manifests.'
+          }
+          foreach ($pluginManifest in $manifests) {
+            $target = Join-Path "$layout/Assets/Extensions" $pluginManifest.Name
+            if ((Get-FileHash -LiteralPath $target).Hash -ne (Get-FileHash -LiteralPath $pluginManifest.FullName).Hash) {
+              throw "Packaged manifest differs from its source: $($pluginManifest.Name)"
+            }
           }
           if (!(Test-Path "$dir/Install.ps1") -or !(Test-Path "$dir/Add-AppDevPackage.ps1")) {
             throw 'SDK sideload installer scripts are missing.'

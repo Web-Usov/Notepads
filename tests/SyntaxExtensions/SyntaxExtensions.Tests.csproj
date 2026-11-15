@@ -7,9 +7,18 @@
   <ItemGroup>
     <Compile Include="../../src/Notepads/SyntaxExtensions/*.cs" Exclude="../../src/Notepads/SyntaxExtensions/ExtensionCatalog.cs"
              Link="%(Filename)%(Extension)" />
-    <None Include="../../src/Notepads/Assets/Extensions/*.notepads-extension.json"
+    <Compile Include="../../plugins/json/JsonTools.cs" Link="Plugins/json/JsonTools.cs" />
+    <Compile Include="../../plugins/log-lens/LogLens.cs" Link="Plugins/log-lens/LogLens.cs" />
+    <None Include="../../plugins/*/*.notepads-extension.json"
           CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-    <None Include="../../docs/examples/wrap.notepads-extension.json" Link="wrap.notepads-extension.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../plugins/examples/markdown-wrap/wrap.notepads-extension.json" Link="wrap.notepads-extension.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures/interleaved.log.txt" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)ExtensionMessages.resx" ManifestResourceName="Notepads.ExtensionMessages" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)ExtensionMessages.ru.resx" ManifestResourceName="Notepads.ExtensionMessages.ru" />
   </ItemGroup>
+  <!-- Generate .NET resources for the CLI from the same .resw files that UWP packages. -->
+  <Target Name="PrepareExtensionMessages" BeforeTargets="AssignTargetPaths">
+    <Copy SourceFiles="../../src/Notepads/Strings/en-US/ExtensionMessages.resw;../../src/Notepads/Strings/ru-RU/ExtensionMessages.resw"
+          DestinationFiles="$(IntermediateOutputPath)ExtensionMessages.resx;$(IntermediateOutputPath)ExtensionMessages.ru.resx" />
+  </Target>
 </Project>

@@ -1,13 +1,15 @@
 {
   "apiVersion": 2,
   "id": "example.markdown-wrap",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Markdown emphasis",
+  "displayNameTranslations": { "ru": "Выделение в Markdown" },
   "contributes": {
     "commands": [
       {
         "id": "strong",
         "title": "Wrap in bold",
+        "titleTranslations": { "ru": "Выделить полужирным" },
         "fileExtensions": [".md"],
         "handler": "text.wrap",
         "prefix": "**",

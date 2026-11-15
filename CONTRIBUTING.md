@@ -8,15 +8,15 @@ Base your branch on `master` and open a [pull request against the fork](https://
 2. Open [src/Notepads.sln](src/Notepads.sln), restore its NuGet packages and set **Notepads** as the startup project.
 3. Select **Debug**, **x64** and **Local Machine**. Press **F5** to deploy and run **Notepads-Dev**. Enable Windows Developer Mode if Visual Studio prompts for it.
 
-## Test language extensions
+## Test extensions
 
-Run the manifest, tokenizer and grammar-selection tests from the repository root using the .NET 8 SDK. These tests run independently of the Windows UI.
+Run the portable extension suite from the repository root with the .NET 8 SDK. It covers manifest loading, grammar selection, tokenization, editing commands, log filters and package installation.
 
 ```sh
 dotnet run --project tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj -c Release
 ```
 
-For a new grammar, use the same command with `-- <manifest-file> <sample-file>` to inspect the tokens. Then open the sample file in the editor, edit a token and undo the change. The [extension authoring guide](docs/extensions.md) includes a working manifest and expected token output.
+For a new grammar, use the same command with `-- <manifest-file> <sample-file>` to inspect the tokens. Then open the sample file in the editor, edit a token and undo the change. The [extension authoring guide](docs/extensions.md) includes a working manifest and expected token output. The [repository instructions](AGENTS.md) describe the plugin layout and localization checks.
 
 ## Try a pull request build
 

@@ -8,6 +8,7 @@ internal static class EditorApiTests
     public static void Run()
     {
         var sample = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "wrap.notepads-extension.json"));
+        CheckTranslations(sample);
         var extension = SyntaxExtension.Parse(sample);
         var wrap = extension.Commands.Single();
         Check(wrap.AppliesTo(".MD") && !wrap.AppliesTo(".cs") && !wrap.AppliesTo(null), "command suffix filter");
@@ -39,6 +40,25 @@ internal static class EditorApiTests
         Reject(sample.Replace(extension.Version, "1.00.0"));
         Reject("{\"apiVersion\":2,\"id\":\"x\",\"displayName\":\"X\",\"version\":\"1.0.0\",\"contributes\":{}}");
         Console.WriteLine("Extension command, panel and stale-result tests passed.");
+    }
+
+    private static void CheckTranslations(string sample)
+    {
+        var neutral = SyntaxExtension.Parse(sample, "ru-BY");
+        var english = SyntaxExtension.Parse(sample, "fr");
+        Check(neutral.Id == english.Id && neutral.Version == english.Version, "locale-independent package identity");
+        Check(neutral.DisplayName == "Выделение в Markdown" && neutral.Commands.Single().Title == "Выделить полужирным",
+            "Russian parent-language fallback in a third-party manifest");
+        Check(english.DisplayName == "Markdown emphasis" && english.Commands.Single().Title == "Wrap in bold",
+            "default labels for untranslated languages");
+        var specific = sample.Replace("\"ru\": \"Выделение в Markdown\"", "\"ru\": \"Generic\", \"ru-RU\": \"Regional\"");
+        Check(SyntaxExtension.Parse(specific, "RU-ru").DisplayName == "Regional", "case-insensitive exact locale wins");
+        var log = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "log-lens.notepads-extension.json"));
+        var open = SyntaxExtension.Parse(log, "ru-RU").Commands.Single();
+        Check(open.Title == "Открыть просмотр журналов" && open.Panel.Title == "Просмотр журналов", "localized panel title");
+        Reject(sample.Replace("\"ru\": \"Выделение в Markdown\"", "\"ru\": \"One\", \"RU\": \"Two\""));
+        Reject(sample.Replace("\"ru\": \"Выделение в Markdown\"", "\"ru\": 12"));
+        Reject(sample.Replace("Выделить полужирным", "a\\nb"));
     }
 
     private static void Reject(string text)

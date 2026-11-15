@@ -1,4 +1,4 @@
-# Run in Windows PowerShell 5.1 (STA) on a disposable, interactive Windows desktop
+﻿# Run in Windows PowerShell 5.1 (STA) on a disposable, interactive Windows desktop
 # with a clean user profile. Pass the SDK sideload directory produced by the installer job.
 [CmdletBinding()]
 param([Parameter(Mandatory)][string]$PackageFolder)
@@ -59,11 +59,24 @@ function Invoke-Control($Control) {
     $pattern.Invoke()
 }
 
-function Invoke-Extension([string]$Name) {
+function Invoke-Extension([string]$Name, [string]$SubmenuName) {
     Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
     $submenu = Wait-For 'the Extension commands submenu' { Find-AppControl $byId 'MenuExtensionCommands' }
+    if ($SubmenuName -and $submenu.Current.Name -cne $SubmenuName) { throw "Unexpected submenu name: $($submenu.Current.Name)" }
     $submenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
     Invoke-Control (Wait-For $Name { Find-AppControl $byName $Name })
+}
+
+function Open-FixtureWindow([string]$File) {
+    $name = [IO.Path]::GetFileName($File)
+    Start-Process -FilePath $alias -ArgumentList ('"' + $File + '"')
+    Wait-For "the document window for $name" {
+        $windows = $desktop.FindAll([System.Windows.Automation.TreeScope]::Children,
+            [System.Windows.Automation.Condition]::TrueCondition)
+        foreach ($candidate in $windows) {
+            if ($candidate.Current.Name -like "*$name*") { return $candidate }
+        }
+    } 40
 }
 
 function Read-Document {
@@ -107,15 +120,7 @@ try {
     [IO.File]::WriteAllText($inputPath, $original, [Text.UTF8Encoding]::new($false))
     $alias = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\Notepads-Dev.exe'
     $null = Wait-For 'registration of the application execution alias' { Test-Path -LiteralPath $alias }
-    Start-Process -FilePath $alias -ArgumentList ('"' + $inputPath + '"')
-    # The application sets the window title to the active file name.
-    $window = Wait-For 'the source document window' {
-        $windows = $desktop.FindAll([System.Windows.Automation.TreeScope]::Children,
-            [System.Windows.Automation.Condition]::TrueCondition)
-        foreach ($candidate in $windows) {
-            if ($candidate.Current.Name -like '*extension-smoke.json*') { return $candidate }
-        }
-    } 40
+    $window = Open-FixtureWindow $inputPath
     $editor = Wait-For 'the running RichEdit control' { Find-Control $window $byId 'TextEditorCore' }
     $ownedByEditor = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $editor.Current.ProcessId)
@@ -172,7 +177,7 @@ try {
     # Exercise the user-facing installer with the exact v2 example shipped in this checkout.
     # Pin the URL to HEAD rather than master or GITHUB_SHA (a PR job can use a synthetic merge SHA).
     $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
-    $manifestPath = 'docs/examples/wrap.notepads-extension.json'
+    $manifestPath = 'plugins/examples/markdown-wrap/wrap.notepads-extension.json'
     $fixture = [IO.File]::ReadAllText((Join-Path $root $manifestPath)) | ConvertFrom-Json
     $sha = git -C $root rev-parse HEAD
     if ($LASTEXITCODE -ne 0 -or $sha -notmatch '^[a-f0-9]{40}$') { throw 'Could not resolve the fixture commit.' }
@@ -246,6 +251,62 @@ try {
     $state = $toggle.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Current.ToggleState
     if ($state -ne [System.Windows.Automation.ToggleState]::On) { throw 'The imported extension is not enabled.' }
     Write-Output 'PASS installed v2 extension, registered enabled state and persisted source receipt'
+
+    $picker = Wait-For 'the language preference in Advanced settings' { Find-AppControl $byId 'LanguagePicker' }
+    $picker.SetFocus()
+    $expand = $picker.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+    $expand.Expand()
+    [System.Windows.Forms.SendKeys]::SendWait('{HOME}')
+    $russian = [Globalization.CultureInfo]::GetCultureInfo('ru-RU').NativeName
+    $item = $null
+    # The XAML ComboBox virtualizes items outside its viewport. Page through its actual list.
+    for ($page = 0; $page -lt 30 -and !$item; $page++) {
+        foreach ($label in @($russian, 'русский', 'русский (Россия)')) {
+            $peer = Find-AppControl $byName $label
+            while ($peer -and !$item) {
+                if ($peer.Current.ControlType -eq [System.Windows.Automation.ControlType]::ListItem) {
+                    $item = $peer
+                    break
+                }
+                $peer = [System.Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($peer)
+            }
+            if ($item) { break }
+        }
+        if (!$item) {
+            [System.Windows.Forms.SendKeys]::SendWait('{PGDN}')
+            Start-Sleep -Milliseconds 100
+        }
+    }
+    if (!$item) { throw "The language preference did not offer Russian ($russian)." }
+    $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+    if ($expand.Current.ExpandCollapseState -eq [System.Windows.Automation.ExpandCollapseState]::Expanded) { $expand.Collapse() }
+    $null = Wait-For 'the language-change restart prompt' { Find-AppControl $byId 'RestartPrompt' }
+    Write-Output 'PASS selected Russian in the editor settings'
+
+    # Restart the disposable package's UI process only. The app reads the persisted
+    # language override on its next launch. Use a new file name for an unambiguous window.
+    $process = Get-Process -Id $editor.Current.ProcessId
+    if ($process.Path -ine (Join-Path $installed.InstallLocation 'Notepads.exe')) {
+        throw "Unexpected editor process: $($process.Path)"
+    }
+    Stop-Process -InputObject $process
+    if (!$process.WaitForExit(10000)) { throw 'The first editor process did not exit.' }
+    $russianInput = Join-Path $data 'extension-russian.json'
+    [IO.File]::WriteAllText($russianInput, $original, [Text.UTF8Encoding]::new($false))
+    $window = Open-FixtureWindow $russianInput
+    $editor = Wait-For 'the restarted editor' { Find-Control $window $byId 'TextEditorCore' }
+    $ownedByEditor = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $editor.Current.ProcessId)
+    Assert-Document 'reopened source fixture' $rawOriginal
+    Invoke-Extension 'Форматировать JSON' 'Команды расширений'
+    Assert-Document 'Russian Format JSON' $rawFormatted
+    Invoke-Extension 'Сжать JSON' 'Команды расширений'
+    Assert-Document 'Russian Minify JSON' $rawOriginal
+    Invoke-Extension 'Открыть просмотр журналов' 'Команды расширений'
+    $null = Wait-For 'the Russian Log Lens panel' {
+        Find-AppControl $byName 'Фильтр по идентификатору запроса или фрагменту текста'
+    }
+    Write-Output 'PASS Russian menu, JSON commands and Log Lens in the restarted application'
 }
 finally {
     if ($installed) { Remove-AppxPackage -Package $installed.PackageFullName -ErrorAction Continue }

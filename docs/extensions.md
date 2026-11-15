@@ -4,11 +4,11 @@ A Notepads extension is a UTF-8 JSON manifest. It can associate file suffixes wi
 
 ## Try the bundled extensions
 
-**JSON Tools.** Open a `.json` file and choose **Main menu → Extension commands → Format JSON** or **Minify JSON**. A selection is treated as a complete JSON value. With just a caret, the command processes the whole document. Formatting uses two spaces per level and preserves the document's line-ending setting. Both commands preserve key order, duplicate keys, string escapes and numeric spellings. **Ctrl+Z** undoes a transformation in one step. A parse error selects the offending position and reports the document line and column. The same **JSON** switch in Settings controls highlighting and both commands. [JSON manifest](../src/Notepads/Assets/Extensions/json.notepads-extension.json)
+**JSON Tools.** Open a `.json` file and choose **Main menu → Extension commands → Format JSON** or **Minify JSON**. A selection is treated as a complete JSON value. With just a caret, the command processes the whole document. Formatting uses two spaces per level and preserves the document's line-ending setting. Both commands preserve key order, duplicate keys, string escapes and numeric spellings. **Ctrl+Z** undoes a transformation in one step. A parse error selects the offending position and reports the document line and column. The same **JSON** switch in Settings controls highlighting and both commands. [JSON manifest](../plugins/json/json.notepads-extension.json)
 
 Format accepts up to 1,048,576 UTF-16 code units and produces up to 4,194,304. Minify accepts up to 4,194,304 so it can compact any successful Format result. **File → Open** accepts files up to 1,024,000 bytes on disk. If indentation would take a file beyond that limit, minify it before saving to reopen it normally. Saved size depends on the file encoding and line endings.
 
-**Log Lens.** Open the [sample log](../tests/SyntaxExtensions/Fixtures/interleaved.log.txt), select `req-41`, and choose **Main menu → Extension commands → Open Log Lens**. Adjust or clear the request filter in the panel and choose a severity. For structured lines with a `requestId`, the filter matches the entire field. For plain text it searches for the literal text. The panel understands JSON lines, Docker's `log` envelope and common NestJS levels. Select a result to return to its original line and read the surrounding stack trace. Filtering and navigation leave the text and Undo history intact. [Log Lens manifest](../src/Notepads/Assets/Extensions/log-lens.notepads-extension.json)
+**Log Lens.** Open the [sample log](../tests/SyntaxExtensions/Fixtures/interleaved.log.txt), select `req-41`, and choose **Main menu → Extension commands → Open Log Lens**. Adjust or clear the request filter in the panel and choose a severity. For structured lines with a `requestId`, the filter matches the entire field. For plain text it searches for the literal text. The panel understands JSON lines, Docker's `log` envelope and common NestJS levels. Select a result to return to its original line and read the surrounding stack trace. Filtering and navigation leave the text and Undo history intact. [Log Lens manifest](../plugins/log-lens/log-lens.notepads-extension.json)
 
 ## Create a highlighting extension
 
@@ -64,7 +64,7 @@ Grammar-only v1 manifests keep working and have an implicit package version of `
 
 ## Create an editor command
 
-Install [wrap.notepads-extension.json](examples/wrap.notepads-extension.json). In a Markdown file select `important` and choose **Main menu → Extension commands → Wrap in bold**. The selected word becomes `**important**`. Press **Ctrl+Z** to restore it. With an empty selection the command inserts both delimiters at the caret. Change `prefix`, `suffix` and `title` to adapt it, and choose your own extension ID before sharing.
+Install [wrap.notepads-extension.json](../plugins/examples/markdown-wrap/wrap.notepads-extension.json). In a Markdown file select `important` and choose **Main menu → Extension commands → Wrap in bold**. The selected word becomes `**important**`. Press **Ctrl+Z** to restore it. With an empty selection the command inserts both delimiters at the caret. Change `prefix`, `suffix` and `title` to adapt it, and choose your own extension ID before sharing.
 
 ### API v2 reference
 
@@ -85,6 +85,22 @@ Command and panel IDs follow the extension ID rules. Titles accept up to 100 UTF
 | `panel.open` | Set `panel` to the ID of a declared results panel. The host opens it for the active document and uses the current selection as its initial filter. |
 
 When extending the host, use the [editor command contract](../src/Notepads/SyntaxExtensions/EditorCommands.cs). A handler reads an immutable snapshot containing a document ID, revision, text and selection. Its offsets are zero-based UTF-16 code units in editor text, with one carriage return per line break. Ranges use a start and length. An edit returns one replacement for one Undo step, a diagnostic returns a message and source range, and each panel result carries its original line and source range. Apply edits and navigation only while the snapshot still matches the active document and revision. Handle stale results by discarding or refreshing them.
+
+## Translate extension labels
+
+Keep the default `displayName` and `title` fields. Add `displayNameTranslations` at the manifest root to translate the name shown in Settings. Add `titleTranslations` inside a command or panel to translate its title. For example, this declaration gives a command a Russian menu label.
+
+```json
+{
+  "id": "format",
+  "title": "Format JSON",
+  "titleTranslations": { "ru": "Форматировать JSON" },
+  "handler": "json.format",
+  "fileExtensions": [".json"]
+}
+```
+
+Keys are language tags. The editor first looks for the full UI language tag, then its parents, ignoring case. For `ru-RU`, a `ru-RU` entry takes precedence over `ru`. If neither exists, the editor displays the default label. Keep extension IDs, command IDs, panel references and handler names stable across languages so preferences, updates and bindings continue to work.
 
 ## How rules and grammars are selected
 
@@ -119,9 +135,13 @@ Open **Settings → Advanced → Extensions**. Choose **Install from file…** f
 
 For a remote installation, choose **Check for updates** to check the recorded source. A repository URL follows the latest release, while a tag URL continues checking that release. When an update has the same ID and a higher package version, review and confirm the replacement. For a local installation, import the updated JSON or ZIP again.
 
+If you installed the Markdown example from its old URL on the fork’s `master` branch, the installed copy still works. To update its recorded source, use **Install from URL…** with the [current raw manifest](https://raw.githubusercontent.com/Web-Usov/Notepads/master/plugins/examples/markdown-wrap/wrap.notepads-extension.json) and confirm the replacement. A source pinned to an older commit continues to resolve at its original path.
+
 Choose **Open extensions folder** to edit an installed `ext-<id>.notepads-extension.json` under `LocalState/Extensions`, then **Reload extensions**. To remove a user extension, delete its manifest and reload. Manifests copied directly into that folder must end in `.notepads-extension.json`. Other running instances have their own in-memory catalog; reload each instance where you want the change.
 
-To bundle an extension with the app, put its manifest directly under [src/Notepads/Assets/Extensions](../src/Notepads/Assets/Extensions/) before building. Keep examples and test data outside that directory.
+To bundle an extension with the app, create a directory directly under [plugins](../plugins/) and place its manifest there, for example `plugins/json/json.notepads-extension.json`. Use a unique manifest filename across bundled plugins. MSBuild matches `plugins/*/*.notepads-extension.json` and gives each manifest the package path `Assets/Extensions/<filename>`. Store independently installable examples under `plugins/examples/<name>/`.
+
+A bundled plugin with its own C# handler keeps that source beside its manifest. Register the handler in the host and include its source in both the [UWP app project](../src/Notepads/Notepads.csproj) and the [portable test project](../tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj). The example Markdown plugin uses the existing `text.wrap` handler and ships as a single manifest.
 
 ## Build and check
 
