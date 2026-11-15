@@ -42,12 +42,52 @@ namespace Notepads.SyntaxExtensions
                 timeout.CancelAfter(TimeSpan.FromSeconds(30));
                 try
                 {
-                    return await ResolveAsync(client ?? Client, source, timeout.Token);
+                    return await ResolveAsync(client ?? Client, MigrateForkManifest(source), timeout.Token);
                 }
                 catch (OperationCanceledException) when (!token.IsCancellationRequested)
                 {
                     throw new TimeoutException(ExtensionMessages.Get("SourceTimeout"));
                 }
+            }
+        }
+
+        // Only these moving URLs changed when this fork moved its manifests into plugins/.
+        // Leave commit/tag pins, query parameters, third-party sources and redirects untouched.
+        private static Uri MigrateForkManifest(Uri source)
+        {
+            if (!source.IsDefaultPort || source.Query.Length != 0) return source;
+
+            const string repository = "/Web-Usov/Notepads/";
+            if (!source.AbsolutePath.StartsWith(repository, StringComparison.OrdinalIgnoreCase)) return source;
+            string path = source.AbsolutePath.Substring(repository.Length);
+            if (source.IdnHost.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!path.StartsWith("raw/", StringComparison.Ordinal)) return source;
+                path = path.Substring("raw/".Length);
+            }
+            else if (!source.IdnHost.Equals("raw.githubusercontent.com", StringComparison.OrdinalIgnoreCase))
+                return source;
+
+            const string master = "master/";
+            const string fullRef = "refs/heads/master/";
+            if (path.StartsWith(fullRef, StringComparison.Ordinal))
+                path = path.Substring(fullRef.Length);
+            else if (path.StartsWith(master, StringComparison.Ordinal))
+                path = path.Substring(master.Length);
+            else
+                return source;
+
+            const string raw = "https://raw.githubusercontent.com/Web-Usov/Notepads/master/plugins/";
+            switch (path)
+            {
+                case "src/Notepads/Assets/Extensions/json.notepads-extension.json":
+                    return new Uri(raw + "json/json.notepads-extension.json");
+                case "src/Notepads/Assets/Extensions/log-lens.notepads-extension.json":
+                    return new Uri(raw + "log-lens/log-lens.notepads-extension.json");
+                case "docs/examples/wrap.notepads-extension.json":
+                    return new Uri(raw + "examples/markdown-wrap/wrap.notepads-extension.json");
+                default:
+                    return source;
             }
         }
 

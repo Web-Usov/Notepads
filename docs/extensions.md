@@ -135,7 +135,7 @@ Open **Settings → Advanced → Extensions**. Choose **Install from file…** f
 
 For a remote installation, choose **Check for updates** to check the recorded source. A repository URL follows the latest release, while a tag URL continues checking that release. When an update has the same ID and a higher package version, review and confirm the replacement. For a local installation, import the updated JSON or ZIP again.
 
-If you installed the Markdown example from its old URL on the fork’s `master` branch, the installed copy still works. To update its recorded source, use **Install from URL…** with the [current raw manifest](https://raw.githubusercontent.com/Web-Usov/Notepads/master/plugins/examples/markdown-wrap/wrap.notepads-extension.json) and confirm the replacement. A source pinned to an older commit continues to resolve at its original path.
+Existing installations of JSON Tools, Log Lens and the Markdown example can follow their move to `plugins/`. If you installed one from its previous raw URL on this fork’s `master` branch, choose **Check for updates**. The confirmation shows the new URL. Installing the update saves that URL for future checks. Sources pinned to a commit or tag keep their original location.
 
 Choose **Open extensions folder** to edit an installed `ext-<id>.notepads-extension.json` under `LocalState/Extensions`, then **Reload extensions**. To remove a user extension, delete its manifest and reload. Manifests copied directly into that folder must end in `.notepads-extension.json`. Other running instances have their own in-memory catalog; reload each instance where you want the change.
 

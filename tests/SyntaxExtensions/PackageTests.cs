@@ -24,6 +24,7 @@ internal static class PackageTests
     public static void Run()
     {
         CheckPackageSourcesAsync().GetAwaiter().GetResult();
+        CheckForkMigrationAsync().GetAwaiter().GetResult();
         Console.WriteLine("Extension package and update-source tests passed.");
     }
 
@@ -105,6 +106,65 @@ internal static class PackageTests
             await RejectAsync<FormatException>(() => ExtensionDownload.LoadAsync("http://example.com/", token, client));
             await RejectAsync<FormatException>(() => ExtensionDownload.LoadAsync("https://user:password@example.com/", token, client));
             await RejectAsync<FormatException>(() => ExtensionDownload.LoadAsync(Repo, token, client));
+        }
+    }
+
+    private static async Task CheckForkMigrationAsync()
+    {
+        const string raw = "https://raw.githubusercontent.com/Web-Usov/Notepads/";
+        const string github = "https://github.com/Web-Usov/Notepads/raw/";
+        const string oldAssets = "src/Notepads/Assets/Extensions/";
+        const string oldExample = "docs/examples/wrap.notepads-extension.json";
+        var files = new[]
+        {
+            (oldPath: oldAssets + "json.notepads-extension.json", newPath: "plugins/json/json.notepads-extension.json"),
+            (oldPath: oldAssets + "log-lens.notepads-extension.json", newPath: "plugins/log-lens/log-lens.notepads-extension.json"),
+            (oldPath: oldExample, newPath: "plugins/examples/markdown-wrap/wrap.notepads-extension.json")
+        };
+        foreach (var file in files)
+        {
+            string target = raw + "master/" + file.newPath;
+            byte[] actual = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, Path.GetFileName(file.newPath)));
+            using (var client = new HttpClient(new TestHandler(url =>
+            {
+                Require(url == target, "download the moved manifest at its current location");
+                return Ok(actual);
+            })))
+            {
+                foreach (string branchUrl in new[] { raw + "master/", raw + "refs/heads/master/", github + "master/", github + "refs/heads/master/" })
+                {
+                    string old = branchUrl + file.oldPath;
+                    var id = SyntaxExtension.Parse(Encoding.UTF8.GetString(actual)).Id;
+                    var previous = await ReadAsync(Encoding.UTF8.GetBytes(Manifest("1.0.0", id)), old);
+                    ExtensionPackage.Unwrap(ExtensionPackage.Decode(previous.InstalledBytes()), out var originalSource);
+                    Require(originalSource.AbsoluteUri == old, "keep original receipt usable for compare-before-replace");
+                    var update = await ExtensionDownload.LoadAsync(originalSource.AbsoluteUri, CancellationToken.None, client);
+                    Require(update.Source == target && update.IsNewerThan(previous.Extension), "preview the same extension at its new URL");
+                    ExtensionPackage.Unwrap(ExtensionPackage.Decode(update.InstalledBytes()), out var nextSource);
+                    Require(nextSource.AbsoluteUri == target, "record the migrated URL when update is installed");
+                }
+            }
+        }
+
+        foreach (string unchanged in new[]
+        {
+            raw + "refs/tags/v1.0.0/" + oldExample, raw + new string('a', 40) + "/" + oldExample,
+            raw + "feature/" + oldExample, raw + "master/" + oldExample + "?v=1", raw + "master/" + oldExample + ".bak",
+            raw + "master/plugins/examples/markdown-wrap/wrap.notepads-extension.json",
+            "https://raw.githubusercontent.com/Other/Notepads/master/" + oldExample,
+            "https://raw.githubusercontent.com/Web-Usov/Notepads-other/master/" + oldExample,
+            "https://example.org/Web-Usov/Notepads/master/" + oldExample
+        })
+        {
+            using (var client = new HttpClient(new TestHandler(url =>
+            {
+                Require(url == unchanged, "leave unrelated URLs, tags, branches, query strings and commit pins unchanged");
+                return Ok(Encoding.UTF8.GetBytes(Manifest()));
+            })))
+            {
+                var package = await ExtensionDownload.LoadAsync(unchanged, CancellationToken.None, client);
+                Require(package.Source == unchanged, "preserve unrelated update sources");
+            }
         }
     }
 
