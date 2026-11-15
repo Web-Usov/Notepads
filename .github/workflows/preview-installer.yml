@@ -2,6 +2,8 @@ name: Windows preview installer
 
 on:
   pull_request:
+  push:
+    branches: ['release/v*']
   workflow_dispatch:
 
 permissions:
@@ -10,12 +12,18 @@ permissions:
 jobs:
   installer:
     runs-on: windows-2022
+    outputs:
+      version: ${{ steps.package.outputs.version }}
     steps:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: microsoft/setup-msbuild@v3
+
+      - name: Test language extensions for release
+        if: github.event_name == 'push'
+        run: dotnet run --project tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj --configuration Release
 
       - name: Build the x64 sideload bundle
         shell: pwsh
@@ -50,16 +58,26 @@ jobs:
           $sdk = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.0.22621.0\x64"
           $publisher = 'CN=Web-Usov Notepads Preview'
 
+          [xml]$source = Get-Content "$PWD/src/Notepads/Package.appxmanifest" -Raw
+          $version = $source.Package.Identity.Version
+          $release = $env:GITHUB_EVENT_NAME -eq 'push'
+          if ($release -and $env:GITHUB_REF_NAME -cne "release/v$version") {
+            throw "Release branch must match the package version $version."
+          }
+          $expires = if ($release) { (Get-Date).AddYears(5) } else { (Get-Date).AddDays(60) }
+
           # The private key stays on this runner. Distribute only the public certificate.
           $cert = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature `
             -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My `
-            -NotAfter (Get-Date).AddDays(60) -HashAlgorithm SHA256 `
+            -NotAfter $expires -HashAlgorithm SHA256 `
             -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
           try {
-            & "$sdk\signtool.exe" sign /fd SHA256 /sha1 $cert.Thumbprint $bundle.FullName
+            $timestamp = if ($release) { @('/tr', 'http://timestamp.digicert.com', '/td', 'SHA256') } else { @() }
+            & "$sdk\signtool.exe" sign /fd SHA256 /sha1 $cert.Thumbprint @timestamp $bundle.FullName
             if ($LASTEXITCODE) { throw 'SignTool could not sign the bundle.' }
             Export-Certificate -Cert $cert -FilePath "$dir/$($bundle.BaseName).cer" | Out-Null
             $signature = Get-AuthenticodeSignature -LiteralPath $bundle.FullName
+            if ($release -and !$signature.TimeStamperCertificate) { throw 'Release signature has no timestamp.' }
             if ($signature.SignerCertificate.Thumbprint -ne $cert.Thumbprint -or $signature.Status -eq 'HashMismatch') {
               throw "Unexpected bundle signature: $($signature.Status)"
             }
@@ -85,6 +103,8 @@ jobs:
           if ($inner.Package.Identity.Name -ne 'Notepads-Dev' -or $inner.Package.Identity.Publisher -ne $publisher) {
             throw 'Unexpected preview package identity.'
           }
+          if ($inner.Package.Identity.Version -ne $version) { throw 'Packaged version differs from the source manifest.' }
+          "version=$version" >> $env:GITHUB_OUTPUT
           foreach ($file in 'Notepads.exe', 'Assets/Extensions/json.notepads-extension.json') {
             if (!(Test-Path "$layout/$file")) { throw "Missing app content: $file" }
           }
@@ -107,3 +127,65 @@ jobs:
           path: ${{ steps.package.outputs.folder }}/
           if-no-files-found: error
           retention-days: 30
+
+  publish:
+    name: Publish Windows x64 release
+    if: github.event_name == 'push'
+    needs: installer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency: publish-${{ github.ref }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.installer.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Notepads-Dev-Windows-x64
+          path: installer
+
+      - name: Package installer and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          asset="Notepads-$VERSION-Windows-x64.zip"
+          (cd installer && zip -qr "../$asset" .)
+          unzip -tq "$asset"
+          sha256sum "$asset" > SHA256SUMS.txt
+          cert=$(find installer -maxdepth 1 -type f -iname '*.cer' -print -quit)
+          cert_sha=$(sha256sum "$cert" | cut -d ' ' -f 1)
+          cat > notes.md <<'NOTES'
+          ## What’s new
+
+          - Get live syntax highlighting for JSON keys, strings, numbers, literals and punctuation.
+          - Install, enable and reload language extensions in **Settings → Advanced → Extensions**. Each extension is a JSON manifest.
+          - Use the English authoring guide, local grammar tester and repository agent skill to build your own language extensions.
+
+          ## Install on Windows x64
+
+          Download the Windows x64 ZIP under **Assets** and extract it. Open PowerShell in the extracted folder and run the following command. Leave the window open and follow the Windows certificate prompt.
+
+          ```powershell
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1
+          ```
+
+          Launch **Notepads-Dev** and open a `.json` file. The package uses the same app identity as the fork preview, so you can install it over that version. The ZIP includes the MSIX bundle, its dependencies and the public signing certificate. The fork uses a self-signed certificate. Windows may ask for administrator approval to trust it.
+          NOTES
+          echo >> notes.md
+          echo "SHA-256 of the included public certificate: \`$cert_sha\`." >> notes.md
+          echo >> notes.md
+          echo "[Extension authoring guide](https://github.com/$GITHUB_REPOSITORY/blob/$tag/docs/extensions.md) · [Agent skill](https://github.com/$GITHUB_REPOSITORY/blob/$tag/.agents/skills/create-notepads-extension/SKILL.md)" >> notes.md
+
+          # Keep the public release hidden until both assets have uploaded.
+          release_url="repos/$GITHUB_REPOSITORY/releases"
+          existing=$(gh api --paginate "$release_url" --jq ".[] | select(.tag_name == \"$tag\") | [.draft,.target_commitish] | @tsv")
+          if [[ -n "$existing" ]]; then
+            read -r draft target <<< "$existing"
+            [[ "$draft" == "true" && "$target" == "$GITHUB_SHA" ]] || { echo "Release already exists for $tag."; exit 1; }
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title "Notepads $tag" --notes-file notes.md
+          fi
+          gh release upload "$tag" "$asset" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --latest
