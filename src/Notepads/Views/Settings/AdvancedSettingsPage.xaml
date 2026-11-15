@@ -75,6 +75,18 @@
                                   Style="{StaticResource CustomToggleSwitchStyle}" 
                                   x:Name="ExitWhenLastTabClosedToggleSwitch" />
                 </StackPanel>
+                <TextBlock x:Uid="/Settings/Extensions_Title" Style="{StaticResource CompactSubtitleTextBlockStyle}"
+                           Margin="0,25,0,0" FontWeight="Normal" />
+                <ContentControl x:Name="ExtensionControls" IsTabStop="False" HorizontalContentAlignment="Stretch" Margin="0,10,0,0">
+                    <StackPanel Spacing="8">
+                        <StackPanel x:Name="ExtensionList" />
+                        <Button x:Uid="/Settings/Extensions_Install" Click="InstallExtension_Click" />
+                        <Button x:Uid="/Settings/Extensions_OpenFolder" Click="OpenExtensionsFolder_Click" />
+                        <Button x:Uid="/Settings/Extensions_Reload" Click="ReloadExtensions_Click" />
+                        <TextBlock x:Name="ExtensionStatus" Style="{ThemeResource DescriptionTextBlockStyle}"
+                                   TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
+                </ContentControl>
                 <StackPanel x:Name="LanguagePreferenceSettingsPanel">
                     <TextBlock
                     x:Name="LanguagePreferenceSettingsTitle"

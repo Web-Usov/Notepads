@@ -144,6 +144,7 @@ namespace Notepads.Controls.TextEditor
             PointerWheelChanged += OnPointerWheelChanged;
             LostFocus += OnLostFocus;
             Loaded += OnLoaded;
+            Unloaded += OnSyntaxUnloaded;
 
             SelectionChanged += OnSelectionChanged;
             TextWrappingChanged += OnTextWrappingChanged;
@@ -173,6 +174,7 @@ namespace Notepads.Controls.TextEditor
             _lineIndicator = GetTemplateChild(LineIndicatorName) as Border;
 
             _contentScrollViewer = GetTemplateChild(ContentElementName) as ScrollViewer;
+            SetSyntaxLayer(GetTemplateChild("SyntaxViewport") as Canvas, GetTemplateChild("SyntaxLayer") as Canvas);
             _shouldResetScrollViewerToLastKnownPositionAfterRegainingFocus = true;
             _contentScrollViewer.ViewChanging += OnContentScrollViewerViewChanging;
             _contentScrollViewer.ViewChanged += OnContentScrollViewerViewChanged;
@@ -201,6 +203,8 @@ namespace Notepads.Controls.TextEditor
             PointerWheelChanged -= OnPointerWheelChanged;
             LostFocus -= OnLostFocus;
             Loaded -= OnLoaded;
+            Unloaded -= OnSyntaxUnloaded;
+            StopSyntaxHighlighting();
 
             if (_contentScrollViewer != null)
             {
@@ -311,6 +315,7 @@ namespace Notepads.Controls.TextEditor
         private void OnLoaded(object sender, RoutedEventArgs _)
         {
             _loaded = true;
+            StartSyntaxHighlighting();
 
             ResetRootGridClipping();
 
@@ -378,6 +383,7 @@ namespace Notepads.Controls.TextEditor
             {
                 Document.GetText(TextGetOptions.None, out var document);
                 _document = TrimRichEditBoxText(document);
+                if (_syntaxGrammar != null) UpdateSyntaxTokens();
                 _isDocumentLinesCachePendingUpdate = true;
             }
         }
@@ -389,6 +395,8 @@ namespace Notepads.Controls.TextEditor
 
         private void OnSelectionChanging(RichEditBox sender, RichEditBoxSelectionChangingEventArgs args)
         {
+            if (_textSelectionStartPosition != _textSelectionEndPosition || args.SelectionLength != 0)
+                QueueSyntaxPaint();
             _textSelectionStartPosition = args.SelectionStart;
             _textSelectionEndPosition = args.SelectionStart + args.SelectionLength;
         }
@@ -402,6 +410,7 @@ namespace Notepads.Controls.TextEditor
 
         private void OnContentScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs _)
         {
+            QueueSyntaxPaint();
             if (_shouldResetScrollViewerToLastKnownPositionAfterRegainingFocus)
             {
                 _shouldResetScrollViewerToLastKnownPositionAfterRegainingFocus = false;
@@ -419,11 +428,13 @@ namespace Notepads.Controls.TextEditor
 
         private void OnContentScrollViewerSizeChanged(object sender, SizeChangedEventArgs _)
         {
+            QueueSyntaxPaint();
             UpdateLineNumbersRendering();
         }
 
         private void OnFontSizeChanged(object sender, double _)
         {
+            QueueSyntaxPaint();
             UpdateLineHighlighterAndIndicator();
         }
 
@@ -434,6 +445,7 @@ namespace Notepads.Controls.TextEditor
 
         private void OnTextWrappingChanged(object sender, TextWrapping _)
         {
+            QueueSyntaxPaint();
             UpdateLayout();
             UpdateLineHighlighterAndIndicator();
             UpdateLineNumbersRendering();
@@ -711,6 +723,7 @@ namespace Notepads.Controls.TextEditor
 
             FlowDirection = direction;
             TextReadingOrder = TextReadingOrder.UseFlowDirection;
+            QueueSyntaxPaint();
 
             UpdateLayout();
             SetDefaultTabStopAndLineSpacing(FontFamily, FontSize);
