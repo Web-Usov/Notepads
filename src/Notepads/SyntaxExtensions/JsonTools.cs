@@ -6,15 +6,17 @@ namespace Notepads.SyntaxExtensions
 
     internal static class JsonTools
     {
-        private const int MaxInputLength = 1024 * 1024;
-        private const int MaxOutputLength = 4 * MaxInputLength;
+        private const int MaxFormatInputLength = 1024 * 1024;
+        private const int MaxOutputLength = 4 * MaxFormatInputLength;
         private static readonly UTF8Encoding Utf8 = new UTF8Encoding(false, true);
 
         internal static EditorCommandResult Execute(EditorSnapshot snapshot, bool minify)
         {
             int start = snapshot.SelectionLength == 0 ? 0 : snapshot.SelectionStart;
             int length = snapshot.SelectionLength == 0 ? snapshot.Text.Length : snapshot.SelectionLength;
-            if (length > MaxInputLength)
+            if (minify && length > MaxOutputLength)
+                return EditorCommandResult.Error(start, 0, "JSON input exceeds 4,194,304 characters.");
+            if (!minify && length > MaxFormatInputLength)
                 return EditorCommandResult.Error(start, 0, "JSON input exceeds 1,048,576 characters.");
 
             string input = snapshot.Text.Substring(start, length);

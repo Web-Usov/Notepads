@@ -712,4 +712,64 @@
   <data name="MainMenu_ExtensionCommands.Text" xml:space="preserve">
     <value>Команды расширений</value>
   </data>
+  <data name="ExtensionPanel_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="ExtensionPanel_CloseName" xml:space="preserve">
+    <value>Закрыть {0}</value>
+  </data>
+  <data name="ExtensionPanel_Filter" xml:space="preserve">
+    <value>Фильтр</value>
+  </data>
+  <data name="ExtensionPanel_Placeholder" xml:space="preserve">
+    <value>Идентификатор запроса или текст</value>
+  </data>
+  <data name="ExtensionPanel_FilterName" xml:space="preserve">
+    <value>Фильтр по идентификатору запроса или фрагменту текста</value>
+  </data>
+  <data name="ExtensionPanel_Severity" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="ExtensionPanel_SeverityName" xml:space="preserve">
+    <value>Фильтр по уровню сообщения</value>
+  </data>
+  <data name="ExtensionPanel_SeverityAll" xml:space="preserve">
+    <value>Все уровни</value>
+  </data>
+  <data name="ExtensionPanel_SeverityTrace" xml:space="preserve">
+    <value>Трассировка</value>
+  </data>
+  <data name="ExtensionPanel_SeverityDebug" xml:space="preserve">
+    <value>Отладка</value>
+  </data>
+  <data name="ExtensionPanel_SeverityInfo" xml:space="preserve">
+    <value>Информация</value>
+  </data>
+  <data name="ExtensionPanel_SeverityWarn" xml:space="preserve">
+    <value>Предупреждение</value>
+  </data>
+  <data name="ExtensionPanel_SeverityError" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="ExtensionPanel_SeverityFatal" xml:space="preserve">
+    <value>Критическая ошибка</value>
+  </data>
+  <data name="ExtensionPanel_ResultsName" xml:space="preserve">
+    <value>Результаты {0} в порядке строк документа</value>
+  </data>
+  <data name="ExtensionPanel_Searching" xml:space="preserve">
+    <value>Поиск…</value>
+  </data>
+  <data name="ExtensionPanel_NoMatches" xml:space="preserve">
+    <value>Подходящих строк нет.</value>
+  </data>
+  <data name="ExtensionPanel_OneMatch" xml:space="preserve">
+    <value>Найдена одна строка.</value>
+  </data>
+  <data name="ExtensionPanel_ManyMatches" xml:space="preserve">
+    <value>Найдено строк: {0}</value>
+  </data>
+  <data name="ExtensionPanel_LoadError" xml:space="preserve">
+    <value>Не удалось загрузить результаты. {0}</value>
+  </data>
 </root>

@@ -52,6 +52,12 @@ internal static class JsonToolsTests
         Check(unicode.Start == 2 && unicode.Text == null, "unpaired surrogate diagnosis");
         var largeOutput = new string('[', 95) + string.Join(",", Enumerable.Repeat("1", 22000)) + new string(']', 95);
         Check(Run(largeOutput, false).Text == null && Run(largeOutput, true).Text == largeOutput, "bound formatting expansion");
+        string largeArray = "[" + string.Join(",", Enumerable.Repeat("0", 220000)) + "]";
+        string largeFormatted = Run(largeArray, false).Text;
+        Check(largeFormatted != null && largeFormatted.Length == 1100002 && Run(largeFormatted, true).Text == largeArray,
+            "minify successful formatter output larger than the formatter input limit");
+        Check(Run(largeFormatted, false).Message.Contains("1,048,576"), "enforce the formatter input limit");
+        Check(Run(new string(' ', 4194305), true).Message.Contains("4,194,304"), "bound the minifier input");
         AssertSingleUndoableEdit(compact);
         Console.WriteLine("JSON Tools tests passed.");
     }

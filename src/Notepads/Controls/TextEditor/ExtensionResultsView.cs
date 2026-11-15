@@ -5,6 +5,7 @@ namespace Notepads.Controls.TextEditor
     using System.Threading;
     using System.Threading.Tasks;
     using Notepads.SyntaxExtensions;
+    using Windows.ApplicationModel.Resources;
     using Windows.System;
     using Windows.UI.Text;
     using Windows.UI.Xaml;
@@ -16,6 +17,7 @@ namespace Notepads.Controls.TextEditor
 
     internal sealed class ExtensionResultsView : UserControl
     {
+        private readonly ResourceLoader _resources = ResourceLoader.GetForCurrentView();
         private readonly ExtensionPanel _panel;
         private readonly Action<EditorSnapshot, EditorPanelRow> _navigate;
         private readonly TextBox _filter;
@@ -50,8 +52,8 @@ namespace Notepads.Controls.TextEditor
                 VerticalAlignment = VerticalAlignment.Center,
                 TextWrapping = TextWrapping.Wrap
             };
-            var closeButton = new Button { Content = "Close" };
-            AutomationProperties.SetName(closeButton, "Close " + _panel.Title);
+            var closeButton = new Button { Content = Label("Close") };
+            AutomationProperties.SetName(closeButton, string.Format(Label("CloseName"), _panel.Title));
             closeButton.Click += (sender, args) => close();
             Grid.SetColumn(closeButton, 1);
             header.Children.Add(title);
@@ -59,22 +61,23 @@ namespace Notepads.Controls.TextEditor
 
             _filter = new TextBox
             {
-                Header = "Filter",
-                PlaceholderText = "Request ID or text",
+                Header = Label("Filter"),
+                PlaceholderText = Label("Placeholder"),
                 Text = snapshot.Text.Substring(snapshot.SelectionStart, snapshot.SelectionLength),
                 Margin = new Thickness(0, 8, 0, 0)
             };
-            AutomationProperties.SetName(_filter, "Filter results by request ID or literal text");
+            AutomationProperties.SetName(_filter, Label("FilterName"));
             _severity = new ComboBox
             {
-                Header = "Severity",
-                ItemsSource = new[] { "All", "Trace", "Debug", "Info", "Warn", "Error", "Fatal" },
-                SelectedIndex = 0,
+                Header = Label("Severity"),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 Visibility = _panel.Handler == "log.filter" ? Visibility.Visible : Visibility.Collapsed,
                 Margin = new Thickness(0, 4, 0, 0)
             };
-            AutomationProperties.SetName(_severity, "Filter results by severity");
+            foreach (string level in new[] { "All", "Trace", "Debug", "Info", "Warn", "Error", "Fatal" })
+                _severity.Items.Add(new ComboBoxItem { Content = Label("Severity" + level), Tag = level });
+            _severity.SelectedIndex = 0;
+            AutomationProperties.SetName(_severity, Label("SeverityName"));
             _status = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 4) };
             AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
             _results = new ListView
@@ -84,7 +87,7 @@ namespace Notepads.Controls.TextEditor
                 FontFamily = new FontFamily("Consolas"),
                 IsTabStop = true
             };
-            AutomationProperties.SetName(_results, _panel.Title + " results by source line");
+            AutomationProperties.SetName(_results, string.Format(Label("ResultsName"), _panel.Title));
             // The ListView virtualizes text rows and needs no reflection-based item template.
             _results.ItemClick += (sender, args) =>
             {
@@ -124,6 +127,8 @@ namespace Notepads.Controls.TextEditor
             Refresh(snapshot);
         }
 
+        private string Label(string name) => _resources.GetString("ExtensionPanel_" + name);
+
         private void NavigateToRow(int index)
         {
             var shown = _displayedSnapshot;
@@ -158,11 +163,11 @@ namespace Notepads.Controls.TextEditor
             _pending = pending;
             var snapshot = _snapshot;
             string filter = _filter.Text;
-            string severity = _severity.SelectedItem as string;
+            string severity = (_severity.SelectedItem as ComboBoxItem)?.Tag as string;
             _displayedSnapshot = null;
             _displayedRows = null;
             _results.ItemsSource = null;
-            _status.Text = "Searching…";
+            _status.Text = Label("Searching");
             try
             {
                 await Task.Delay(150, pending.Token);
@@ -182,14 +187,14 @@ namespace Notepads.Controls.TextEditor
                 _displayedSnapshot = snapshot;
                 _displayedRows = rows;
                 _results.ItemsSource = labels;
-                _status.Text = labels.Length == 0 ? "No matching lines." :
-                    labels.Length == 1 ? "1 matching line." : labels.Length + " matching lines.";
+                _status.Text = labels.Length == 0 ? Label("NoMatches") :
+                    labels.Length == 1 ? Label("OneMatch") : string.Format(Label("ManyMatches"), labels.Length);
             }
             catch (OperationCanceledException) when (pending.IsCancellationRequested) { }
             catch (Exception exception)
             {
                 if (!pending.IsCancellationRequested)
-                    _status.Text = "Could not load results. " + exception.Message;
+                    _status.Text = string.Format(Label("LoadError"), exception.Message);
             }
             finally
             {
