@@ -24,7 +24,7 @@
 
 ## Language extensions in this fork
 
-JSON syntax highlighting is enabled by default. Install or manage language extensions in **Settings → Advanced → Extensions**. See the [extension guide](docs/extensions.md) for the manifest format, an example plugin and Windows build instructions.
+JSON syntax highlighting is enabled by default. Install or manage language extensions in **Settings → Advanced → Extensions**. To add a language, follow the [extension authoring guide](docs/extensions.md) or use the [create-notepads-extension agent skill](.agents/skills/create-notepads-extension/SKILL.md).
 
 ## What is Notepads and why do I care?
 

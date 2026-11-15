@@ -8,7 +8,21 @@ using Notepads.SyntaxExtensions;
 
 internal static class Program
 {
-    private static void Main()
+    private static int Main(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            RunTests();
+            return 0;
+        }
+        if (args.Length == 2)
+            return ManifestPreview.Run(args[0], args[1]);
+
+        Console.Error.WriteLine("Usage: SyntaxExtensions.Tests [<manifest.json> <sample-file>]");
+        return 2;
+    }
+
+    private static void RunTests()
     {
         var manifest = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "json.notepads-extension.json"));
         var extension = SyntaxExtension.Parse(manifest);

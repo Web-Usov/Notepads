@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create a Notepads Extension"
+  short_description: "Write and test syntax grammars for the Notepads fork"
+  default_prompt: "Use $create-notepads-extension to create an installable Notepads syntax extension for INI files and verify it on a sample."
