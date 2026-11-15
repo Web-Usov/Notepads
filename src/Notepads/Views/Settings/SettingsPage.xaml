@@ -37,6 +37,7 @@
             </NavigationViewItem>
             <NavigationViewItem Style="{StaticResource CustomNavigationViewItemStyle}" 
                                 x:Uid="/Settings/AdvancedPage_Title"
+                                AutomationProperties.AutomationId="AdvancedSettingsItem"
                                 Tag="Advanced" >
                 <NavigationViewItem.Icon>
                     <FontIcon FontFamily="Segoe MDL2 Assets"

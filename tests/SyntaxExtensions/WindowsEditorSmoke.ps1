@@ -28,6 +28,12 @@ function Wait-For([string]$Description, [scriptblock]$Probe, [int]$Seconds = 20)
         catch [System.Windows.Automation.ElementNotAvailableException] { }
         Start-Sleep -Milliseconds 150
     } while ([DateTime]::UtcNow -lt $until)
+    if ($null -ne (Get-Variable -Name window -ErrorAction SilentlyContinue)) {
+        $visible = $window.FindAll($subtree, [System.Windows.Automation.Condition]::TrueCondition)
+        # This test owns the disposable app and its only document is the public fixture.
+        $visible | Where-Object { !$_.Current.IsOffscreen } | Select-Object -First 100 |
+            ForEach-Object { Write-Host ("{0}  {1}  {2}" -f $_.Current.ControlType.ProgrammaticName, $_.Current.AutomationId, $_.Current.Name) }
+    }
     throw "Timed out waiting for $Description."
 }
 
@@ -177,8 +183,7 @@ try {
 
     Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
     Invoke-Control (Wait-For 'Settings in the main menu' { Find-AppControl $byId 'MenuSettingsButton' })
-    $navigation = Wait-For 'the settings navigation view' { Find-AppControl $byId 'SettingsNavigationView' }
-    $advanced = Wait-For 'the Advanced settings item' { Find-Control $navigation $byName 'Advanced' }
+    $advanced = Wait-For 'the Advanced settings item' { Find-AppControl $byId 'AdvancedSettingsItem' }
     $advanced.SetFocus()
     [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
     $urlButton = Wait-For 'Install from URL in Advanced settings' {
