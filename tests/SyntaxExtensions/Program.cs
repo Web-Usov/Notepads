@@ -47,12 +47,16 @@ internal static class Program
         ExpectTokens(other.Grammars[0], "abc key #key\nkey", "string|abc", "keyword|key", "comment|#key", "keyword|key");
 
         CheckRegistry(extension);
+        EditorApiTests.Run();
+        JsonToolsTests.Run();
+        LogLensTests.Run();
+        PackageTests.Run();
 
         Reject("{}", "incomplete manifest");
         Reject("{", "malformed manifest");
         Reject(manifest.Replace("notepads.json", @"\uD800"), "invalid UTF-16 escape");
         Reject(manifest.Replace("notepads.json", "\uD800"), "invalid UTF-16 input");
-        Reject(manifest.Replace("\"apiVersion\": 1", "\"apiVersion\": 2"), "future apiVersion");
+        Reject(manifest.Replace("\"apiVersion\": 2", "\"apiVersion\": 999"), "future apiVersion");
         Reject(manifest.Replace("notepads.json", "../plugin"), "invalid id");
         Reject(Manifest(new[] { "json" }, Rule("string", "a")), "invalid suffix");
         Reject(Manifest(new[] { ".Ab", ".aB" }, Rule("string", "a")), "duplicate suffix");

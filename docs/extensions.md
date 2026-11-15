@@ -1,8 +1,14 @@
-# Writing a Notepads language extension
+# Writing Notepads extensions
 
-A language extension is one UTF-8 JSON file. It lists the file suffixes it handles and the patterns to highlight. When you open or rename a file, Notepads selects a grammar by its last suffix, runs its rules on the text, and draws the resulting token colors over the editor. This keeps saving, selection, and Undo in the editor's plain-text model. The [bundled JSON extension](../src/Notepads/Assets/Extensions/json.notepads-extension.json) uses the same API as an extension you install yourself.
+A Notepads extension is a UTF-8 JSON manifest. It can associate file suffixes with highlighting rules, add commands to the editor, or open a read-only results panel. The host implements each operation. An author can publish a new combination of supported operations by shipping a manifest. New handler implementations require a change to the app.
 
-## Create your first extension
+## Try the bundled extensions
+
+**JSON Tools.** Open a `.json` file and choose **Main menu → Extension commands → Format JSON** or **Minify JSON**. A selection is treated as a complete JSON value. With just a caret, the command processes the whole document. Formatting uses two spaces per level and preserves the document's line-ending setting. Both commands preserve key order, duplicate keys, string escapes and numeric spellings. **Ctrl+Z** undoes a transformation in one step. A parse error selects the offending position and reports the document line and column. The same **JSON** switch in Settings controls highlighting and both commands. [JSON manifest](../src/Notepads/Assets/Extensions/json.notepads-extension.json)
+
+**Log Lens.** Open the [sample log](../tests/SyntaxExtensions/Fixtures/interleaved.log.txt), select `req-41`, and choose **Main menu → Extension commands → Open Log Lens**. Adjust or clear the request filter in the panel and choose a severity. For structured lines with a `requestId`, the filter matches the entire field. For plain text it searches for the literal text. The panel understands JSON lines, Docker's `log` envelope and common NestJS levels. Select a result to return to its original line and read the surrounding stack trace. Filtering and navigation leave the text and Undo history intact. [Log Lens manifest](../src/Notepads/Assets/Extensions/log-lens.notepads-extension.json)
+
+## Create a highlighting extension
 
 Save the following as `todos.notepads-extension.json`. It recognizes task markers and comments in `.todo` files.
 
@@ -37,7 +43,7 @@ In **Settings → Advanced → Extensions**, choose **Install from file…** and
 
 To create an extension with a coding agent, use the repository's [create-notepads-extension skill](../.agents/skills/create-notepads-extension/SKILL.md). Give the agent the target suffixes and a short example showing what should receive each color.
 
-## Manifest reference
+## API v1 grammar reference
 
 The v1 loader accepts UTF-8 JSON up to 64 KiB, with an optional UTF-8 BOM. Use the field names and scope names exactly as shown. All fields in the table are required.
 
@@ -52,7 +58,31 @@ The v1 loader accepts UTF-8 JSON up to 64 KiB, with an optional UTF-8 BOM. Use t
 | `scope` | One of `property`, `string`, `number`, `keyword`, `punctuation`, or `comment`. The editor supplies light and dark colors for each. |
 | `match` | Nonblank .NET regular expression, up to 1,024 UTF-16 code units after JSON decoding. Each match must consume at least one character. |
 
-API v1 exposes a single contribution point, `contributes.grammars`. Share the manifest file directly. Adding commands, callbacks, or a different grammar format would require changes to the host.
+Grammar-only v1 manifests keep working and have an implicit package version of `1.0.0`. To publish a newer version or add commands, set `apiVersion` to `2`, add a three-part `version` and keep the same `id`.
+
+## Create an editor command
+
+Install [wrap.notepads-extension.json](examples/wrap.notepads-extension.json). In a Markdown file select `important` and choose **Main menu → Extension commands → Wrap in bold**. The selected word becomes `**important**`. Press **Ctrl+Z** to restore it. With an empty selection the command inserts both delimiters at the caret. Change `prefix`, `suffix` and `title` to adapt it, and choose your own extension ID before sharing.
+
+### API v2 reference
+
+Keep `id`, `displayName` and `contributes` as in v1. Set `apiVersion` to `2` and supply a numeric `version` such as `1.2.0`. Each manifest needs at least one grammar or command. Omit unused arrays.
+
+| Contribution | Fields and behavior |
+| --- | --- |
+| `grammars` | The v1 grammar format and limits apply. A grammar and commands can share a manifest and enabled setting. |
+| `commands` | Up to 32 entries. Give each a unique `id`, a user-visible `title` and a `handler` from the table below. An optional `fileExtensions` list of 1–32 suffixes selects applicable documents. Omitting it makes the command available on all documents. |
+| `panels` | Up to 16 entries. Each has a unique `id`, a `title` and a `handler`. Use `log.filter` for read-only log results. A command opens a panel by its ID in the same manifest. |
+
+Command and panel IDs follow the extension ID rules. Titles accept up to 100 UTF-16 code units. The host recognizes these command handlers.
+
+| Handler | Operation |
+| --- | --- |
+| `text.wrap` | Set `prefix` and `suffix` to strings of printable characters, with a combined length of 1–512 UTF-16 code units. Wrap the current selection, or insert the delimiters when the selection is empty. |
+| `json.format`, `json.minify` | Rewrite whitespace in a complete JSON value. Invalid input returns a diagnostic and a source position. |
+| `panel.open` | Set `panel` to the ID of a declared results panel. The host opens it for the active document and uses the current selection as its initial filter. |
+
+When extending the host, use the [editor command contract](../src/Notepads/SyntaxExtensions/EditorCommands.cs). A handler reads an immutable snapshot containing a document ID, revision, text and selection. Its offsets are zero-based UTF-16 code units in editor text, with one carriage return per line break. Ranges use a start and length. An edit returns one replacement for one Undo step, a diagnostic returns a message and source range, and each panel result carries its original line and source range. Apply edits and navigation only while the snapshot still matches the active document and revision. Handle stale results by discarding or refreshing them.
 
 ## How rules and grammars are selected
 
@@ -74,11 +104,22 @@ The preview prints a JSON array with `scope`, `text`, and zero-based `start` and
 
 If the panel reports a load error, check the file encoding, field names, suffix format and regex escaping. An invalid file is skipped individually. If a valid grammar produces no colors, check the active suffix, any competing extension, and whether the rules match the sample. Keep expressions inexpensive. The tokenizer falls back to plain text on a zero-length match, a regex timeout (40 ms per call), a scan exceeding its 300 ms budget, input over 1,048,576 UTF-16 code units, or more than 24,000 tokens. High Contrast, right-to-left mode and bidirectional lines use native text colors. Devices without supported composition effects use tinted backgrounds.
 
-## Update, share or bundle
+## Install, update and distribute
 
-- **Update an imported extension.** Edit the source manifest and choose **Install from file…** again. The importer validates the new version before replacing its copy under `ext-<id>.notepads-extension.json`.
-- **Iterate directly in the app folder.** Choose **Open extensions folder**, edit the installed copy in `LocalState/Extensions` and click **Reload extensions**. To remove a user extension, delete its file there and reload. Manifests copied directly into that folder must end in `.notepads-extension.json`. Changes refresh open tabs in this instance. Reload separately in other running instances.
-- **Share or ship an extension.** Send the manifest to another user for import. To include it with every installation of this fork, add it directly under [src/Notepads/Assets/Extensions](../src/Notepads/Assets/Extensions/) using the same filename suffix. The app project packages matching files on its next build.
+Open **Settings → Advanced → Extensions**. Choose **Install from file…** for a local JSON manifest or ZIP, or **Install from URL…** for a remote source. Review the extension ID, version and source before confirming. Use the switch beside the extension to enable its grammars, commands and panels together.
+
+| Source | What to publish or select |
+| --- | --- |
+| JSON file or HTTPS URL | Provide a UTF-8 manifest up to 64 KiB. Use a raw/download URL for the file on a web host. |
+| ZIP file or HTTPS URL | Include exactly one `*.notepads-extension.json` manifest at the archive root or one directory below it. The ZIP can be up to 2 MiB with up to 256 entries. The installer reads the manifest and ignores other files. |
+| Public GitHub repository or `/releases/latest` | Attach one `*.notepads-extension.json` or ZIP to the latest published stable release. If GitHub has no latest release, put a single matching manifest at the root of the default branch. For a release with multiple matching assets, give users the direct HTTPS asset URL. |
+| GitHub `/releases/tag/<tag>` | Use the release page for a specific tag to pin the source. A direct asset URL also points to that asset. |
+
+For a remote installation, choose **Check for updates** to check the recorded source. A repository URL follows the latest release, while a tag URL continues checking that release. When an update has the same ID and a higher package version, review and confirm the replacement. For a local installation, import the updated JSON or ZIP again.
+
+Choose **Open extensions folder** to edit an installed `ext-<id>.notepads-extension.json` under `LocalState/Extensions`, then **Reload extensions**. To remove a user extension, delete its manifest and reload. Manifests copied directly into that folder must end in `.notepads-extension.json`. Other running instances have their own in-memory catalog; reload each instance where you want the change.
+
+To bundle an extension with the app, put its manifest directly under [src/Notepads/Assets/Extensions](../src/Notepads/Assets/Extensions/) before building. Keep examples and test data outside that directory.
 
 ## Build and check
 

@@ -709,4 +709,7 @@
     <value>Предупреждение</value>
     <comment>SessionCorruptionErrorDialog: "Title" display text.</comment>
   </data>
+  <data name="MainMenu_ExtensionCommands.Text" xml:space="preserve">
+    <value>Команды расширений</value>
+  </data>
 </root>

@@ -7,7 +7,7 @@ namespace Notepads.SyntaxExtensions
     using System.Text.RegularExpressions;
     using System.Threading;
 
-    internal sealed class SyntaxExtension
+    internal sealed partial class SyntaxExtension
     {
         public const int MaxManifestLength = 65536;
         private static readonly Regex IdPattern = new Regex(@"\A[a-z0-9][a-z0-9._-]{0,79}\z");
@@ -17,14 +17,18 @@ namespace Notepads.SyntaxExtensions
             "property", "string", "number", "keyword", "punctuation", "comment"
         };
 
-        private SyntaxExtension(string id, string displayName, List<SyntaxGrammar> grammars)
+        private SyntaxExtension(string id, string displayName, List<SyntaxGrammar> grammars, string version, List<ExtensionCommand> commands)
         {
+            Version = version;
+            Commands = commands.AsReadOnly();
             Id = id;
             DisplayName = displayName;
             Grammars = grammars.AsReadOnly();
         }
 
         public string Id { get; }
+        public string Version { get; }
+        public IReadOnlyList<ExtensionCommand> Commands { get; }
         public string DisplayName { get; }
         public IReadOnlyList<SyntaxGrammar> Grammars { get; }
 
@@ -39,24 +43,17 @@ namespace Notepads.SyntaxExtensions
                 {
                     var root = document.RootElement;
                     var api = Required(root, "apiVersion", JsonValueKind.Number);
-                    if (!api.TryGetInt32(out int version) || version != 1)
-                        throw new FormatException("Unsupported extension apiVersion. Expected 1.");
+                    if (!api.TryGetInt32(out int version) || (version != 1 && version != 2))
+                        throw new FormatException("Unsupported extension apiVersion. Expected 1 or 2.");
 
-                    var id = ReadString(root, "id", 80);
-                    if (!IdPattern.IsMatch(id))
-                        throw new FormatException("Invalid extension id.");
-
-                    var name = ReadString(root, "displayName", 100);
-                    foreach (char character in name)
-                    {
-                        if (char.IsControl(character))
-                            throw new FormatException("Extension displayName contains a control character.");
-                    }
-
+                    var id = ReadId(root);
+                    var name = ReadLabel(root, "displayName");
+                    var packageVersion = version == 2 ? ReadVersion(root) : "1.0.0";
                     var contributes = Required(root, "contributes", JsonValueKind.Object);
                     var grammars = new List<SyntaxGrammar>();
                     var claimedSuffixes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var item in ReadArray(contributes, "grammars", 16))
+                    if (version == 1) Required(contributes, "grammars", JsonValueKind.Array);
+                    foreach (var item in OptionalArray(contributes, "grammars", 16))
                     {
                         var suffixes = new List<string>();
                         foreach (var suffix in ReadArray(item, "fileExtensions", 32))
@@ -77,7 +74,10 @@ namespace Notepads.SyntaxExtensions
                         }
                         grammars.Add(new SyntaxGrammar(suffixes, rules));
                     }
-                    return new SyntaxExtension(id, name, grammars);
+                    var commands = version == 2 ? ReadCommands(contributes) : new List<ExtensionCommand>();
+                    if (grammars.Count == 0 && commands.Count == 0)
+                        throw new FormatException("Declare at least one grammar or command.");
+                    return new SyntaxExtension(id, name, grammars, packageVersion, commands);
                 }
             }
             catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException || ex is ArgumentException)

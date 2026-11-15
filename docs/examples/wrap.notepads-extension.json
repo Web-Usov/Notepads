@@ -1,0 +1,18 @@
+{
+  "apiVersion": 2,
+  "id": "example.markdown-wrap",
+  "version": "1.0.0",
+  "displayName": "Markdown emphasis",
+  "contributes": {
+    "commands": [
+      {
+        "id": "strong",
+        "title": "Wrap in bold",
+        "fileExtensions": [".md"],
+        "handler": "text.wrap",
+        "prefix": "**",
+        "suffix": "**"
+      }
+    ]
+  }
+}

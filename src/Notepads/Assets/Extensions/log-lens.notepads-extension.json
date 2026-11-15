@@ -1,0 +1,23 @@
+{
+  "apiVersion": 2,
+  "version": "1.0.0",
+  "id": "notepads.log-lens",
+  "displayName": "Log Lens",
+  "contributes": {
+    "commands": [
+      {
+        "id": "open",
+        "title": "Open Log Lens",
+        "handler": "panel.open",
+        "panel": "events"
+      }
+    ],
+    "panels": [
+      {
+        "id": "events",
+        "title": "Log Lens",
+        "handler": "log.filter"
+      }
+    ]
+  }
+}
