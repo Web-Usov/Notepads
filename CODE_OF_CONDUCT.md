@@ -54,10 +54,10 @@ further defined and clarified by project maintainers.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at NotepadsApp@outlook.com. All
-complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
+To report abusive or harassing content on GitHub, open the content menu and
+choose **Report content**. Choose **Report to repository admins** when available,
+or contact GitHub Support through its [abuse reporting process][reporting]. The
+project team will review reports it receives and respond as appropriate. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
 Further details of specific enforcement policies may be posted separately.
 
@@ -70,6 +70,7 @@ members of the project's leadership.
 This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
 available at https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
 
+[reporting]: https://docs.github.com/en/communities/maintaining-your-safety-on-github/reporting-abuse-or-spam
 [homepage]: https://www.contributor-covenant.org
 
 For answers to common questions about this code of conduct, see

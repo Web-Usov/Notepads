@@ -1,35 +1,29 @@
-﻿# How to Contribute:
+# Contributing to the Notepads fork
 
-You can contribute to Notepads project by:
-- Report issues and bugs [here](https://github.com/0x7c13/Notepads/issues)
-- Submit feature requests [here](https://github.com/0x7c13/Notepads/issues)
-- Create a pull request to help me (Let me know before you do so):
-    * Fix an existing bug, prefix title with `fix: `.
-    * Implement new features, prefix title with `feat: `.
-    * Fix grammar errors or improve my documentations, prefix title with `doc: `.
-    * Improve CI/CD pipeline, prefix title with `ci: `.
-    * Cleanup code and code refactoring or anything else you want to change in the project not listed above, prefix title with `other: ` or assign a custom prefix with the same format (`label: `).
-- Internationalization and localization:
-    * My only inputs for the work here is to recommend you guys to use existing phrases that you found in win32 notepad.exe or vs code or notepad++ as much as possible. It makes your translations more consistent and easier to understand by end users.    
-    * Since Notepads is still in early beta. I might change texts and add texts now and then for the upcoming months. Whenever that happens, I will notify you in [Notepads Discord Server](https://discord.gg/VqetCub) (Please join it if possible) and in [GitHub Discussions](https://github.com/0x7c13/Notepads/discussions/818) (Subscribe to notifications). If someday you lose the passion, feel free to let me know so I can assign your language to others.
-    * OK, here are the steps you need to follow if you want to contribute:
-        1. Make sure you can build and run Notepads project on your machine so that you can test it after your work.
-        2. Click [here](https://github.com/0x7c13/Notepads/discussions/818) and provide your information.
-        3. Do your work and test it on your machine and check your work to make sure it is not breaking any existing layout.
-        4. Finish your work and create a PR, prefix PR title with `lang: ` (Example: https://github.com/0x7c13/Notepads/pull/30)
-        5. Let me know and I will merge it if it looks good to me.
-        Notes: You should use the language code as your folder name listed here: https://docs.microsoft.com/en-us/windows/uwp/publish/supported-languages
+Base your branch on `master` and open a [pull request against the fork](https://github.com/Web-Usov/Notepads/compare). Describe what changed and how you tested it. To report a problem with a proposed change, comment on its PR with the app version, Windows build and steps to reproduce it. Include a small sample when it helps reproduce the problem.
 
-Note: This repository follows [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/), format your pull request title according to specifications.
+## Run the Windows app from source
 
-# How to Build and Run Notepads from source:
-* Make sure your machine is running on Windows 10 1903+.
-* Make sure you have Visual Studio 2019 16.2 or newer installed.
-* Make sure you have "Universal Windows Platform development" component installed for Visual Studio.
-* Make sure you installed "Windows 10 SDK (10.0.17763.0 + 10.0.19041.0)" as well.
-* Open src/Notepads.sln with Visual Studio and set Solution Platform to x64(amd64).
-* Once opened, right click on the solution and click on "Restore NuGet Packages".
-* Now you should be able to build and run Notepads on your machine. If it fails, try close the solution and reopen it again.
+1. Install Visual Studio 2022 on Windows with the C# Universal Windows Platform development tools and Windows SDK **10.0.22621.0**. The app project also references the Microsoft Store Services SDK and the Visual C++ UWP runtime libraries.
+2. Open [src/Notepads.sln](src/Notepads.sln), restore its NuGet packages and set **Notepads** as the startup project.
+3. Select **Debug**, **x64** and **Local Machine**. Press **F5** to deploy and run **Notepads-Dev**. Enable Windows Developer Mode if Visual Studio prompts for it.
 
-# TL;DR:
-This is my first UWP project and I learn as I go. As a result, the code base is not well organized, and it is not well written. The philosophy here is to create a text editor that is easy to use, lightweight and yet stylish instead of creating another Notepad++ or VS Code in anyway. If you are looking for a code/programming editor, you might want to use VS Code instead. If you are looking for a lightweight text editor, you come to the right place. Notepads is here to help you do small things quicker and you should always install and use other editors that suit your need.
+## Test language extensions
+
+Run the manifest, tokenizer and grammar-selection tests from the repository root using the .NET 8 SDK. These tests run independently of the Windows UI.
+
+```sh
+dotnet run --project tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj -c Release
+```
+
+For a new grammar, use the same command with `-- <manifest-file> <sample-file>` to inspect the tokens. Then open the sample file in the editor, edit a token and undo the change. The [extension authoring guide](docs/extensions.md) includes a working manifest and expected token output.
+
+## Try a pull request build
+
+Open the **Windows preview installer** run for the pull request. When its `installer` job succeeds, download **Notepads-Dev-Windows-x64** under **Artifacts**, extract the ZIP and follow the [Windows installation instructions](README.md#install-on-windows). Sign in to GitHub to download a preview artifact. It is available for 30 days. Published installers are available on the [fork’s Releases page](https://github.com/Web-Usov/Notepads/releases).
+
+## Publish a release
+
+1. Update `Identity.Version` in [Package.appxmanifest](src/Notepads/Package.appxmanifest) to a higher four-part version. Update the release notes in the [installer workflow](.github/workflows/preview-installer.yml) for the changes being shipped.
+2. After the release changes land on `master`, push a new branch from that commit named `release/v<version>`. For example, manifest version `1.6.1.0` requires branch `release/v1.6.1.0`. Pushing that branch starts publication. Pull requests and manual runs produce preview artifacts.
+3. The workflow tests the language extensions, signs and timestamps the x64 bundle, and verifies its contents. It publishes `v<version>` at the pushed commit with the Windows installer ZIP and `SHA256SUMS.txt`. Confirm both assets on the Releases page.
