@@ -1,6 +1,8 @@
-# Release signing for Notepads
+# Release signing for Plainix
 
 The fork uses the package identity `Notepads-Dev` with publisher `CN=Web-Usov Notepads Preview`. Keep that subject when provisioning a release signer so Windows can update existing installations in place. A PC that trusted an earlier preview certificate needs to trust the production certificate once.
+
+Stable releases publish both `Plainix.appinstaller` and `Notepads.appinstaller`. Both install the same signed bundle and frameworks. Each descriptor keeps its own stable update URL for Windows installations already subscribed to that address.
 
 ## Provision the signing environment
 

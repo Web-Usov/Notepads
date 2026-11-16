@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Editor di testo gratuito e open source progettato e realizzato da Jackie (Jiaqi) Liu</value>
+    <value>Editor di testo leggero per Windows con schede ed evidenziazione della sintassi JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +172,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>Avanzate</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Ripristina il colore di Plainix</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>Colore principale</value>

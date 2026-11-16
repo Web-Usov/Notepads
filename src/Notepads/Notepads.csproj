@@ -302,7 +302,7 @@
     <Content Include="Resource\MiddleClickScrolling-CursorType.res" />
     <Content Include="Resource\Text Document.txt" />
   </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'">
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <Content Include="Assets\**\*$(DevLabel).png">
       <Link>$([System.String]::new('%(Identity)').Replace('$(DevLabel)',''))</Link>
     </Content>
@@ -311,7 +311,7 @@
     <Content Include="Assets\search_*.png" />
     <Content Include="Assets\FileIcons\*.png" />
   </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Production'">
+  <ItemGroup Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'Production'">
     <Content Include="Assets\**\*.png" Exclude="Assets\**\*$(DevLabel).png" />
   </ItemGroup>
   <ItemGroup>

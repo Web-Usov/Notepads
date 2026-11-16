@@ -67,9 +67,9 @@ function Invoke-Extension([string]$Name, [string]$SubmenuName) {
     Invoke-Control (Wait-For $Name { Find-AppControl $byName $Name })
 }
 
-function Open-FixtureWindow([string]$File) {
+function Open-FixtureWindow([string]$File, [string]$ExecutionAlias) {
     $name = [IO.Path]::GetFileName($File)
-    Start-Process -FilePath $alias -ArgumentList ('"' + $File + '"')
+    Start-Process -FilePath $ExecutionAlias -ArgumentList ('"' + $File + '"')
     Wait-For "the document window for $name" {
         $windows = $desktop.FindAll([System.Windows.Automation.TreeScope]::Children,
             [System.Windows.Automation.Condition]::TrueCondition)
@@ -118,9 +118,13 @@ try {
     $inputPath = Join-Path $data 'extension-smoke.json'
     $original = '{"requestId":"req-17","level":"error"}'
     [IO.File]::WriteAllText($inputPath, $original, [Text.UTF8Encoding]::new($false))
-    $alias = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\Notepads-Dev.exe'
-    $null = Wait-For 'registration of the application execution alias' { Test-Path -LiteralPath $alias }
-    $window = Open-FixtureWindow $inputPath
+    $aliases = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps'
+    $alias = Join-Path $aliases 'plainix.exe'
+    $legacyAlias = Join-Path $aliases 'Notepads-Dev.exe'
+    $null = Wait-For 'registration of the current and legacy execution aliases' {
+        (Test-Path -LiteralPath $alias) -and (Test-Path -LiteralPath $legacyAlias)
+    }
+    $window = Open-FixtureWindow $inputPath $alias
     $editor = Wait-For 'the running RichEdit control' { Find-Control $window $byId 'TextEditorCore' }
     $ownedByEditor = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $editor.Current.ProcessId)
@@ -293,7 +297,7 @@ try {
     if (!$process.WaitForExit(10000)) { throw 'The first editor process did not exit.' }
     $russianInput = Join-Path $data 'extension-russian.json'
     [IO.File]::WriteAllText($russianInput, $original, [Text.UTF8Encoding]::new($false))
-    $window = Open-FixtureWindow $russianInput
+    $window = Open-FixtureWindow $russianInput $legacyAlias
     $editor = Wait-For 'the restarted editor' { Find-Control $window $byId 'TextEditorCore' }
     $ownedByEditor = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $editor.Current.ProcessId)

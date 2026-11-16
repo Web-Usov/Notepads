@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>一款由 Jackie (Jiaqi) Liu 所設計的免費開源文字編輯器</value>
+    <value>適用於 Windows 的輕量級文字編輯器，支援分頁及 JSON 語法醒目提示。</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +172,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>進階設定</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>還原 Plainix 輔色</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>輔色</value>
@@ -294,7 +297,7 @@
     <comment>AboutPage Changelog Title display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Description.Text" xml:space="preserve">
-    <value>一旦啟用後，Notepads 將會定時備份儲存當前的工作階段供下次啟動時使用，避免意外損失尚未儲存的資料。每當關閉應用程式時，Notepads 將不會提醒您儲存文件。此外請注意工作階段快照僅會在 Notepads 第一個視窗或者主視窗中啟用。</value>
+    <value>一旦啟用後，Plainix 將會定時備份儲存當前的工作階段供下次啟動時使用，避免意外損失尚未儲存的資料。每當關閉應用程式時，Plainix 將不會提醒您儲存文件。此外請注意工作階段快照僅會在 Plainix 第一個視窗或者主視窗中啟用。</value>
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
@@ -322,7 +325,7 @@
     <comment>TextAndEditorPage SpellingSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_AlwaysOpenNewWindow_Description.Text" xml:space="preserve">
-    <value>一旦啟用後，Notepads 將會在新的視窗中開啟檔案而不是建立新的索引標籤。</value>
+    <value>一旦啟用後，Plainix 將會在新的視窗中開啟檔案而不是建立新的索引標籤。</value>
     <comment>AdvancedPage LaunchPreferenceSettings AlwaysOpenNewWindow Description display text.</comment>
   </data>
   <data name="AdvancedPage_LaunchPreferenceSettings_AlwaysOpenNewWindowToggleSwitch.OffContent" xml:space="preserve">
@@ -390,11 +393,11 @@
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>選擇 Notepads 要顯示的語言，預設使用的是系統語言。需要重新啟動來套用變更。</value>
+    <value>選擇 Plainix 要顯示的語言，預設使用的是系統語言。需要重新啟動來套用變更。</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*請重啟 Notepads 來套用變更</value>
+    <value>*請重啟 Plainix 來套用變更</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">
@@ -402,7 +405,7 @@
     <comment>AdvancedPage LanguagePreferenceSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_Description.Text" xml:space="preserve">
-    <value>一旦啟用後，Notepads 會在複製已選取文字到剪貼簿之前智慧地修剪開頭和尾端的空格、Tab 字元以及空白行。</value>
+    <value>一旦啟用後，Plainix 會在複製已選取文字到剪貼簿之前智慧地修剪開頭和尾端的空格、Tab 字元以及空白行。</value>
     <comment>AdvancedPage SmartCopySettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_EnableSmartCopyToggleSwitch.OffContent" xml:space="preserve">

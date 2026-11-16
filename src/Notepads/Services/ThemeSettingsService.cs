@@ -27,6 +27,11 @@ namespace Notepads.Services
 
         private static readonly UISettings UISettings = new UISettings();
         private static readonly ThemeListener ThemeListener = new ThemeListener();
+        private static readonly AccessibilitySettings AccessibilitySettings = new AccessibilitySettings();
+        private static readonly Color Graphite = Color.FromArgb(255, 41, 42, 40);
+        private static readonly Color Paper = Color.FromArgb(255, 248, 245, 239);
+        private static readonly Color DarkAmber = Color.FromArgb(255, 154, 75, 0);
+        private static readonly Color Amber = Color.FromArgb(255, 239, 130, 14);
         private static Brush _currentAppBackgroundBrush;
 
         private static bool _useWindowsTheme;
@@ -42,11 +47,7 @@ namespace Notepads.Services
                     if (value)
                     {
                         var currentWindowsTheme = Application.Current.RequestedTheme.ToElementTheme();
-                        if (ThemeMode != currentWindowsTheme)
-                        {
-                            ThemeMode = currentWindowsTheme;
-                            OnThemeChanged?.Invoke(null, ThemeMode);
-                        }
+                        SetTheme(currentWindowsTheme);
                     }
                     ApplicationSettingsStore.Write(SettingsKey.UseWindowsThemeBool, _useWindowsTheme);
                 }
@@ -61,11 +62,8 @@ namespace Notepads.Services
             set
             {
                 _useWindowsAccentColor = value;
-                if (value)
-                {
-                    AppAccentColor = UISettings.GetColorValue(UIColorType.Accent);
-                }
-                ApplicationSettingsStore.Write(SettingsKey.UseWindowsAccentColorBool, _useWindowsAccentColor);
+                ApplicationSettingsStore.Write(SettingsKey.UseWindowsAccentColorBool, value);
+                OnAccentColorChanged?.Invoke(null, AppAccentColor);
             }
         }
 
@@ -82,83 +80,60 @@ namespace Notepads.Services
             }
         }
 
-        private static Color _appAccentColor;
+        private static Color? _customAccentColor;
 
         public static Color AppAccentColor
         {
-            get => _appAccentColor;
-            set
+            get
             {
-                _appAccentColor = value;
-                OnAccentColorChanged?.Invoke(null, _appAccentColor);
-                ApplicationSettingsStore.Write(SettingsKey.AppAccentColorHexStr, value.ToHex());
+                if (AccessibilitySettings.HighContrast) return UISettings.UIElementColor(UIElementType.Highlight);
+                if (UseWindowsAccentColor) return UISettings.GetColorValue(UIColorType.Accent);
+                return _customAccentColor ?? (ThemeMode == ElementTheme.Light ? DarkAmber : Amber);
             }
         }
 
-        private static Color _customAccentColor;
-
-        public static Color CustomAccentColor
+        public static void SetCustomAccentColor(Color? color)
         {
-            get => _customAccentColor;
-            set
+            _customAccentColor = color;
+            if (color.HasValue)
             {
-                _customAccentColor = value;
-                ApplicationSettingsStore.Write(SettingsKey.CustomAccentColorHexStr, value.ToHex());
+                ApplicationSettingsStore.Write(SettingsKey.CustomAccentColorHexStr, color.Value.ToHex());
+                ApplicationSettingsStore.Write(SettingsKey.AppAccentColorHexStr, color.Value.ToHex());
             }
+            else
+            {
+                ApplicationSettingsStore.Remove(SettingsKey.CustomAccentColorHexStr);
+                ApplicationSettingsStore.Remove(SettingsKey.AppAccentColorHexStr);
+            }
+
+            OnAccentColorChanged?.Invoke(null, AppAccentColor);
         }
 
         public static void Initialize()
         {
             InitializeThemeMode();
-
             InitializeAppAccentColor();
-
-            InitializeCustomAccentColor();
-
             InitializeAppBackgroundPanelTintOpacity();
         }
 
         private static void InitializeAppAccentColor()
         {
-            if (ApplicationSettingsStore.Read(SettingsKey.UseWindowsAccentColorBool) is bool useWindowsAccentColor)
+            _useWindowsAccentColor = ApplicationSettingsStore.Read(SettingsKey.UseWindowsAccentColorBool) as bool? ?? false;
+            var stored = ApplicationSettingsStore.Read(SettingsKey.CustomAccentColorHexStr) as string;
+            if (stored == null && !UseWindowsAccentColor)
             {
-                _useWindowsAccentColor = useWindowsAccentColor;
-            }
-            else
-            {
-                _useWindowsAccentColor = true;
+                stored = ApplicationSettingsStore.Read(SettingsKey.AppAccentColorHexStr) as string;
             }
 
+            _customAccentColor = stored == null ? (Color?)null : stored.ToColor();
             UISettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
-
-            _appAccentColor = UISettings.GetColorValue(Windows.UI.ViewManagement.UIColorType.Accent);
-
-            if (!UseWindowsAccentColor)
-            {
-                if (ApplicationSettingsStore.Read(SettingsKey.AppAccentColorHexStr) is string accentColorHexStr)
-                {
-                    _appAccentColor = accentColorHexStr.ToColor();
-                }
-            }
-        }
-
-        private static void InitializeCustomAccentColor()
-        {
-            if (ApplicationSettingsStore.Read(SettingsKey.CustomAccentColorHexStr) is string customAccentColorHexStr)
-            {
-                _customAccentColor = customAccentColorHexStr.ToColor();
-            }
-            else
-            {
-                _customAccentColor = _appAccentColor;
-            }
         }
 
         private static void UiSettings_ColorValuesChanged(UISettings sender, object args)
         {
-            if (UseWindowsAccentColor)
+            if (UseWindowsAccentColor || AccessibilitySettings.HighContrast)
             {
-                AppAccentColor = sender.GetColorValue(UIColorType.Accent);
+                OnAccentColorChanged?.Invoke(null, AppAccentColor);
             }
         }
 
@@ -205,8 +180,17 @@ namespace Notepads.Services
         {
             if (UseWindowsTheme)
             {
-                SetTheme(sender.CurrentTheme.ToElementTheme());
+                var theme = sender.CurrentTheme.ToElementTheme();
+                if (theme != ThemeMode)
+                {
+                    SetTheme(theme);
+                    return;
+                }
             }
+
+            // High Contrast can change while the light/dark theme stays the same.
+            OnThemeChanged?.Invoke(null, ThemeMode);
+            OnAccentColorChanged?.Invoke(null, AppAccentColor);
         }
 
         public static void SetTheme(ElementTheme theme)
@@ -216,6 +200,7 @@ namespace Notepads.Services
                 ThemeMode = theme;
                 ApplicationSettingsStore.Write(SettingsKey.RequestedThemeStr, ThemeMode.ToString());
                 OnThemeChanged?.Invoke(null, theme);
+                OnAccentColorChanged?.Invoke(null, AppAccentColor);
             }
         }
 
@@ -271,10 +256,12 @@ namespace Notepads.Services
 
         private static Brush GetAppBackgroundBrush(ElementTheme theme)
         {
-            var darkModeBaseColor = Color.FromArgb(255, 46, 46, 46);
-            var lightModeBaseColor = Color.FromArgb(255, 240, 240, 240);
+            if (AccessibilitySettings.HighContrast)
+            {
+                return new SolidColorBrush(UISettings.UIElementColor(UIElementType.Window));
+            }
 
-            var baseColor = theme == ElementTheme.Light ? lightModeBaseColor : darkModeBaseColor;
+            var baseColor = theme == ElementTheme.Light ? Paper : Graphite;
 
             if (AppBackgroundPanelTintOpacity > 0.99f ||
                 !Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.Xaml.Media.AcrylicBrush") ||
@@ -296,6 +283,17 @@ namespace Notepads.Services
 
         public static void ApplyThemeForTitleBarButtons(ApplicationViewTitleBar titleBar, ElementTheme theme)
         {
+            if (AccessibilitySettings.HighContrast)
+            {
+                // Let the caption buttons inherit the user's Windows contrast palette.
+                titleBar.ButtonForegroundColor = titleBar.ButtonBackgroundColor = null;
+                titleBar.ButtonHoverForegroundColor = titleBar.ButtonHoverBackgroundColor = null;
+                titleBar.ButtonPressedForegroundColor = titleBar.ButtonPressedBackgroundColor = null;
+                titleBar.ButtonInactiveForegroundColor = titleBar.ButtonInactiveBackgroundColor = null;
+                titleBar.InactiveForegroundColor = titleBar.BackgroundColor = null;
+                return;
+            }
+
             if (theme == ElementTheme.Dark)
             {
                 // Set active window colors
@@ -312,7 +310,7 @@ namespace Notepads.Services
                 titleBar.ButtonInactiveForegroundColor = Windows.UI.Colors.Gray;
                 titleBar.ButtonInactiveBackgroundColor = Windows.UI.Colors.Transparent;
 
-                titleBar.BackgroundColor = Color.FromArgb(255, 45, 45, 45);
+                titleBar.BackgroundColor = Graphite;
             }
             else if (theme == ElementTheme.Light)
             {
@@ -330,7 +328,7 @@ namespace Notepads.Services
                 titleBar.ButtonInactiveForegroundColor = Windows.UI.Colors.DimGray;
                 titleBar.ButtonInactiveBackgroundColor = Windows.UI.Colors.Transparent;
 
-                titleBar.BackgroundColor = Color.FromArgb(255, 210, 210, 210);
+                titleBar.BackgroundColor = Paper;
             }
         }
 

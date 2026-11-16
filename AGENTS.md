@@ -1,6 +1,6 @@
-# Developing the Web-Usov Notepads fork
+# Developing Plainix
 
-Target the fork's `master` branch. Notepads is a C# UWP editor for Windows 10 and 11. Use the .NET 8 console project to exercise the portable extension code. The Windows app builds with Visual Studio and MSBuild.
+Target the fork's `master` branch. Plainix is a C# UWP editor for Windows 10 and 11. Use the .NET 8 console project to exercise the portable extension code. The Windows app builds with Visual Studio and MSBuild.
 
 ## Where to make changes
 

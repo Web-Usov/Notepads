@@ -1,6 +1,6 @@
-# Writing Notepads extensions
+# Writing Plainix extensions
 
-A Notepads extension is a UTF-8 JSON manifest. It can associate file suffixes with highlighting rules, add commands to the editor, or open a read-only results panel. The host implements each operation. An author can publish a new combination of supported operations by shipping a manifest. New handler implementations require a change to the app.
+A Plainix extension is a UTF-8 JSON manifest with the existing `.notepads-extension.json` suffix. It can associate file suffixes with highlighting rules, add commands to the editor, or open a read-only results panel. The host implements each operation. An author can publish a new combination of supported operations by shipping a manifest. New handler implementations require a change to the app.
 
 ## Try the bundled extensions
 
@@ -145,6 +145,6 @@ A bundled plugin with its own C# handler keeps that source beside its manifest. 
 
 ## Build and check
 
-To run the app from source on Windows, open `src/Notepads.sln` in Visual Studio with the Universal Windows Platform tools and Windows SDK 10.0.22621.0 installed. Select **Notepads**, **Debug**, **x64**, **Local Machine** and press **F5**. This configuration runs as **Notepads-Dev**.
+To run the app from source on Windows, open `src/Notepads.sln` in Visual Studio with the Universal Windows Platform tools and Windows SDK 10.0.22621.0 installed. Select **Notepads**, **Debug**, **x64**, **Local Machine** and press **F5**. This configuration runs as **Plainix Dev**.
 
 For an editor smoke test, open a sample, change a token and undo the edit. Rename or save the file under another suffix and then restore the original suffix. Check scrolling, word wrap, selection and both themes. Save and reopen the file with the original encoding and line endings to verify its contents. For the bundled JSON extension, include an escaped quote, an emoji in a key, a negative exponent and a nested array.

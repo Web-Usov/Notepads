@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Jackie (Jiaqi) Liu 가 제작한 무료 오픈소스 텍스트 에디터</value>
+    <value>탭과 JSON 구문 강조를 지원하는 Windows용 경량 텍스트 편집기입니다.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +172,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>고급</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Plainix 강조 색 복원</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>테마 컬러</value>

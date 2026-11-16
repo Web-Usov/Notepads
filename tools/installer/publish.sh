@@ -7,19 +7,19 @@ case "$GITHUB_REF_NAME" in
   *) echo "Unexpected publication branch." >&2; exit 1 ;;
 esac
 
-archive="Notepads-$VERSION-Windows-x64.zip"
+archive="Plainix-$VERSION-Windows-x64.zip"
 (cd installer && zip -qr "../$archive" .)
 unzip -tq "$archive"
 (cd native-installer && sha256sum -- *) > SHA256SUMS.txt
 sha256sum "$archive" >> SHA256SUMS.txt
-cert_sha=$(sha256sum native-installer/Notepads.cer | cut -d ' ' -f 1)
+cert_sha=$(sha256sum native-installer/Plainix.cer | cut -d ' ' -f 1)
 base="https://github.com/$GITHUB_REPOSITORY/releases/download/$tag"
 cat > notes.md <<EOFNOTES
-[**Download Notepads.appinstaller for Windows x64**]($base/Notepads.appinstaller)
+[**Download Plainix.appinstaller for Windows x64**]($base/Plainix.appinstaller)
 
-1. On first use of this signing certificate, [download Notepads.cer]($base/Notepads.cer). Verify the file's SHA-256 against the value below. Open the certificate, choose **Install Certificate → Local Machine → Place all certificates in the following store → Trusted People**, and finish the Windows administrator prompt.
-2. Download and double-click **Notepads.appinstaller**. Choose **Install** or **Update** in Windows App Installer. Windows downloads the signed app and its required frameworks.
-3. Open **Notepads-Dev** from Start. This build retains the fork's existing package identity and settings.
+1. On first use of this signing certificate, [download Plainix.cer]($base/Plainix.cer). Verify the file's SHA-256 against the value below. Open the certificate, choose **Install Certificate → Local Machine → Place all certificates in the following store → Trusted People**, and finish the Windows administrator prompt.
+2. Download and double-click **Plainix.appinstaller**. Choose **Install** or **Update** in Windows App Installer. Windows downloads the signed app and its required frameworks.
+3. Open **Plainix** from Start. This build retains the fork's existing package identity and settings.
 
 SHA-256 of the public certificate: \`$cert_sha\`.
 
@@ -30,7 +30,7 @@ if [[ "$kind" == "preview" ]]; then
   echo 'This preview uses its own certificate and a version-specific feed. Stable builds use a separate update feed.' >> notes.md
 else
   echo >> notes.md
-  echo 'The stable feed checks for newer releases when Notepads starts.' >> notes.md
+  echo 'The stable feed checks for newer releases when Plainix starts.' >> notes.md
 fi
 
 # GitHub serves uploaded asset MIME types to Windows App Installer.
@@ -42,7 +42,7 @@ if [[ -n "$existing" ]]; then
   [[ "$draft" == true && "$commit" == "$GITHUB_SHA" ]] || { echo "A different or published release already owns $tag." >&2; exit 1; }
 else
   id=$(gh api --method POST "$api" --field "tag_name=$tag" --field "target_commitish=$GITHUB_SHA" \
-    --field "name=Notepads $VERSION ($kind)" --field 'body=@notes.md' --field draft=true --field "prerelease=$prerelease" --jq .id)
+    --field "name=Plainix $VERSION ($kind)" --field 'body=@notes.md' --field draft=true --field "prerelease=$prerelease" --jq .id)
 fi
 [[ "$id" =~ ^[0-9]+$ ]]
 for file in native-installer/* "$archive" SHA256SUMS.txt; do
