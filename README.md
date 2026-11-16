@@ -2,11 +2,11 @@
 
 Plainix is a lightweight text editor with tabs and JSON highlighting. Open a note, edit a configuration file, or follow a request through a log in the same window.
 
-Plainix is the new name of the Web-Usov fork of Notepads. To try the new branding before its first release, use the [source build](CONTRIBUTING.md#run-the-windows-app-from-source) or the [pull request build](CONTRIBUTING.md#try-a-pull-request-build). The published [1.7.0.2 preview](https://github.com/Web-Usov/Notepads/releases/tag/v1.7.0.2-preview) includes JSON Tools, Log Lens, Russian plugin labels and extension installation from ZIPs or URLs. The [1.6.0.0 release](https://github.com/Web-Usov/Notepads/releases/tag/v1.6.0.0) supports JSON highlighting and local grammar imports. Both carry the earlier Notepads name.
+Plainix is the new name of the Web-Usov fork of Notepads. Builds through 1.7.0.2 use the earlier name.
 
 ## Install on Windows
 
-Use the files attached to the release you are installing. During development, the [pull request build](CONTRIBUTING.md#try-a-pull-request-build) is the way to install Plainix before its first release.
+Open the [latest stable release](https://github.com/Web-Usov/Notepads/releases/latest) and expand **Assets**. For versions with a native installer, download its `.appinstaller` and `.cer` files together. For offline installation or version 1.6.0.0, download the complete ZIP. To try changes still under development, use a [pull request build](CONTRIBUTING.md#try-a-pull-request-build).
 
 | Build | Native installer | Public certificate | Start menu name |
 | --- | --- | --- | --- |

@@ -6,6 +6,16 @@ Stable releases publish both `Plainix.appinstaller` and `Notepads.appinstaller`.
 
 ## Provision the signing environment
 
+After the first release run has created the `notepads-release` environment, sign in to GitHub CLI on your Windows PC with an account that manages the repository. From the repository root, run:
+
+```powershell
+.\tools\installer\Initialize-ReleaseSigning.ps1
+```
+
+Enter a password when prompted. The script creates an encrypted PFX at `%LOCALAPPDATA%\Plainix\Signing\Plainix.pfx` and configures the two environment secrets. Keep a backup of that file and its password. If you already have a signing key for this publisher, pass its full path with `-PfxPath`. The script only fills missing secrets. For a new environment it sets the deployment branch pattern to `release/v*`. Manage access to those branches in the repository settings.
+
+Open the failed release run in **Actions** and choose **Re-run failed jobs** to resume publication. For manual provisioning, follow the steps below.
+
 1. In the GitHub repository settings, create the Actions environment `notepads-release`. Under **Deployment branches and tags**, allow releases from the branch pattern `release/v*`. Restrict who can create or update those branches and the release workflow.
 2. On a trusted Windows machine with GitHub CLI authenticated to the fork, create the signing certificate once. If you already hold a suitable PFX for this publisher, use its path and password for step 3. Keep the password and an encrypted backup of the PFX in storage accessible to release maintainers. The key created on earlier CI runners was ephemeral.
 
