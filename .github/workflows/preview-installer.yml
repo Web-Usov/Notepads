@@ -68,6 +68,12 @@ jobs:
             throw "Publication branch must match the package version $version."
           }
 
+          # Use the public name for the offline SDK bundle and the certificate exported alongside it.
+          $bundleName = "Plainix_${version}_x64.msixbundle"
+          if ($bundle.Name -cne $bundleName) {
+            $bundle = Rename-Item -LiteralPath $bundle.FullName -NewName $bundleName -PassThru
+          }
+
           if ($release) {
             $cert = Get-Item "Cert:\CurrentUser\My\$env:RELEASE_CERT_THUMBPRINT"
           } else {

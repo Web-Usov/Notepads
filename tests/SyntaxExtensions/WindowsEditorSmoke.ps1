@@ -138,6 +138,14 @@ try {
     $installed = Get-AppxPackage -Name 'Notepads-Dev'
     if (!$installed -or $installed.Publisher -ne $cert.Subject) { throw 'Unexpected installed application.' }
 
+    $expectedStem = "Plainix_$($installed.Version)_x64"
+    $certificates = @(Get-ChildItem -LiteralPath $folder -File -Filter '*.cer')
+    if ($bundle.BaseName -cne $expectedStem -or $certificates.Count -ne 1 -or
+        $certificates[0].Name -cne "$expectedStem.cer") {
+        throw "The offline ZIP must contain $expectedStem.msixbundle and $expectedStem.cer."
+    }
+    Write-Output "PASS offline ZIP contains $($bundle.Name) and $($certificates[0].Name)"
+
     # Opening a file through the app's own alias exercises its normal command-line entry point.
     # Use LocalState so the app has access to the test file even when broad filesystem access is disabled.
     $data = Join-Path $env:LOCALAPPDATA "Packages\$($installed.PackageFamilyName)\LocalState"

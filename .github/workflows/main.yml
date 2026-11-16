@@ -359,7 +359,12 @@ jobs:
         run: |
           Get-ChildItem -Filter *Production* -Recurse | Rename-Item -NewName { $_.name -replace "_Production|_Test",'' }
           $folder = "Notepads_$($env:NEW_VERSION)"
-          Rename-Item "$folder/Notepads_$($env:NEW_VERSION)_x86_x64_ARM64.msixbundle" "Plainix_$($env:NEW_VERSION)_x86_x64_ARM64.msixbundle"
+          $sdkStem = "Notepads_$($env:NEW_VERSION)_x86_x64_ARM64"
+          $publicStem = "Plainix_$($env:NEW_VERSION)_x86_x64_ARM64"
+          Rename-Item -LiteralPath "$folder/$sdkStem.msixbundle" -NewName "$publicStem.msixbundle"
+          if (Test-Path -LiteralPath "$folder/$sdkStem.cer" -PathType Leaf) {
+            Rename-Item -LiteralPath "$folder/$sdkStem.cer" -NewName "$publicStem.cer"
+          }
           Compress-Archive -Path "Notepads_$($env:NEW_VERSION)\*" `
                            -DestinationPath "Notepads_$($env:NEW_VERSION)\Plainix_$($env:NEW_VERSION)_x86_x64_ARM64.zip"
         working-directory: ./Artifacts
