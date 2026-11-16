@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>DE SOFTWARE WORDT GELEVERD "ZOALS DEZE IS", ZONDER ENIGE VORM VAN GARANTIE, EXPLICIET OF IMPLICIET, MET INBEGRIP VAN, MAAR NIET BEPERKT TOT, DE GARANTIES VAN VERKOOPBAARHEID, GESCHIKTHEID VOOR EEN BEPAALD DOEL EN NIET-INBREUK. IN GEEN GEVAL ZIJN DE AUTEURS OF HOUDERS VAN AUTEURSRECHTEN AANSPRAKELIJK VOOR ENIGE CLAIM, SCHADE OF ANDERE AANSPRAKELIJKHEID, HETZIJ IN EEN ACTIE VAN CONTRACT, ONRECHTMATIGE DAAD OF ANDERSZINS, DIE VOORTVLOEIT UIT, UIT OF VERBAND HOUDT MET DE SOFTWARE OF HET GEBRUIK OF ANDERE TRANSACTIES IN DE SOFTWARE.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>De software wordt geleverd "zoals deze is", zonder enige vorm van garantie, expliciet of impliciet, met inbegrip van, maar niet beperkt tot, de garanties van verkoopbaarheid, geschiktheid voor een bepaald doel en niet-inbreuk.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>In geen geval zijn de auteurs of houders van auteursrechten aansprakelijk voor enige claim, schade of andere aansprakelijkheid, hetzij in een actie van contract, onrechtmatige daad of anderszins, die voortvloeit uit, uit of verband houdt met de software of het gebruik of andere transacties in de software.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix is gebaseerd op het project Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Clausule</value>

@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>Le logiciel est fourni "tel quel", sans garantie d'aucune sorte, explicite ou implicite, incluant mais sans s'y limiter, les garanties de qualité marchande, d'adéquation à un usage particulier et de non-contrefaçon. En aucun cas, les auteurs ou les détenteurs de droits d'auteur ne peuvent être tenus responsables d'une quelconque réclamation, d'un quelconque dommage ou de toute autre responsabilité, que ce soit dans le cadre d'une action contractuelle, délictuelle ou autre, découlant du logiciel, de son utilisation ou d'autres transactions dans le logiciel, ou en relation avec ceux-ci.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Le logiciel est fourni "tel quel", sans garantie d'aucune sorte, explicite ou implicite, incluant mais sans s'y limiter, les garanties de qualité marchande, d'adéquation à un usage particulier et de non-contrefaçon.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>En aucun cas, les auteurs ou les détenteurs de droits d'auteur ne peuvent être tenus responsables d'une quelconque réclamation, d'un quelconque dommage ou de toute autre responsabilité, que ce soit dans le cadre d'une action contractuelle, délictuelle ou autre, découlant du logiciel, de son utilisation ou d'autres transactions dans le logiciel, ou en relation avec ceux-ci.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix est basé sur le projet Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Avis de non-responsabilité</value>

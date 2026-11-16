@@ -67,6 +67,33 @@ function Invoke-Extension([string]$Name, [string]$SubmenuName) {
     Invoke-Control (Wait-For $Name { Find-AppControl $byName $Name })
 }
 
+function Assert-AboutPage([string]$Attribution, [string]$WarrantyStart, [string]$LiabilityStart) {
+    $about = Wait-For 'the About settings item' { Find-AppControl $byId 'AboutSettingsItem' }
+    $about.SetFocus()
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+
+    $link = Wait-For 'the localized upstream project link' { Find-AppControl $byId 'AboutUpstreamLink' }
+    if ($link.Current.ControlType -ne [System.Windows.Automation.ControlType]::Hyperlink -or
+        $link.Current.Name -cne $Attribution) {
+        throw "Unexpected upstream project attribution: $($link.Current.Name)"
+    }
+
+    # Read through UI Automation in the production settings pane (385 DIPs wide).
+    $notice = Wait-For 'the About disclaimer' { Find-AppControl $byId 'AboutDisclaimer' }
+    $pattern = $null
+    $text = if ($notice.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern)) {
+        $pattern.DocumentRange.GetText(-1)
+    } else {
+        $notice.Current.Name
+    }
+    $text = ($text -replace '\s+', ' ').Trim()
+    if (!$text.StartsWith($WarrantyStart, [StringComparison]::Ordinal) -or
+        $text.IndexOf($LiabilityStart, [StringComparison]::Ordinal) -lt $WarrantyStart.Length) {
+        throw "Expected both sentence-case disclaimer paragraphs, got: $text"
+    }
+    Write-Output "PASS About attribution and disclaimer: $Attribution"
+}
+
 function Open-FixtureWindow([string]$File, [string]$ExecutionAlias) {
     $name = [IO.Path]::GetFileName($File)
     Start-Process -FilePath $ExecutionAlias -ArgumentList ('"' + $File + '"')
@@ -192,6 +219,7 @@ try {
 
     Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
     Invoke-Control (Wait-For 'Settings in the main menu' { Find-AppControl $byId 'MenuSettingsButton' })
+    Assert-AboutPage 'Plainix is based on Notepads.' 'The Software is provided' 'In no event shall'
     $advanced = Wait-For 'the Advanced settings item' { Find-AppControl $byId 'AdvancedSettingsItem' }
     $advanced.SetFocus()
     [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
@@ -311,6 +339,10 @@ try {
         Find-AppControl $byName 'Фильтр по идентификатору запроса или фрагменту текста'
     }
     Write-Output 'PASS Russian menu, JSON commands and Log Lens in the restarted application'
+
+    Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
+    Invoke-Control (Wait-For 'Settings in the main menu' { Find-AppControl $byId 'MenuSettingsButton' })
+    Assert-AboutPage 'В основе Plainix — проект Notepads.' 'Данное программное обеспечение' 'Ни в каком случае'
 }
 finally {
     if ($installed) { Remove-AppxPackage -Package $installed.PackageFullName -ErrorAction Continue }

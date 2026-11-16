@@ -52,6 +52,13 @@
                             https://github.com/Web-Usov/Notepads
                         </Hyperlink>
                     </Paragraph>
+                    <Paragraph Margin="0,12,0,0">
+                        <Hyperlink NavigateUri="https://github.com/0x7c13/Notepads"
+                                   AutomationProperties.AutomationId="AboutUpstreamLink">
+                            <Run x:Uid="/Settings/AboutPage_UpstreamProject"/>
+                        </Hyperlink>
+                    </Paragraph>
+                    <Paragraph>© 2019–2024 Jackie (Jiaqi) Liu.</Paragraph>
                 </RichTextBlock>
                 <Button  Content="Feedback" Margin="0,8,0,0" Visibility="Collapsed" />
 
@@ -100,15 +107,18 @@
                     Style="{StaticResource CompactSubtitleTextBlockStyle}"
                     Margin="0,20,0,0"
                     FontWeight="Normal"/>
-                <RichTextBlock MaxWidth="600" Margin="0,10,0,0" IsTextSelectionEnabled="False">
+                <RichTextBlock AutomationProperties.AutomationId="AboutDisclaimer"
+                               MaxWidth="600" Margin="0,10,0,0" IsTextSelectionEnabled="False">
                     <Paragraph>
                         <Run x:Uid="/Settings/AboutPage_Disclaimer_Content"/>
                     </Paragraph>
-                    <Paragraph>
-                        <LineBreak /><Hyperlink NavigateUri="https://github.com/0x7c13/Notepads">Notepads</Hyperlink> · Copyright © 2019–2024 Jackie (Jiaqi) Liu.
+                    <Paragraph Margin="0,8,0,0">
+                        <Run x:Uid="/Settings/AboutPage_Disclaimer_Liability"/>
                     </Paragraph>
-                    <Paragraph Margin="0,10,0,10">
-                        <Hyperlink NavigateUri="https://github.com/Web-Usov/Notepads/blob/master/PRIVACY.md" >
+                </RichTextBlock>
+                <RichTextBlock MaxWidth="600" Margin="0,12,0,0" IsTextSelectionEnabled="False">
+                    <Paragraph>
+                        <Hyperlink NavigateUri="https://github.com/Web-Usov/Notepads/blob/master/PRIVACY.md">
                             <Run x:Uid="/Settings/AboutPage_PrivacyStatementTitle"/>
                         </Hyperlink>
                     </Paragraph>

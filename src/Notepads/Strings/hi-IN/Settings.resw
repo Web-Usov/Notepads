@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>सॉफ्टवेयर को किसी भी प्रकार की वारंटी के बिना ,"जैसा कि है", एक्सप्रेस या निहित प्रदान किया जाता है, जिसमें व्यापारीकी योग्यता की वारंटी तक सीमित नहीं है, किसी विशेष उद्देश्य के लिए फिटनेस और गैर-उल्लंघन शामिल हैं। किसी भी स्थिति में लेखक या कॉपीराइट धारक किसी भी दावे, क्षति या अन्य देयता के लिए उत्तरदायी नहीं होंगे, चाहे अनुबंध, टोट या अन्यथा की कार्रवाई में, सॉफ्टवेयर या सॉफ्टवेयर में उपयोग या अन्य सौदों के संबंध में, उत्पन्न होने वाली।</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>सॉफ्टवेयर को किसी भी प्रकार की वारंटी के बिना ,"जैसा कि है", एक्सप्रेस या निहित प्रदान किया जाता है, जिसमें व्यापारीकी योग्यता की वारंटी तक सीमित नहीं है, किसी विशेष उद्देश्य के लिए फिटनेस और गैर-उल्लंघन शामिल हैं।</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>किसी भी स्थिति में लेखक या कॉपीराइट धारक किसी भी दावे, क्षति या अन्य देयता के लिए उत्तरदायी नहीं होंगे, चाहे अनुबंध, टोट या अन्यथा की कार्रवाई में, सॉफ्टवेयर या सॉफ्टवेयर में उपयोग या अन्य सौदों के संबंध में, उत्पन्न होने वाली।</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix, Notepads प्रोजेक्ट पर आधारित है।</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>अस्वीकरण</value>

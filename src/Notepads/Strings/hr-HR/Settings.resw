@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>SOFTVER SE NUDI „TAKAV KAKAV JE”, BEZ JAMSTVA BILO KOJE VRSTE, EXPLICITNOG ILI IMPLICITNOG, UKLJUČUJUĆI, ALI NE OGRANIČAVAJUĆI SE NA JAMSTVO MOGUĆNOSTI PRODAJE, PRIMJENU ZA ODREĐENU SVRHU, KRŠENJA NEČIJIH PRAVA. NI U KOM SLUČAJU AUTORI ILI VLASNICI AUTORSKIH PRAVA NEĆE BITI ODGOVORNI ZA BILO KAKVA OŠTEĆENJA ILI NEDOSTATKE BILO KOJE VRSTE, DA LI ZBOG UGOVORA ILI NA NEKI DRUGI NAČIN, KOJA SU NASTALA IZ, KROZ ILI U VEZI SA SOFTVEROM ILI UPOTREBOM SOFTVERA.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Softver se nudi „takav kakav je”, bez jamstva bilo koje vrste, explicitnog ili implicitnog, uključujući, ali ne ograničavajući se na jamstvo mogućnosti prodaje, primjenu za određenu svrhu, kršenja nečijih prava.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>Ni u kom slučaju autori ili vlasnici autorskih prava neće biti odgovorni za bilo kakva oštećenja ili nedostatke bilo koje vrste, da li zbog ugovora ili na neki drugi način, koja su nastala iz, kroz ili u vezi sa softverom ili upotrebom softvera.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix se temelji na projektu Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Izjava o odgovornosti</value>

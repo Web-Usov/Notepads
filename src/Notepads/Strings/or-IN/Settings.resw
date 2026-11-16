@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>କୌଣସି ପ୍ରକାରର ୱାରେଣ୍ଟି ବିନା ସଫ୍ଟୱେୟାର “ଯେପରି” ପ୍ରଦାନ କରାଯାଇଛି, ୱାରେଣ୍ଟିର ବାଣିଜ୍ୟ ଯୋଗ୍ୟତା, ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ଉଦ୍ଦେଶ୍ୟ ପାଇଁ ଫିଟ୍ ଏବଂ ଉଲ୍ଲଂଘନ ସହିତ ସୀମିତ ନୁହେଁ| କୌଣସି ଘଟଣାରେ ଲେଖକ କିମ୍ବା କପିରାଇଟ୍ ହୋଲ୍ଡରମାନେ କୌଣସି ଦାବି, କ୍ଷତି କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଦାୟିତ୍ବ ପାଇଁ ଦାୟୀ ରହିବେ ନାହିଁ, ଯାହା କୌଣସି ଚୁକ୍ତିନାମା, ଟର୍ଟ କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଜ୍ଞାନ, ସଫ୍ଟୱେୟାରର ବ୍ୟବହାର କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଡିଲ୍ ସହିତ ସଂଯୋଗରେ|</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>କୌଣସି ପ୍ରକାରର ୱାରେଣ୍ଟି ବିନା ସଫ୍ଟୱେୟାର “ଯେପରି” ପ୍ରଦାନ କରାଯାଇଛି, ୱାରେଣ୍ଟିର ବାଣିଜ୍ୟ ଯୋଗ୍ୟତା, ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ଉଦ୍ଦେଶ୍ୟ ପାଇଁ ଫିଟ୍ ଏବଂ ଉଲ୍ଲଂଘନ ସହିତ ସୀମିତ ନୁହେଁ|</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>କୌଣସି ଘଟଣାରେ ଲେଖକ କିମ୍ବା କପିରାଇଟ୍ ହୋଲ୍ଡରମାନେ କୌଣସି ଦାବି, କ୍ଷତି କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଦାୟିତ୍ବ ପାଇଁ ଦାୟୀ ରହିବେ ନାହିଁ, ଯାହା କୌଣସି ଚୁକ୍ତିନାମା, ଟର୍ଟ କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଜ୍ଞାନ, ସଫ୍ଟୱେୟାରର ବ୍ୟବହାର କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଡିଲ୍ ସହିତ ସଂଯୋଗରେ|</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix, Notepads ପ୍ରକଳ୍ପ ଉପରେ ଆଧାରିତ।</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>ପ୍ରତ୍ୟାଖ୍ୟାନ</value>

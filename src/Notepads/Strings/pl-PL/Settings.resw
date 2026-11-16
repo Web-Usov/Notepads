@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>OPROGRAMOWANIE JEST DOSTARCZANE „W TAKIM STANIE, W JAKIM JEST”. NIE DAJEMY ŻADNEJ GWARANCJI NA JEGO DZIAŁANIE. W ŻADNYM WYPADKU AUTORZY LUB POSIADACZE PRAW AUTORSKICH NIE PONOSZĄ ODPOWIEDZIALNOŚCI ZA JAKIEKOLWIEK ROSZCZENIA, SZKODY LUB INNE ODPOWIEDZIALNOŚCI.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Oprogramowanie jest dostarczane „w takim stanie, w jakim jest”. Nie dajemy żadnej gwarancji na jego działanie.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>W żadnym wypadku autorzy lub posiadacze praw autorskich nie ponoszą odpowiedzialności za jakiekolwiek roszczenia, szkody lub inne odpowiedzialności.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix bazuje na projekcie Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Oświadczenie</value>

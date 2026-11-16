@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>OHJELMISTO TARJOTAAN "SELLAISENAAN", ILMAN MINKÄÄNLAISTA TAKUUTA, ILMAISTUNA TAI OLETETTUNA, MUKAAN LUKIEN MUTTA RAJOITTUMATTA KAUPALLISUUDEN TAKUIHIN, SOVELTUVUUTEEN TIETTYYN TARKOITUKSEEN JA LOUKKAAMATTOMUUTEEN. MISSÄÄN TAPAUKSESSA TEKIJÖITÄ TAI TEKIJÄNOIKEUDEN HALTIJOITA EI VOIDA PITÄÄ VASTUUSSA MISTÄÄN VAATEESTA, VAHINGOSTA TAI MUUSTA VASTUUSTA, OLIPA KYSE SOPIMUSTOIMESTA, VÄÄRYYSDESTÄ TAI MUUTOIN, JOKA JOHTUU OHJELMISTOSTA TAI SEN KÄYTÖSTÄ TAI MUUSTA KAUPANKÄYNNISTÄ OHJELMISTON KANSSA.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Ohjelmisto tarjotaan "sellaisenaan", ilman minkäänlaista takuuta, ilmaistuna tai oletettuna, mukaan lukien mutta rajoittumatta kaupallisuuden takuihin, soveltuvuuteen tiettyyn tarkoitukseen ja loukkaamattomuuteen.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>Missään tapauksessa tekijöitä tai tekijänoikeuden haltijoita ei voida pitää vastuussa mistään vaateesta, vahingosta tai muusta vastuusta, olipa kyse sopimustoimesta, vääryysdestä tai muutoin, joka johtuu ohjelmistosta tai sen käytöstä tai muusta kaupankäynnistä ohjelmiston kanssa.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix perustuu Notepads-projektiin.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Vastuuvapauslauseke</value>

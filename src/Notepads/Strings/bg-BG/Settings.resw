@@ -122,8 +122,16 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>СОФТУЕРЪТ СЕ ПРЕДОСТАВЯ "КАКТО Е", БЕЗ НИКАКВИ ГАРАНЦИИ, ИЗРИЧНИ ИЛИ ПОДРАЗБИРАЩИ СЕ, ВКЛЮЧИТЕЛНО , НО НЕ САМО, ГАРАНЦИИТЕ ЗА ПРОДАВАЕМОСТ, ГОДНОСТ ЗА ОПРЕДЕЛЕНА ЦЕЛ И НЕНАРУШЕНИЕ. АВТОРИТЕ ИЛИ НОСИТЕЛИТЕ НА АВТОРСКИ ПРАВА НЕ НОСЯТ НИКАКВА ОТГОВОРНОСТ ЗА ИСК, ВРЕДА ИЛИ ДРУГА ОТГОВОРНОСТ, ПРОИЗТИЧАЩИ ОТ ИЗВЪН ИЛИ ВЪВ ВРЪЗКА СЪС СОФТУЕРА ИЛИ С ИЗПОЛЗВАНЕТО ИЛИ ДРУГИ СДЕЛКИ В СОФТУЕРА.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Софтуерът се предоставя "както е", без никакви гаранции, изрични или подразбиращи се, включително , но не само, гаранциите за продаваемост, годност за определена цел и ненарушение.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>Авторите или носителите на авторски права не носят никаква отговорност за иск, вреда или друга отговорност, произтичащи от извън или във връзка със софтуера или с използването или други сделки в софтуера.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix е базиран на проекта Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Отказ от право</value>
