@@ -22,8 +22,9 @@ For a new grammar, use the same command with `-- <manifest-file> <sample-file>` 
 
 Open the **Windows preview installer** run for the pull request. When its `installer` job succeeds, download **Notepads-Dev-Windows-x64** under **Artifacts**, extract the ZIP and follow the [Windows installation instructions](README.md#install-on-windows). Sign in to GitHub to download a preview artifact. It is available for 30 days. Published installers are available on the [fork’s Releases page](https://github.com/Web-Usov/Notepads/releases).
 
-## Publish a release
+## Publish an installer
 
-1. Update `Identity.Version` in [Package.appxmanifest](src/Notepads/Package.appxmanifest) to a higher four-part version. Update the release notes in the [installer workflow](.github/workflows/preview-installer.yml) for the changes being shipped.
-2. After the release changes land on `master`, push a new branch from that commit named `release/v<version>`. For example, manifest version `1.6.1.0` requires branch `release/v1.6.1.0`. Pushing that branch starts publication. Pull requests and manual runs produce preview artifacts.
-3. The workflow tests the language extensions, signs and timestamps the x64 bundle, and verifies its contents. It publishes `v<version>` at the pushed commit with the Windows installer ZIP and `SHA256SUMS.txt`. Confirm both assets on the Releases page.
+1. Update `Identity.Version` in [Package.appxmanifest](src/Notepads/Package.appxmanifest) to a higher four-part version. The preview and stable packages share an identity, so choose a version above the last public preview for the next stable release.
+2. For stable releases, provision the permanent signing certificate in the **notepads-release** GitHub environment as described in [release signing](tools/installer/README.md). Once the changes land on `master`, push a branch from that commit named `release/v<version>`. For a public preview, push `native-preview/v<version>` from the intended commit. Preview builds use a separate temporary signer. Regular PRs and workflow dispatches produce CI artifacts.
+3. The workflow checks the signed bundle, generates the descriptor from its package metadata, and exercises installation and upgrade in Windows. It uploads the descriptor, bundle, frameworks, public certificate, offline ZIP and checksums to a draft before publishing. The public verification job downloads the released files and installs the descriptor on a clean runner.
+4. Stable descriptors use `releases/latest/download/Notepads.appinstaller` to discover new releases. Preview descriptors are pinned to their prerelease. Upload MSIX and framework assets with the correct MIME types and keep published version URLs available.

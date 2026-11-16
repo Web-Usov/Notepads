@@ -2,20 +2,21 @@
 
 Notepads is a tabbed plain-text editor for Windows. This fork supports installable extensions and live JSON highlighting. Download a Windows x64 build from [GitHub Releases](https://github.com/Web-Usov/Notepads/releases/latest).
 
-This guide covers the 1.7.0.1 source tree, including JSON Tools, Log Lens, Russian plugin labels and ZIP or URL installation. The [1.6.0.0 release](https://github.com/Web-Usov/Notepads/releases/tag/v1.6.0.0) supports JSON highlighting and local grammar imports. To try 1.7 before a release installer is available, use the [source or PR build instructions](CONTRIBUTING.md).
+This guide covers the 1.7.0.2 source tree, including JSON Tools, Log Lens, Russian plugin labels and ZIP or URL installation. The [1.6.0.0 release](https://github.com/Web-Usov/Notepads/releases/tag/v1.6.0.0) supports JSON highlighting and local grammar imports. To try 1.7 before a release installer is available, use the [source or PR build instructions](CONTRIBUTING.md).
 
 ## Install on Windows
 
-1. On an x64 PC running Windows 10 (build 17763 or later) or Windows 11, open the [latest release](https://github.com/Web-Usov/Notepads/releases/latest). Under **Assets**, download `Notepads-<version>-Windows-x64.zip`.
-2. Extract the entire ZIP. Open PowerShell in the folder containing `Add-AppDevPackage.ps1` and run the command below. Running it in an open window keeps installer messages visible.
+Download **Notepads.appinstaller** from the release you want to install. Windows App Installer downloads the signed editor and its x64 frameworks over HTTPS. The preview has its own version-specific download. [Notepads 1.7.0.2 native installer preview](https://github.com/Web-Usov/Notepads/releases/tag/v1.7.0.2-preview)
 
-   ```powershell
-   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1
-   ```
+1. On first install with this signer, download **Notepads.cer** from the same release. Compare its SHA-256 with the release notes. Open the certificate and choose **Install Certificate → Local Machine → Place all certificates in the following store → Trusted People**. This one-time step for each certificate requires Windows administrator approval.
+2. Download and double-click **Notepads.appinstaller**, then choose **Install** or **Update**. Open **Notepads-Dev** from Start. Existing fork installations keep their package identity and local data.
+3. A stable feed checks for updates when the app starts. A preview points to its own version. When moving to a stable build with a different signing certificate, trust its public certificate once and open its descriptor.
 
-3. Follow the prompts. The package uses a self-signed certificate, so Windows may ask for administrator approval to trust it. Search the Start menu for **Notepads-Dev** and open a JSON file.
+Windows 10 build 17763 or later and Windows 11 x64 are supported. Windows App Installer must be installed. On Windows 10 versions before 2004, enable sideloading of trusted apps in Windows settings. The [v1.6.0.0 release](https://github.com/Web-Usov/Notepads/releases/tag/v1.6.0.0) and offline installations use the complete ZIP. Extract it, open PowerShell in its folder and run:
 
-Each release includes `SHA256SUMS.txt`. To verify the download, run `Get-FileHash .\<downloaded-archive>.zip -Algorithm SHA256` and compare the hash with the entry for that ZIP. The release notes also give the SHA-256 of the public signing certificate.
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1
+```
 
 ## Use the editor
 
