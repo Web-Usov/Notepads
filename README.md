@@ -2,7 +2,7 @@
 
 Notepads is a tabbed plain-text editor for Windows. This fork supports installable extensions and live JSON highlighting. Download a Windows x64 build from [GitHub Releases](https://github.com/Web-Usov/Notepads/releases/latest).
 
-This guide covers the 1.7.0.2 source tree, including JSON Tools, Log Lens, Russian plugin labels and ZIP or URL installation. The [1.6.0.0 release](https://github.com/Web-Usov/Notepads/releases/tag/v1.6.0.0) supports JSON highlighting and local grammar imports. To try 1.7 before a release installer is available, use the [source or PR build instructions](CONTRIBUTING.md).
+This guide covers the 1.7.0.2 source tree, including JSON Tools, Log Lens, Russian plugin labels and ZIP or URL installation. The [1.6.0.0 release](https://github.com/Web-Usov/Notepads/releases/tag/v1.6.0.0) supports JSON highlighting and local grammar imports. For the 1.7 preview, use the native installer below. For development builds, follow the [source or PR build instructions](CONTRIBUTING.md).
 
 ## Install on Windows
 
