@@ -30,18 +30,10 @@ jobs:
         shell: pwsh
         run: |
           $publisher = 'CN=Web-Usov Notepads Preview'
-          foreach ($file in 'Package.appxmanifest', 'Package.StoreAssociation.xml') {
-            $path = Join-Path "$PWD/src/Notepads" $file
-            [xml]$xml = Get-Content -LiteralPath $path -Raw
-            if ($file -eq 'Package.appxmanifest') {
-              $xml.Package.Identity.SetAttribute('Publisher', $publisher)
-              $xml.Package.Properties.PublisherDisplayName = 'Web-Usov'
-            } else {
-              $xml.StoreAssociation.Publisher = $publisher
-              $xml.StoreAssociation.PublisherDisplayName = 'Web-Usov'
-            }
-            $xml.Save($path)
-          }
+          $path = Join-Path "$PWD/src/Notepads" 'Package.appxmanifest'
+          [xml]$xml = Get-Content -LiteralPath $path -Raw
+          $xml.Package.Identity.SetAttribute('Publisher', $publisher)
+          $xml.Save($path)
 
           msbuild src/Notepads.sln /restore /m /p:Configuration=Release /p:Platform=x64 `
             /p:AppxPackageDir="$env:RUNNER_TEMP\Sideload\" /p:UapAppxPackageBuildMode=SideloadOnly `

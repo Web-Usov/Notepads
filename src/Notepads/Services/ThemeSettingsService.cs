@@ -118,9 +118,11 @@ namespace Notepads.Services
 
         private static void InitializeAppAccentColor()
         {
-            _useWindowsAccentColor = ApplicationSettingsStore.Read(SettingsKey.UseWindowsAccentColorBool) as bool? ?? false;
+            var storedUseWindowsAccent = ApplicationSettingsStore.Read(SettingsKey.UseWindowsAccentColorBool) as bool?;
+            _useWindowsAccentColor = storedUseWindowsAccent ?? false;
             var stored = ApplicationSettingsStore.Read(SettingsKey.CustomAccentColorHexStr) as string;
-            if (stored == null && !UseWindowsAccentColor)
+            // Earlier versions also cached system colors when no preference was chosen.
+            if (stored == null && storedUseWindowsAccent == false)
             {
                 stored = ApplicationSettingsStore.Read(SettingsKey.AppAccentColorHexStr) as string;
             }

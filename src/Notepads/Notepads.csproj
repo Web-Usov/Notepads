@@ -294,7 +294,6 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Package.StoreAssociation.xml" />
     <Content Include="..\..\plugins\*\*.notepads-extension.json">
       <Link>Assets\Extensions\%(Filename)%(Extension)</Link>
     </Content>
