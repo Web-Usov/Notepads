@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>탭과 JSON 구문 강조를 지원하는 Windows용 경량 텍스트 편집기입니다.</value>
+    <value>탭과 JSON 구문 강조를 지원하는 경량 텍스트 편집기입니다.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

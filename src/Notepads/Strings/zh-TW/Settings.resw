@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>適用於 Windows 的輕量級文字編輯器，支援分頁及 JSON 語法醒目提示。</value>
+    <value>輕量級文字編輯器，支援分頁及 JSON 語法醒目提示。</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

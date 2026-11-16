@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>ଟ୍ୟାବ୍ ଓ JSON ସିଣ୍ଟାକ୍ସ ହାଇଲାଇଟିଂ ସହିତ Windows ପାଇଁ ଏକ ହାଲୁକା ଟେକ୍ସଟ୍ ଏଡିଟର୍।</value>
+    <value>ଟ୍ୟାବ୍ ଓ JSON ସିଣ୍ଟାକ୍ସ ହାଇଲାଇଟିଂ ସହିତ ଏକ ହାଲୁକା ଟେକ୍ସଟ୍ ଏଡିଟର୍।</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

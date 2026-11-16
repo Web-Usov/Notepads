@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>მსუბუქი ტექსტური რედაქტორი Windows-ისთვის, ჩანართებითა და JSON-ის სინტაქსის გამოკვეთით.</value>
+    <value>მსუბუქი ტექსტური რედაქტორი ჩანართებითა და JSON-ის სინტაქსის გამოკვეთით.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

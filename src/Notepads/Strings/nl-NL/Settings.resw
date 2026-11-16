@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Lichtgewicht teksteditor voor Windows met tabbladen en syntaxismarkering voor JSON.</value>
+    <value>Lichtgewicht teksteditor met tabbladen en syntaxismarkering voor JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

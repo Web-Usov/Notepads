@@ -1,6 +1,6 @@
 # Plainix brand assets
 
-Use **Plainix** as the product name. For a short description, use “Text editor for Windows” in English or «Текстовый редактор для Windows» in Russian.
+Use **Plainix** as the product name. For a short description, use “Text editor” in English or «Текстовый редактор» in Russian.
 
 | Placement | Artwork |
 | --- | --- |

@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Schlanker Texteditor für Windows mit Tabs und Syntaxhervorhebung für JSON.</value>
+    <value>Schlanker Texteditor mit Tabs und Syntaxhervorhebung für JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

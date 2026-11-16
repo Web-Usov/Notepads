@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>محرر نصوص خفيف لنظام Windows يدعم علامات التبويب وتلوين صيغة JSON.</value>
+    <value>محرر نصوص خفيف يدعم علامات التبويب وتلوين صيغة JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

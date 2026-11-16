@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Trình soạn thảo văn bản gọn nhẹ cho Windows với các thẻ và tính năng tô sáng cú pháp JSON.</value>
+    <value>Trình soạn thảo văn bản gọn nhẹ với các thẻ và tính năng tô sáng cú pháp JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

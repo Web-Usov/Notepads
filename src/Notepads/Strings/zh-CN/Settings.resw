@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>适用于 Windows 的轻量级文本编辑器，支持多标签页和 JSON 语法高亮。</value>
+    <value>轻量级文本编辑器，支持多标签页和 JSON 语法高亮。</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

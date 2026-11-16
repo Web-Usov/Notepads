@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>टैब और JSON सिंटैक्स हाइलाइटिंग वाला हल्का Windows टेक्स्ट एडिटर।</value>
+    <value>टैब और JSON सिंटैक्स हाइलाइटिंग वाला हल्का टेक्स्ट एडिटर।</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">

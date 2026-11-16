@@ -130,7 +130,7 @@
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Kis erőforrásigényű szövegszerkesztő Windowshoz, lapokkal és JSON-szintaxiskiemeléssel.</value>
+    <value>Kis erőforrásigényű szövegszerkesztő lapokkal és JSON-szintaxiskiemeléssel.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
