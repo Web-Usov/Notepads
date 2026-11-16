@@ -122,7 +122,12 @@ try {
     Trust-Bundle (Join-Path $folder 'Notepads-x64.msixbundle') (Join-Path $folder 'Notepads.cer')
     $marker = if ($TestUpgradeFromFirstRelease) { Install-PreviousVersion }
     # This switch submits the descriptor to the Windows deployment engine rather than installing the bundle directly.
-    Add-AppxPackage -AppInstallerFile -Path $entry
+    try {
+        Add-AppxPackage -AppInstallerFile -Path $entry
+    } catch {
+        Write-Warning (Get-AppxLog | Out-String -Width 220)
+        throw
+    }
     $installed = Get-AppxPackage -Name $appName
     if (!$installed -or $installed.Publisher -cne $subject -or [version]$installed.Version -ne [version]$main.GetAttribute('Version')) {
         throw 'The native installer did not register the expected app identity/version.'
@@ -136,14 +141,9 @@ try {
         throw 'The update did not preserve the earlier package family and LocalState.'
     }
     if ($marker) { Write-Output "PASS upgrade from 1.6.0.0 to $($installed.Version) preserves the package family and user data" }
-    if (Get-Command Get-AppxPackageAutoUpdateSettings -ErrorAction SilentlyContinue) {
-        $settings = Get-AppxPackageAutoUpdateSettings -PackageFamilyName $installed.PackageFamilyName
-        $actual = [Uri]$settings.AppInstallerUri
-    } else {
-        $manager = [Windows.Management.Deployment.PackageManager,Windows.Management.Deployment,ContentType=WindowsRuntime]::new()
-        $package = $manager.FindPackageForUser('', $installed.PackageFullName)
-        $actual = $package.GetAppInstallerInfo().Uri
-    }
+    $manager = [Windows.Management.Deployment.PackageManager,Windows.Management.Deployment,ContentType=WindowsRuntime]::new()
+    $package = $manager.FindPackageForUser('', $installed.PackageFullName)
+    $actual = $package.GetAppInstallerInfo().Uri
     if ($actual -ne $feedUri) { throw "Expected update association $feedUri, got $actual" }
     Write-Output "PASS Windows installed $($installed.PackageFullName) via the descriptor and registered $actual"
 } finally {

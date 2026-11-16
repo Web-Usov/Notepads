@@ -2,8 +2,8 @@
 set -euo pipefail
 
 case "$GITHUB_REF_NAME" in
-  "release/v$VERSION") tag="v$VERSION"; publish_flags=(--latest); kind="stable release" ;;
-  "native-preview/v$VERSION") tag="v$VERSION-preview"; publish_flags=(--prerelease --latest=false); kind="preview" ;;
+  "release/v$VERSION") tag="v$VERSION"; latest=true; prerelease=false; kind="stable release" ;;
+  "native-preview/v$VERSION") tag="v$VERSION-preview"; latest=false; prerelease=true; kind="preview" ;;
   *) echo "Unexpected publication branch." >&2; exit 1 ;;
 esac
 
@@ -41,8 +41,8 @@ if [[ -n "$existing" ]]; then
   read -r id draft commit <<< "$existing"
   [[ "$draft" == true && "$commit" == "$GITHUB_SHA" ]] || { echo "A different or published release already owns $tag." >&2; exit 1; }
 else
-  gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title "Notepads $VERSION ($kind)" --notes-file notes.md
-  id=$(gh api --paginate "$api" --jq ".[] | select(.tag_name == \"$tag\" and .draft) | .id")
+  id=$(gh api --method POST "$api" --field "tag_name=$tag" --field "target_commitish=$GITHUB_SHA" \
+    --field "name=Notepads $VERSION ($kind)" --field 'body=@notes.md' --field draft=true --field "prerelease=$prerelease" --jq .id)
 fi
 [[ "$id" =~ ^[0-9]+$ ]]
 for file in native-installer/* "$archive" SHA256SUMS.txt; do
@@ -61,7 +61,9 @@ for file in native-installer/* "$archive" SHA256SUMS.txt; do
   result=$(curl --silent --show-error --fail-with-body --request POST \
     --header "Authorization: Bearer $GH_TOKEN" --header "Content-Type: $mime" --data-binary "@$file" \
     "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$id/assets?name=$name")
-  jq -e --arg name "$name" --arg mime "$mime" --argjson bytes "$(stat -c %s "$file")" \
-    '.state == "uploaded" and .name == $name and .size == $bytes and .content_type == $mime' <<< "$result" >/dev/null
+  digest="sha256:$(sha256sum "$file" | cut -d ' ' -f 1)"
+  jq -e --arg digest "$digest" --arg name "$name" --arg mime "$mime" --argjson bytes "$(stat -c %s "$file")" \
+    '.state == "uploaded" and .name == $name and .size == $bytes and .content_type == $mime and .digest == $digest' <<< "$result" >/dev/null
 done
-gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file notes.md --draft=false "${publish_flags[@]}"
+gh api --method PATCH "$api/$id" --field 'body=@notes.md' --field draft=false \
+  --field "prerelease=$prerelease" --raw-field "make_latest=$latest" --jq .html_url
