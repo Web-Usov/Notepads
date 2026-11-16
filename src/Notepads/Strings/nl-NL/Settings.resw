@@ -122,15 +122,23 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>DE SOFTWARE WORDT GELEVERD "ZOALS DEZE IS", ZONDER ENIGE VORM VAN GARANTIE, EXPLICIET OF IMPLICIET, MET INBEGRIP VAN, MAAR NIET BEPERKT TOT, DE GARANTIES VAN VERKOOPBAARHEID, GESCHIKTHEID VOOR EEN BEPAALD DOEL EN NIET-INBREUK. IN GEEN GEVAL ZIJN DE AUTEURS OF HOUDERS VAN AUTEURSRECHTEN AANSPRAKELIJK VOOR ENIGE CLAIM, SCHADE OF ANDERE AANSPRAKELIJKHEID, HETZIJ IN EEN ACTIE VAN CONTRACT, ONRECHTMATIGE DAAD OF ANDERSZINS, DIE VOORTVLOEIT UIT, UIT OF VERBAND HOUDT MET DE SOFTWARE OF HET GEBRUIK OF ANDERE TRANSACTIES IN DE SOFTWARE.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>De software wordt geleverd "zoals deze is", zonder enige vorm van garantie, expliciet of impliciet, met inbegrip van, maar niet beperkt tot, de garanties van verkoopbaarheid, geschiktheid voor een bepaald doel en niet-inbreuk.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>In geen geval zijn de auteurs of houders van auteursrechten aansprakelijk voor enige claim, schade of andere aansprakelijkheid, hetzij in een actie van contract, onrechtmatige daad of anderszins, die voortvloeit uit, uit of verband houdt met de software of het gebruik of andere transacties in de software.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix is gebaseerd op het project Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Clausule</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Gratis en open source teksteditor ontworpen en geïmplementeerd door Jackie (Jiaqi) Liu</value>
+    <value>Lichtgewicht teksteditor met tabbladen en syntaxismarkering voor JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +180,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>Geavanceerd</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Plainix-accentkleur herstellen</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>Accentkleur</value>
@@ -294,7 +305,7 @@
     <comment>AboutPage Changelog Title display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Description.Text" xml:space="preserve">
-    <value>Indien ingeschakeld, onthoudt Notepads de huidige sessie voor de volgende keer opstarten en wordt er periodiek een momentopname van de sessie gemaakt om onbedoeld gegevensverlies door niet-vastgelegde wijzigingen te voorkomen. Notepads herinnert u er NIET aan om uw werk op te slaan bij het sluiten van de app als deze functie is ingeschakeld. Houd er ook rekening mee dat een sessie-momentopname alleen werkt in het eerste of hoofdvenster van Notepads.</value>
+    <value>Indien ingeschakeld, onthoudt Plainix de huidige sessie voor de volgende keer opstarten en wordt er periodiek een momentopname van de sessie gemaakt om onbedoeld gegevensverlies door niet-vastgelegde wijzigingen te voorkomen. Plainix herinnert u er NIET aan om uw werk op te slaan bij het sluiten van de app als deze functie is ingeschakeld. Houd er ook rekening mee dat een sessie-momentopname alleen werkt in het eerste of hoofdvenster van Plainix.</value>
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
@@ -322,7 +333,7 @@
     <comment>TextAndEditorPage SpellingSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_AlwaysOpenNewWindow_Description.Text" xml:space="preserve">
-    <value>Indien ingeschakeld, opent Notepads altijd het bestand in een nieuw venster in plaats van een nieuw tabblad aan te maken.</value>
+    <value>Indien ingeschakeld, opent Plainix altijd het bestand in een nieuw venster in plaats van een nieuw tabblad aan te maken.</value>
     <comment>AdvancedPage LaunchPreferenceSettings AlwaysOpenNewWindow Description display text.</comment>
   </data>
   <data name="AdvancedPage_LaunchPreferenceSettings_AlwaysOpenNewWindowToggleSwitch.OffContent" xml:space="preserve">
@@ -390,11 +401,11 @@
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>Kies een aangepaste taal om de standaardtaal van het systeem te overschrijven die wordt gebruikt in Notepads. Een herstart is vereist om deze wijziging door te voeren.</value>
+    <value>Kies een aangepaste taal om de standaardtaal van het systeem te overschrijven die wordt gebruikt in Plainix. Een herstart is vereist om deze wijziging door te voeren.</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*Notepads opnieuw starten om wijzigingen door te voeren.</value>
+    <value>*Plainix opnieuw starten om wijzigingen door te voeren.</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">
@@ -402,7 +413,7 @@
     <comment>AdvancedPage LanguagePreferenceSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_Description.Text" xml:space="preserve">
-    <value>Eenmaal ingeschakeld, zal Notepads voorloop- en achterliggende spaties, tabs en lege regels slim inkorten voordat de geselecteerde tekst naar het klembord wordt gekopieerd.</value>
+    <value>Eenmaal ingeschakeld, zal Plainix voorloop- en achterliggende spaties, tabs en lege regels slim inkorten voordat de geselecteerde tekst naar het klembord wordt gekopieerd.</value>
     <comment>AdvancedPage SmartCopySettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_EnableSmartCopyToggleSwitch.OffContent" xml:space="preserve">

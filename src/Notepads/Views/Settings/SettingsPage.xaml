@@ -46,6 +46,7 @@
             </NavigationViewItem>
             <NavigationViewItem Style="{StaticResource CustomNavigationViewItemStyle}" 
                                 x:Uid="/Settings/AboutPage_Title"
+                                AutomationProperties.AutomationId="AboutSettingsItem"
                                 Tag="About" >
                 <NavigationViewItem.Icon>
                     <FontIcon FontFamily="Segoe MDL2 Assets"

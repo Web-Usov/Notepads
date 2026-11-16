@@ -15,9 +15,9 @@ namespace Notepads.SyntaxExtensions
             int start = snapshot.SelectionLength == 0 ? 0 : snapshot.SelectionStart;
             int length = snapshot.SelectionLength == 0 ? snapshot.Text.Length : snapshot.SelectionLength;
             if (minify && length > MaxOutputLength)
-                return EditorCommandResult.Error(start, 0, "JSON input exceeds 4,194,304 characters.");
+                return EditorCommandResult.Error(start, 0, ExtensionMessages.Get("JsonMinifyLimit"));
             if (!minify && length > MaxFormatInputLength)
-                return EditorCommandResult.Error(start, 0, "JSON input exceeds 1,048,576 characters.");
+                return EditorCommandResult.Error(start, 0, ExtensionMessages.Get("JsonFormatLimit"));
 
             string input = snapshot.Text.Substring(start, length);
             byte[] bytes;
@@ -27,7 +27,7 @@ namespace Notepads.SyntaxExtensions
             }
             catch (EncoderFallbackException ex)
             {
-                return ReportError(snapshot.Text, start, length, Math.Max(0, ex.Index), "Invalid Unicode character.");
+                return ReportError(snapshot.Text, start, length, Math.Max(0, ex.Index), "JsonLocation", ExtensionMessages.Get("JsonUnicode"));
             }
 
             // Validate without converting keys or numbers to CLR values. The formatter copies their original spelling.
@@ -42,12 +42,12 @@ namespace Notepads.SyntaxExtensions
                 // System.Text.Json appends zero-based byte coordinates relative to the selection.
                 int suffix = ex.Message.LastIndexOf(" LineNumber:", StringComparison.Ordinal);
                 string reason = suffix < 0 ? ex.Message : ex.Message.Substring(0, suffix).TrimEnd('|', ' ');
-                return ReportError(snapshot.Text, start, length, offset, reason);
+                return ReportError(snapshot.Text, start, length, offset, "JsonSyntax", reason);
             }
 
             string result = RewriteWhitespace(input, minify, GetLineEnding(snapshot.Text));
             if (result == null)
-                return EditorCommandResult.Error(start, 0, "Formatted JSON exceeds 4,194,304 characters.");
+                return EditorCommandResult.Error(start, 0, ExtensionMessages.Get("JsonOutputLimit"));
             return EditorCommandResult.Replace(start, length, result);
         }
 
@@ -66,7 +66,7 @@ namespace Notepads.SyntaxExtensions
             return Utf8.GetCharCount(bytes, 0, position);
         }
 
-        private static EditorCommandResult ReportError(string document, int start, int length, int relativeOffset, string reason)
+        private static EditorCommandResult ReportError(string document, int start, int length, int relativeOffset, string messageKey, string reason)
         {
             int offset = start + Math.Min(length, relativeOffset);
             int line = 1, column = 1;
@@ -87,7 +87,7 @@ namespace Notepads.SyntaxExtensions
             int errorLength = 0;
             if (offset < start + length)
                 errorLength = offset + 1 < start + length && char.IsSurrogatePair(document, offset) ? 2 : 1;
-            return EditorCommandResult.Error(offset, errorLength, $"JSON error at line {line}, column {column}: {reason}");
+            return EditorCommandResult.Error(offset, errorLength, ExtensionMessages.Get(messageKey, line, column, reason));
         }
 
         private static string GetLineEnding(string text)

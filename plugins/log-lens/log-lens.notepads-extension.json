@@ -1,13 +1,15 @@
 {
   "apiVersion": 2,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "id": "notepads.log-lens",
   "displayName": "Log Lens",
+  "displayNameTranslations": { "ru": "Просмотр журналов" },
   "contributes": {
     "commands": [
       {
         "id": "open",
         "title": "Open Log Lens",
+        "titleTranslations": { "ru": "Открыть просмотр журналов" },
         "handler": "panel.open",
         "panel": "events"
       }
@@ -16,6 +18,7 @@
       {
         "id": "events",
         "title": "Log Lens",
+        "titleTranslations": { "ru": "Просмотр журналов" },
         "handler": "log.filter"
       }
     ]

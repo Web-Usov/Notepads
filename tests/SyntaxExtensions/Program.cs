@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -12,6 +13,8 @@ internal static class Program
     {
         if (args.Length == 0)
         {
+            // Tests below assert exact English UI text; exercise Russian explicitly as well.
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
             RunTests();
             return 0;
         }
@@ -49,6 +52,7 @@ internal static class Program
         CheckRegistry(extension);
         EditorApiTests.Run();
         JsonToolsTests.Run();
+        CheckRussianDiagnostics();
         LogLensTests.Run();
         PackageTests.Run();
 
@@ -80,6 +84,31 @@ internal static class Program
         }
         Check(cancelled, "cancellation");
         Console.WriteLine("Syntax extension manifest and tokenizer tests passed.");
+    }
+
+    private static void CheckRussianDiagnostics()
+    {
+        var previous = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("ru-RU");
+            var snapshot = new EditorSnapshot(Guid.NewGuid(), 1, "[\r?]", 0, 0);
+            var error = JsonTools.Execute(snapshot, false);
+            Check(error.Message.Contains("в строке 2, столбце 1") && error.Start == 2, "Russian JSON error and source offset");
+            try
+            {
+                ExtensionDownload.LoadAsync("http://example.com", CancellationToken.None).GetAwaiter().GetResult();
+                throw new InvalidOperationException("Expected an invalid source.");
+            }
+            catch (FormatException ex)
+            {
+                Check(ex.Message.StartsWith("Введите HTTPS-адрес"), "Russian installer diagnostic");
+            }
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
     }
 
     private static void CheckRegistry(SyntaxExtension bundled)

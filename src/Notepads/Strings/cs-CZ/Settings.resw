@@ -122,15 +122,23 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>SOFTWARE JE POSKYTOVÁN  "TAK JAK JE ", BEZ ZÁRUKY JAKÉHOKOLI DRUHU, VÝSLOVNÉ NEBO PŘEDPOKLÁDANÉ, VČETNĚ, ALE NIKOLI VÝHRADNĚ, ZÁRUK PRODEJNOSTI, VHODNOSTI PRO URČITÝ ÚČEL A NEPORUŠENÍ PŘEDPISŮ. AUTOŘI NEBO DRŽITELÉ AUTORSKÝCH PRÁV NEJSOU V ŽÁDNÉM PŘÍPADĚ ODPOVĚDNI ZA JAKÉKOLI NÁROKY, ŠKODY NEBO JINÉ ZÁVAZKY, AŤ JIŽ V RÁMCI SMLOUVY, DELIKTŮ NEBO JINAK, VZNIKLÉ V SOUVISLOSTI S TÍMTO SOFTWAREM NEBO S JEHO POUŽÍVÁNÍM NEBO S JINÝM OBCHODOVÁNÍ SE SOFTWAREM.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Software je poskytován  "tak jak je ", bez záruky jakéhokoli druhu, výslovné nebo předpokládané, včetně, ale nikoli výhradně, záruk prodejnosti, vhodnosti pro určitý účel a neporušení předpisů.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>Autoři nebo držitelé autorských práv nejsou v žádném případě odpovědni za jakékoli nároky, škody nebo jiné závazky, ať již v rámci smlouvy, deliktů nebo jinak, vzniklé v souvislosti s tímto softwarem nebo s jeho používáním nebo s jiným obchodování se softwarem.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix vychází z projektu Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Prohlášení</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Design a implementace volně šiřitelného a open source distribuovaného text editoru od Jackie (Jiaqi) Liu</value>
+    <value>Lehký textový editor s kartami a zvýrazněním syntaxe JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -158,7 +166,7 @@
     <comment>AboutPage Title display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Description.Text" xml:space="preserve">
-    <value>Notepads si bude pamatovat aktuální session pro příští spuštění a bude dělat pravidelné zálohy proti možné ztrátě neuložených dat. Notepads vás při vypínání aplikace NEBUDE vyzývat k uložení souborů, pokud je tato funkce zapnutá.</value>
+    <value>Plainix si bude pamatovat aktuální session pro příští spuštění a bude dělat pravidelné zálohy proti možné ztrátě neuložených dat. Plainix vás při vypínání aplikace NEBUDE vyzývat k uložení souborů, pokud je tato funkce zapnutá.</value>
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
@@ -188,6 +196,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>Pokročilé</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Obnovit barvu Plainix</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>Barva zvýraznění</value>
@@ -322,7 +333,7 @@
     <comment>TextAndEditorPage SpellingSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_AlwaysOpenNewWindow_Description.Text" xml:space="preserve">
-    <value>Notepads otevře každý další soubor v novém okně místo záložce, pokud je tato možnost povolena.</value>
+    <value>Plainix otevře každý další soubor v novém okně místo záložce, pokud je tato možnost povolena.</value>
     <comment>AdvancedPage LaunchPreferenceSettings AlwaysOpenNewWindow Description display text.</comment>
   </data>
   <data name="AdvancedPage_LaunchPreferenceSettings_AlwaysOpenNewWindowToggleSwitch.OffContent" xml:space="preserve">
@@ -390,11 +401,11 @@
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>Vyberte vlastní jazyk pro přepsání výchozí systémového jazyku použitého v Notepads. K aplikaci změn je nutný restart aplikace.</value>
+    <value>Vyberte vlastní jazyk pro přepsání výchozí systémového jazyku použitého v Plainix. K aplikaci změn je nutný restart aplikace.</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*Restartujte Notepads pro dokončení změn.</value>
+    <value>*Restartujte Plainix pro dokončení změn.</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">
@@ -402,7 +413,7 @@
     <comment>AdvancedPage LanguagePreferenceSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_Description.Text" xml:space="preserve">
-    <value>Jakmile je jednou povolen, Notepads zkrátí text o přebývající počáteční a koncové mezery, tabulátory a prázdné řádky před tím, než je vybraný text nakopírován do schránky.</value>
+    <value>Jakmile je jednou povolen, Plainix zkrátí text o přebývající počáteční a koncové mezery, tabulátory a prázdné řádky před tím, než je vybraný text nakopírován do schránky.</value>
     <comment>AdvancedPage SmartCopySettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_EnableSmartCopyToggleSwitch.OffContent" xml:space="preserve">

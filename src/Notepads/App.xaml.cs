@@ -27,7 +27,10 @@ namespace Notepads
 
     public sealed partial class App : Application
     {
-        public static string ApplicationName = "Notepads";
+        public const string ApplicationName = "Plainix";
+
+        // Shared with earlier versions for single-instance and inter-window coordination.
+        internal const string InstanceCompatibilityName = "Notepads";
 
         public static Guid InstanceId { get; } = Guid.NewGuid();
 
@@ -45,7 +48,7 @@ namespace Notepads
             UnhandledException += OnUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedException;
 
-            InstanceHandlerMutex = new Mutex(true, App.ApplicationName, out bool isNew);
+            InstanceHandlerMutex = new Mutex(true, InstanceCompatibilityName, out bool isNew);
             if (isNew)
             {
                 IsPrimaryInstance = true;

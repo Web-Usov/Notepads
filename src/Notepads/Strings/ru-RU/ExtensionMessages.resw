@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="HttpsUrl" xml:space="preserve">
+    <value>Введите HTTPS-адрес без учётных данных и фрагмента после знака #.</value>
+  </data>
+  <data name="SourceTimeout" xml:space="preserve">
+    <value>Источник расширения не ответил вовремя.</value>
+  </data>
+  <data name="ReleaseAssets" xml:space="preserve">
+    <value>В релизе GitHub должен быть один манифест расширения или ZIP-архив. Чтобы выбрать конкретный файл, укажите прямую ссылку.</value>
+  </data>
+  <data name="RepositoryManifest" xml:space="preserve">
+    <value>В репозитории нет опубликованного релиза. Поместите в его корень один манифест *.notepads-extension.json.</value>
+  </data>
+  <data name="UnexpectedBlob" xml:space="preserve">
+    <value>GitHub вернул содержимое, не соответствующее выбранному манифесту.</value>
+  </data>
+  <data name="DownloadHttps" xml:space="preserve">
+    <value>Источник расширения вернул ссылку для скачивания без HTTPS.</value>
+  </data>
+  <data name="RedirectLocation" xml:space="preserve">
+    <value>Источник расширения перенаправил запрос, не указав новый адрес.</value>
+  </data>
+  <data name="DownloadSize" xml:space="preserve">
+    <value>Размер файла превышает предел загрузки расширений.</value>
+  </data>
+  <data name="RedirectLimit" xml:space="preserve">
+    <value>Слишком много перенаправлений при загрузке расширения.</value>
+  </data>
+  <data name="InstalledChanged" xml:space="preserve">
+    <value>Установленное расширение изменилось. Перезагрузите список расширений и повторите проверку.</value>
+  </data>
+  <data name="ZipEntryCount" xml:space="preserve">
+    <value>В ZIP-архиве больше 256 записей.</value>
+  </data>
+  <data name="ZipManifestCount" xml:space="preserve">
+    <value>ZIP-архив должен содержать ровно один манифест *.notepads-extension.json.</value>
+  </data>
+  <data name="ZipManifestLocation" xml:space="preserve">
+    <value>Поместите манифест в корень ZIP-архива или в папку первого уровня.</value>
+  </data>
+  <data name="ZipManifestSize" xml:space="preserve">
+    <value>Размер манифеста в архиве превышает 64 КиБ.</value>
+  </data>
+  <data name="ManifestSize" xml:space="preserve">
+    <value>Размер манифеста превышает 64 КиБ.</value>
+  </data>
+  <data name="DownloadByteLimit" xml:space="preserve">
+    <value>Размер загрузки превышает предел в {0} байт.</value>
+  </data>
+  <data name="SourceLength" xml:space="preserve">
+    <value>Слишком длинный адрес источника установки.</value>
+  </data>
+  <data name="ManifestObject" xml:space="preserve">
+    <value>Манифест расширения должен быть объектом JSON.</value>
+  </data>
+  <data name="UpdateId" xml:space="preserve">
+    <value>Идентификатор обновления отличается от идентификатора установленного расширения.</value>
+  </data>
+  <data name="ManifestEmpty" xml:space="preserve">
+    <value>Манифест расширения пуст или превышает допустимый размер.</value>
+  </data>
+  <data name="ApiVersion" xml:space="preserve">
+    <value>Версия API расширения не поддерживается. Укажите 1 или 2 в поле apiVersion.</value>
+  </data>
+  <data name="GrammarSuffixes" xml:space="preserve">
+    <value>Укажите уникальные расширения файлов, например .json.</value>
+  </data>
+  <data name="TokenScope" xml:space="preserve">
+    <value>Неизвестный тип токена: {0}</value>
+  </data>
+  <data name="MissingContributions" xml:space="preserve">
+    <value>Объявите хотя бы одну грамматику или команду.</value>
+  </data>
+  <data name="InvalidJsonManifest" xml:space="preserve">
+    <value>Некорректный JSON в манифесте расширения.</value>
+  </data>
+  <data name="ManifestField" xml:space="preserve">
+    <value>Поле манифеста отсутствует или содержит недопустимое значение: {0}</value>
+  </data>
+  <data name="EntryCount" xml:space="preserve">
+    <value>Недопустимое количество элементов в поле {0}.</value>
+  </data>
+  <data name="EmptyField" xml:space="preserve">
+    <value>Поле манифеста пусто или превышает допустимую длину: {0}</value>
+  </data>
+  <data name="EmptySyntaxRule" xml:space="preserve">
+    <value>Правило подсветки должно захватывать хотя бы один символ.</value>
+  </data>
+  <data name="InvalidPattern" xml:space="preserve">
+    <value>Некорректное регулярное выражение для типа токена {0}.</value>
+  </data>
+  <data name="PatternTimeout" xml:space="preserve">
+    <value>Превышено время проверки регулярного выражения.</value>
+  </data>
+  <data name="InvalidId" xml:space="preserve">
+    <value>Некорректный идентификатор расширения, команды или панели.</value>
+  </data>
+  <data name="LabelControl" xml:space="preserve">
+    <value>Недопустимый управляющий символ в поле {0}.</value>
+  </data>
+  <data name="VersionNumber" xml:space="preserve">
+    <value>Укажите версию из трёх чисел через точку, например 1.2.0.</value>
+  </data>
+  <data name="PanelHandler" xml:space="preserve">
+    <value>Неизвестный обработчик панели или повторяющийся идентификатор панели.</value>
+  </data>
+  <data name="DuplicateCommand" xml:space="preserve">
+    <value>Повторяющийся идентификатор команды: {0}</value>
+  </data>
+  <data name="UnknownPanel" xml:space="preserve">
+    <value>Команда ссылается на неизвестную панель.</value>
+  </data>
+  <data name="WrapDelimiters" xml:space="preserve">
+    <value>Префикс и суффикс вместе должны содержать от 1 до 512 печатных символов.</value>
+  </data>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>Неизвестный обработчик команды: {0}</value>
+  </data>
+  <data name="CommandSuffix" xml:space="preserve">
+    <value>Недопустимое или повторяющееся расширение файла в команде.</value>
+  </data>
+  <data name="InvalidTranslations" xml:space="preserve">
+    <value>Некорректные переводы для поля {0}.</value>
+  </data>
+  <data name="CommandFailed" xml:space="preserve">
+    <value>Не удалось выполнить команду расширения: {0}</value>
+  </data>
+  <data name="JsonMinifyLimit" xml:space="preserve">
+    <value>Размер JSON для сжатия превышает 4 194 304 символа.</value>
+  </data>
+  <data name="JsonFormatLimit" xml:space="preserve">
+    <value>Размер JSON для форматирования превышает 1 048 576 символов.</value>
+  </data>
+  <data name="JsonOutputLimit" xml:space="preserve">
+    <value>После форматирования размер JSON превысит 4 194 304 символа.</value>
+  </data>
+  <data name="JsonUnicode" xml:space="preserve">
+    <value>Недопустимый символ Юникода.</value>
+  </data>
+  <data name="JsonLocation" xml:space="preserve">
+    <value>Ошибка JSON в строке {0}, столбце {1}: {2}</value>
+  </data>
+  <data name="JsonSyntax" xml:space="preserve">
+    <value>Ошибка синтаксиса JSON в строке {0}, столбце {1}.</value>
+  </data>
+</root>

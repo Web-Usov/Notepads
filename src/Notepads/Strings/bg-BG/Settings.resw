@@ -122,15 +122,23 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>СОФТУЕРЪТ СЕ ПРЕДОСТАВЯ "КАКТО Е", БЕЗ НИКАКВИ ГАРАНЦИИ, ИЗРИЧНИ ИЛИ ПОДРАЗБИРАЩИ СЕ, ВКЛЮЧИТЕЛНО , НО НЕ САМО, ГАРАНЦИИТЕ ЗА ПРОДАВАЕМОСТ, ГОДНОСТ ЗА ОПРЕДЕЛЕНА ЦЕЛ И НЕНАРУШЕНИЕ. АВТОРИТЕ ИЛИ НОСИТЕЛИТЕ НА АВТОРСКИ ПРАВА НЕ НОСЯТ НИКАКВА ОТГОВОРНОСТ ЗА ИСК, ВРЕДА ИЛИ ДРУГА ОТГОВОРНОСТ, ПРОИЗТИЧАЩИ ОТ ИЗВЪН ИЛИ ВЪВ ВРЪЗКА СЪС СОФТУЕРА ИЛИ С ИЗПОЛЗВАНЕТО ИЛИ ДРУГИ СДЕЛКИ В СОФТУЕРА.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Софтуерът се предоставя "както е", без никакви гаранции, изрични или подразбиращи се, включително , но не само, гаранциите за продаваемост, годност за определена цел и ненарушение.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>Авторите или носителите на авторски права не носят никаква отговорност за иск, вреда или друга отговорност, произтичащи от извън или във връзка със софтуера или с използването или други сделки в софтуера.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix е базиран на проекта Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Отказ от право</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Безплатен и с отворен код текстов редактор, проектиран и изпълнен от Jackie (Jiaqi) Liu</value>
+    <value>Лек текстов редактор с раздели и оцветяване на синтаксиса на JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +180,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>Разширени</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Възстановяване на цвета на Plainix</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>Акцентен цвят</value>
@@ -294,7 +305,7 @@
     <comment>AboutPage Changelog Title display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Description.Text" xml:space="preserve">
-    <value>След като бъде активирано, Notepads ще запомни текущата сесия за следващо стартиране и ще прави периодично архивиране на моментни снимки на сесията, за да се предотврати случайна загуба на данни за неотправени промени. Notepads НЯМА да ви напомня да запазите работата си при затваряне на приложението, ако тази функция е активирана. Моля, не забравяйте също, че моментната снимка на сесията работи само в първия или основния прозорец на Notepads.</value>
+    <value>След като бъде активирано, Plainix ще запомни текущата сесия за следващо стартиране и ще прави периодично архивиране на моментни снимки на сесията, за да се предотврати случайна загуба на данни за неотправени промени. Plainix НЯМА да ви напомня да запазите работата си при затваряне на приложението, ако тази функция е активирана. Моля, не забравяйте също, че моментната снимка на сесията работи само в първия или основния прозорец на Plainix.</value>
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
@@ -322,7 +333,7 @@
     <comment>TextAndEditorPage SpellingSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_AlwaysOpenNewWindow_Description.Text" xml:space="preserve">
-    <value>След като бъде активиран, Notepads винаги ще отварят файл в нов прозорец, вместо да създават нов раздел.</value>
+    <value>След като бъде активиран, Plainix винаги ще отварят файл в нов прозорец, вместо да създават нов раздел.</value>
     <comment>AdvancedPage LaunchPreferenceSettings AlwaysOpenNewWindow Description display text.</comment>
   </data>
   <data name="AdvancedPage_LaunchPreferenceSettings_AlwaysOpenNewWindowToggleSwitch.OffContent" xml:space="preserve">
@@ -390,11 +401,11 @@
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>Изберете персонализиран език, за да замените езика по подразбиране на системата, използван в Notepads. Необходим е рестарт за завършване на промените.</value>
+    <value>Изберете персонализиран език, за да замените езика по подразбиране на системата, използван в Plainix. Необходим е рестарт за завършване на промените.</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*Рестартирайте Notepads, за да завършите промените.</value>
+    <value>*Рестартирайте Plainix, за да завършите промените.</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">
@@ -402,7 +413,7 @@
     <comment>AdvancedPage LanguagePreferenceSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_Description.Text" xml:space="preserve">
-    <value>След активиране, Notepads интелигентно ще премахва началните и крайните интервали, табулациите и празните редове преди копиране на избрания текст в клипборда.</value>
+    <value>След активиране, Plainix интелигентно ще премахва началните и крайните интервали, табулациите и празните редове преди копиране на избрания текст в клипборда.</value>
     <comment>AdvancedPage SmartCopySettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_EnableSmartCopyToggleSwitch.OffContent" xml:space="preserve">

@@ -3,6 +3,7 @@ namespace Notepads.SyntaxExtensions
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading;
@@ -34,8 +35,19 @@ namespace Notepads.SyntaxExtensions
 
         public static SyntaxExtension Parse(string json)
         {
+#if WINDOWS_UWP
+            // Use the same language preference as the packaged UI, including its Settings override.
+            var languages = Windows.Globalization.ApplicationLanguages.Languages;
+            return Parse(json, languages.Count > 0 ? languages[0] : string.Empty);
+#else
+            return Parse(json, CultureInfo.CurrentUICulture.Name);
+#endif
+        }
+
+        internal static SyntaxExtension Parse(string json, string language)
+        {
             if (string.IsNullOrWhiteSpace(json) || json.Length > MaxManifestLength)
-                throw new FormatException("Extension manifest is empty or too large.");
+                throw new FormatException(ExtensionMessages.Get("ManifestEmpty"));
 
             try
             {
@@ -44,10 +56,10 @@ namespace Notepads.SyntaxExtensions
                     var root = document.RootElement;
                     var api = Required(root, "apiVersion", JsonValueKind.Number);
                     if (!api.TryGetInt32(out int version) || (version != 1 && version != 2))
-                        throw new FormatException("Unsupported extension apiVersion. Expected 1 or 2.");
+                        throw new FormatException(ExtensionMessages.Get("ApiVersion"));
 
                     var id = ReadId(root);
-                    var name = ReadLabel(root, "displayName");
+                    var name = ReadLabel(root, "displayName", language);
                     var packageVersion = version == 2 ? ReadVersion(root) : "1.0.0";
                     var contributes = Required(root, "contributes", JsonValueKind.Object);
                     var grammars = new List<SyntaxGrammar>();
@@ -60,7 +72,7 @@ namespace Notepads.SyntaxExtensions
                         {
                             var value = suffix.ValueKind == JsonValueKind.String ? suffix.GetString() : null;
                             if (value == null || !SuffixPattern.IsMatch(value) || !claimedSuffixes.Add(value))
-                                throw new FormatException("File extensions must be unique suffixes such as .json.");
+                                throw new FormatException(ExtensionMessages.Get("GrammarSuffixes"));
                             suffixes.Add(value.ToLowerInvariant());
                         }
 
@@ -69,27 +81,27 @@ namespace Notepads.SyntaxExtensions
                         {
                             string scope = ReadString(rule, "scope", 32);
                             if (!Scopes.Contains(scope))
-                                throw new FormatException("Unknown token scope: " + scope);
+                                throw new FormatException(ExtensionMessages.Get("TokenScope", scope));
                             rules.Add(new SyntaxRule(scope, ReadString(rule, "match", 1024)));
                         }
                         grammars.Add(new SyntaxGrammar(suffixes, rules));
                     }
-                    var commands = version == 2 ? ReadCommands(contributes) : new List<ExtensionCommand>();
+                    var commands = version == 2 ? ReadCommands(contributes, language) : new List<ExtensionCommand>();
                     if (grammars.Count == 0 && commands.Count == 0)
-                        throw new FormatException("Declare at least one grammar or command.");
+                        throw new FormatException(ExtensionMessages.Get("MissingContributions"));
                     return new SyntaxExtension(id, name, grammars, packageVersion, commands);
                 }
             }
             catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException || ex is ArgumentException)
             {
-                throw new FormatException("Invalid extension JSON.", ex);
+                throw new FormatException(ExtensionMessages.Get("InvalidJsonManifest"), ex);
             }
         }
 
         private static JsonElement Required(JsonElement parent, string name, JsonValueKind kind)
         {
             if (parent.ValueKind != JsonValueKind.Object || !parent.TryGetProperty(name, out var value) || value.ValueKind != kind)
-                throw new FormatException("Missing or invalid manifest field: " + name);
+                throw new FormatException(ExtensionMessages.Get("ManifestField", name));
             return value;
         }
 
@@ -97,7 +109,7 @@ namespace Notepads.SyntaxExtensions
         {
             var value = Required(parent, name, JsonValueKind.Array);
             if (value.GetArrayLength() == 0 || value.GetArrayLength() > limit)
-                throw new FormatException("Invalid number of entries in " + name + ".");
+                throw new FormatException(ExtensionMessages.Get("EntryCount", name));
             return value.EnumerateArray();
         }
 
@@ -105,7 +117,7 @@ namespace Notepads.SyntaxExtensions
         {
             string value = Required(parent, name, JsonValueKind.String).GetString();
             if (string.IsNullOrWhiteSpace(value) || value.Length > limit)
-                throw new FormatException("Empty or oversized manifest field: " + name);
+                throw new FormatException(ExtensionMessages.Get("EmptyField", name));
             return value;
         }
     }
@@ -119,15 +131,15 @@ namespace Notepads.SyntaxExtensions
             {
                 Pattern = new Regex(pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(40));
                 if (Pattern.IsMatch(string.Empty))
-                    throw new FormatException("A syntax rule must consume text.");
+                    throw new FormatException(ExtensionMessages.Get("EmptySyntaxRule"));
             }
             catch (ArgumentException ex)
             {
-                throw new FormatException("Invalid regular expression for scope " + scope + ".", ex);
+                throw new FormatException(ExtensionMessages.Get("InvalidPattern", scope), ex);
             }
             catch (RegexMatchTimeoutException ex)
             {
-                throw new FormatException("Regular expression timed out during validation.", ex);
+                throw new FormatException(ExtensionMessages.Get("PatternTimeout"), ex);
             }
         }
 

@@ -35,19 +35,59 @@ namespace Notepads.SyntaxExtensions
             CancellationToken token, HttpClient client = null)
         {
             if (!TryGetHttps(address, out var source))
-                throw new FormatException("Enter an HTTPS URL without credentials or a fragment.");
+                throw new FormatException(ExtensionMessages.Get("HttpsUrl"));
 
             using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(token))
             {
                 timeout.CancelAfter(TimeSpan.FromSeconds(30));
                 try
                 {
-                    return await ResolveAsync(client ?? Client, source, timeout.Token);
+                    return await ResolveAsync(client ?? Client, MigrateForkManifest(source), timeout.Token);
                 }
                 catch (OperationCanceledException) when (!token.IsCancellationRequested)
                 {
-                    throw new TimeoutException("The extension source took too long to respond.");
+                    throw new TimeoutException(ExtensionMessages.Get("SourceTimeout"));
                 }
+            }
+        }
+
+        // Only these moving URLs changed when this fork moved its manifests into plugins/.
+        // Leave commit/tag pins, query parameters, third-party sources and redirects untouched.
+        private static Uri MigrateForkManifest(Uri source)
+        {
+            if (!source.IsDefaultPort || source.Query.Length != 0) return source;
+
+            const string repository = "/Web-Usov/Notepads/";
+            if (!source.AbsolutePath.StartsWith(repository, StringComparison.OrdinalIgnoreCase)) return source;
+            string path = source.AbsolutePath.Substring(repository.Length);
+            if (source.IdnHost.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!path.StartsWith("raw/", StringComparison.Ordinal)) return source;
+                path = path.Substring("raw/".Length);
+            }
+            else if (!source.IdnHost.Equals("raw.githubusercontent.com", StringComparison.OrdinalIgnoreCase))
+                return source;
+
+            const string master = "master/";
+            const string fullRef = "refs/heads/master/";
+            if (path.StartsWith(fullRef, StringComparison.Ordinal))
+                path = path.Substring(fullRef.Length);
+            else if (path.StartsWith(master, StringComparison.Ordinal))
+                path = path.Substring(master.Length);
+            else
+                return source;
+
+            const string raw = "https://raw.githubusercontent.com/Web-Usov/Notepads/master/plugins/";
+            switch (path)
+            {
+                case "src/Notepads/Assets/Extensions/json.notepads-extension.json":
+                    return new Uri(raw + "json/json.notepads-extension.json");
+                case "src/Notepads/Assets/Extensions/log-lens.notepads-extension.json":
+                    return new Uri(raw + "log-lens/log-lens.notepads-extension.json");
+                case "docs/examples/wrap.notepads-extension.json":
+                    return new Uri(raw + "examples/markdown-wrap/wrap.notepads-extension.json");
+                default:
+                    return source;
             }
         }
 
@@ -81,7 +121,7 @@ namespace Notepads.SyntaxExtensions
                                    name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
                         }).ToArray();
                         if (assets.Length != 1)
-                            throw new FormatException("The GitHub release must attach one extension manifest or ZIP. Paste a direct asset URL to choose one.");
+                            throw new FormatException(ExtensionMessages.Get("ReleaseAssets"));
                         download = GetDownloadUri(assets[0].GetProperty("browser_download_url").GetString());
                     }
                     else
@@ -92,7 +132,7 @@ namespace Notepads.SyntaxExtensions
                                 f.GetProperty("type").GetString() == "file" &&
                                 f.GetProperty("name").GetString().EndsWith(ExtensionPackage.ManifestSuffix, StringComparison.OrdinalIgnoreCase)).ToArray();
                             if (files.Length != 1)
-                                throw new FormatException("The repository has no published release and needs one root *.notepads-extension.json manifest.");
+                                throw new FormatException(ExtensionMessages.Get("RepositoryManifest"));
                             revision = files[0].GetProperty("sha").GetString();
                             // Fetch the blob by its immutable SHA, rather than a moving branch URL.
                             var blobUri = GetDownloadUri(files[0].GetProperty("git_url").GetString());
@@ -100,7 +140,7 @@ namespace Notepads.SyntaxExtensions
                             {
                                 if (blob.RootElement.GetProperty("encoding").GetString() != "base64" ||
                                     !string.Equals(blob.RootElement.GetProperty("sha").GetString(), revision, StringComparison.Ordinal))
-                                    throw new FormatException("GitHub returned an unexpected manifest blob.");
+                                    throw new FormatException(ExtensionMessages.Get("UnexpectedBlob"));
                                 byte[] bytes = Convert.FromBase64String(blob.RootElement.GetProperty("content").GetString());
                                 using (var input = new MemoryStream(bytes, false))
                                     return await ExtensionPackage.ReadAsync(input, source.AbsoluteUri, true, revision, token);
@@ -117,7 +157,7 @@ namespace Notepads.SyntaxExtensions
         private static Uri GetDownloadUri(string url)
         {
             if (!TryGetHttps(url, out var uri))
-                throw new FormatException("The extension source returned a non-HTTPS download address.");
+                throw new FormatException(ExtensionMessages.Get("DownloadHttps"));
             return uri;
         }
 
@@ -142,19 +182,19 @@ namespace Notepads.SyntaxExtensions
                         if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308)
                         {
                             if (response.Headers.Location == null)
-                                throw new FormatException("The extension source redirected without a destination.");
+                                throw new FormatException(ExtensionMessages.Get("RedirectLocation"));
                             url = GetDownloadUri(new Uri(url, response.Headers.Location).AbsoluteUri);
                             continue;
                         }
                         response.EnsureSuccessStatusCode();
                         if (response.Content.Headers.ContentLength > sizeLimit)
-                            throw new FormatException("The extension source exceeds the download size limit.");
+                            throw new FormatException(ExtensionMessages.Get("DownloadSize"));
                         using (var stream = await response.Content.ReadAsStreamAsync())
                             return await ExtensionPackage.ReadBytesAsync(stream, sizeLimit, token);
                     }
                 }
             }
-            throw new FormatException("Too many redirects while downloading the extension.");
+            throw new FormatException(ExtensionMessages.Get("RedirectLimit"));
         }
     }
 }

@@ -122,15 +122,23 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>କୌଣସି ପ୍ରକାରର ୱାରେଣ୍ଟି ବିନା ସଫ୍ଟୱେୟାର “ଯେପରି” ପ୍ରଦାନ କରାଯାଇଛି, ୱାରେଣ୍ଟିର ବାଣିଜ୍ୟ ଯୋଗ୍ୟତା, ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ଉଦ୍ଦେଶ୍ୟ ପାଇଁ ଫିଟ୍ ଏବଂ ଉଲ୍ଲଂଘନ ସହିତ ସୀମିତ ନୁହେଁ| କୌଣସି ଘଟଣାରେ ଲେଖକ କିମ୍ବା କପିରାଇଟ୍ ହୋଲ୍ଡରମାନେ କୌଣସି ଦାବି, କ୍ଷତି କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଦାୟିତ୍ବ ପାଇଁ ଦାୟୀ ରହିବେ ନାହିଁ, ଯାହା କୌଣସି ଚୁକ୍ତିନାମା, ଟର୍ଟ କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଜ୍ଞାନ, ସଫ୍ଟୱେୟାରର ବ୍ୟବହାର କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଡିଲ୍ ସହିତ ସଂଯୋଗରେ|</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>କୌଣସି ପ୍ରକାରର ୱାରେଣ୍ଟି ବିନା ସଫ୍ଟୱେୟାର “ଯେପରି” ପ୍ରଦାନ କରାଯାଇଛି, ୱାରେଣ୍ଟିର ବାଣିଜ୍ୟ ଯୋଗ୍ୟତା, ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ଉଦ୍ଦେଶ୍ୟ ପାଇଁ ଫିଟ୍ ଏବଂ ଉଲ୍ଲଂଘନ ସହିତ ସୀମିତ ନୁହେଁ|</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>କୌଣସି ଘଟଣାରେ ଲେଖକ କିମ୍ବା କପିରାଇଟ୍ ହୋଲ୍ଡରମାନେ କୌଣସି ଦାବି, କ୍ଷତି କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଦାୟିତ୍ବ ପାଇଁ ଦାୟୀ ରହିବେ ନାହିଁ, ଯାହା କୌଣସି ଚୁକ୍ତିନାମା, ଟର୍ଟ କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଜ୍ଞାନ, ସଫ୍ଟୱେୟାରର ବ୍ୟବହାର କିମ୍ବା ଅନ୍ୟାନ୍ୟ ଡିଲ୍ ସହିତ ସଂଯୋଗରେ|</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix, Notepads ପ୍ରକଳ୍ପ ଉପରେ ଆଧାରିତ।</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>ପ୍ରତ୍ୟାଖ୍ୟାନ</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>ମାଗଣା ଏବଂ ମୁକ୍ତ ଉତ୍ସ ପାଠ୍ୟ ସମ୍ପାଦକ ଜ୍ୟାକି (ଜିଆକି) ଲିୟୁ ଦ୍ୱାରା ପରିକଳ୍ପିତ ଏବଂ କାର୍ଯ୍ୟକାରୀ|</value>
+    <value>ଟ୍ୟାବ୍ ଓ JSON ସିଣ୍ଟାକ୍ସ ହାଇଲାଇଟିଂ ସହିତ ଏକ ହାଲୁକା ଟେକ୍ସଟ୍ ଏଡିଟର୍।</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +180,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>ଅଭିନବ</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Plainix ର ମୂଳ ରଙ୍ଗ ପୁନଃସ୍ଥାପନ କରନ୍ତୁ</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>ଆକ୍ସେଣ୍ଟ ରଙ୍ଗ</value>
@@ -294,7 +305,7 @@
     <comment>AboutPage Changelog Title display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Description.Text" xml:space="preserve">
-    <value>ଥରେ ସକ୍ଷମ ହୋଇଗଲେ, Notepads ପରବର୍ତ୍ତୀ ଉନ୍ମୋଚନ ପାଇଁ ସାମ୍ପ୍ରତିକ ଅଧିବେଶନକୁ ମନେ ରଖିବ ଏବଂ ଅନାବଶ୍ୟକ ପରିବର୍ତ୍ତନଗୁଡ଼ିକ ପାଇଁ ଆକସ୍ମିକ ତଥ୍ୟ ନଷ୍ଟକୁ ରୋକିବା ପାଇଁ ଏକ ପର୍ଯ୍ୟାୟ ଅଧିବେଶନ ସ୍ନାପସଟ୍ ବ୍ୟାକଅପ୍ କରିବ| ଯଦି ଏହି ବୈଶିଷ୍ଟ୍ୟ ସକ୍ଷମ ହୋଇଛି, Notepads ଆପଣଙ୍କୁ ଆପ୍ ବନ୍ଦରେ ଆପଣଙ୍କର କାର୍ଯ୍ୟ ସଞ୍ଚୟ କରିବାକୁ ମନେ ପକାଇବ ନାହିଁ| ଦୟାକରି ଏହା ମଧ୍ୟ ମନେରଖନ୍ତୁ ଯେ ଅଧିବେଶନ ସ୍ନାପସଟ୍ କେବଳ Notepads ପ୍ରଥମ କିମ୍ବା ମୁଖ୍ୟ ୱିଣ୍ଡୋରେ କାମ କରେ|</value>
+    <value>ଥରେ ସକ୍ଷମ ହୋଇଗଲେ, Plainix ପରବର୍ତ୍ତୀ ଉନ୍ମୋଚନ ପାଇଁ ସାମ୍ପ୍ରତିକ ଅଧିବେଶନକୁ ମନେ ରଖିବ ଏବଂ ଅନାବଶ୍ୟକ ପରିବର୍ତ୍ତନଗୁଡ଼ିକ ପାଇଁ ଆକସ୍ମିକ ତଥ୍ୟ ନଷ୍ଟକୁ ରୋକିବା ପାଇଁ ଏକ ପର୍ଯ୍ୟାୟ ଅଧିବେଶନ ସ୍ନାପସଟ୍ ବ୍ୟାକଅପ୍ କରିବ| ଯଦି ଏହି ବୈଶିଷ୍ଟ୍ୟ ସକ୍ଷମ ହୋଇଛି, Plainix ଆପଣଙ୍କୁ ଆପ୍ ବନ୍ଦରେ ଆପଣଙ୍କର କାର୍ଯ୍ୟ ସଞ୍ଚୟ କରିବାକୁ ମନେ ପକାଇବ ନାହିଁ| ଦୟାକରି ଏହା ମଧ୍ୟ ମନେରଖନ୍ତୁ ଯେ ଅଧିବେଶନ ସ୍ନାପସଟ୍ କେବଳ Plainix ପ୍ରଥମ କିମ୍ବା ମୁଖ୍ୟ ୱିଣ୍ଡୋରେ କାମ କରେ|</value>
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
@@ -322,7 +333,7 @@
     <comment>TextAndEditorPage SpellingSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_AlwaysOpenNewWindow_Description.Text" xml:space="preserve">
-    <value>ଥରେ ସକ୍ଷମ ହୋଇଗଲେ, Notepads ସବୁବେଳେ ଏକ ନୂଆ ଟ୍ୟାବ୍ ତିଆରି କରିବା ପରିବର୍ତ୍ତେ ଏକ ନୂତନ ୱିଣ୍ଡୋରେ ଫାଇଲ୍ ଖୋଲିବ|</value>
+    <value>ଥରେ ସକ୍ଷମ ହୋଇଗଲେ, Plainix ସବୁବେଳେ ଏକ ନୂଆ ଟ୍ୟାବ୍ ତିଆରି କରିବା ପରିବର୍ତ୍ତେ ଏକ ନୂତନ ୱିଣ୍ଡୋରେ ଫାଇଲ୍ ଖୋଲିବ|</value>
     <comment>AdvancedPage LaunchPreferenceSettings AlwaysOpenNewWindow Description display text.</comment>
   </data>
   <data name="AdvancedPage_LaunchPreferenceSettings_AlwaysOpenNewWindowToggleSwitch.OffContent" xml:space="preserve">
@@ -390,11 +401,11 @@
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>Notepadsରେ ବ୍ୟବହୃତ ସିଷ୍ଟମ୍ ଡିଫଲ୍ଟ ଭାଷାକୁ ନବଲିଖନ କରିବାକୁ ଏକ ବିଶେଷ ଭାବରେ ଭାଷା ବାଛନ୍ତୁ| ପରିବର୍ତ୍ତନଗୁଡିକ ସଂପୂର୍ଣ୍ଣ କରିବାକୁ ପୁନରାରମ୍ଭ ଆବଶ୍ୟକ|</value>
+    <value>Plainixରେ ବ୍ୟବହୃତ ସିଷ୍ଟମ୍ ଡିଫଲ୍ଟ ଭାଷାକୁ ନବଲିଖନ କରିବାକୁ ଏକ ବିଶେଷ ଭାବରେ ଭାଷା ବାଛନ୍ତୁ| ପରିବର୍ତ୍ତନଗୁଡିକ ସଂପୂର୍ଣ୍ଣ କରିବାକୁ ପୁନରାରମ୍ଭ ଆବଶ୍ୟକ|</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*ପରିବର୍ତ୍ତନଗୁଡିକ ସମ୍ପୂର୍ଣ୍ଣ କରିବାକୁ Notepads ପୁନରାରମ୍ଭ କରନ୍ତୁ|</value>
+    <value>*ପରିବର୍ତ୍ତନଗୁଡିକ ସମ୍ପୂର୍ଣ୍ଣ କରିବାକୁ Plainix ପୁନରାରମ୍ଭ କରନ୍ତୁ|</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">
@@ -402,7 +413,7 @@
     <comment>AdvancedPage LanguagePreferenceSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_Description.Text" xml:space="preserve">
-    <value>ଥରେ ସକ୍ଷମ ହୋଇଗଲେ, Notepads ଚତୁରତାର ସହିତ ଅଗ୍ରଣୀ ଏବଂ ଟ୍ରେଲିଂ ସ୍ପେସ୍, ଟ୍ୟାବ୍, ଏବଂ ଖାଲି ରେଖାଗୁଡ଼ିକୁ କ୍ଲିପବୋର୍ଡରେ କପି କରିବା ପୂର୍ବରୁ ଛେଦନ କରିବ|</value>
+    <value>ଥରେ ସକ୍ଷମ ହୋଇଗଲେ, Plainix ଚତୁରତାର ସହିତ ଅଗ୍ରଣୀ ଏବଂ ଟ୍ରେଲିଂ ସ୍ପେସ୍, ଟ୍ୟାବ୍, ଏବଂ ଖାଲି ରେଖାଗୁଡ଼ିକୁ କ୍ଲିପବୋର୍ଡରେ କପି କରିବା ପୂର୍ବରୁ ଛେଦନ କରିବ|</value>
     <comment>AdvancedPage SmartCopySettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_EnableSmartCopyToggleSwitch.OffContent" xml:space="preserve">

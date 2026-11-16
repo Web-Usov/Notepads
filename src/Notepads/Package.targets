@@ -19,14 +19,20 @@
       <Code Type="Fragment" Language="cs">
         <![CDATA[
           Directory.CreateDirectory(OutDir);
-          var appName = "Notepads" + (Configuration.Equals("Production") ? "" : "-Dev");
           var manifest = new XmlDocument();
           manifest.Load(ManifestPath);
           ManifestPath = OutDir.TrimEnd('\\') + @"\Package.appxmanifest";
-          manifest["Package"]["Identity"].SetAttribute("Name", appName);
-          manifest["Package"]["Applications"]["Application"]["uap:VisualElements"].SetAttribute("DisplayName", appName);
-          manifest["Package"]["Applications"]["Application"]["Extensions"]
-            ["uap5:Extension"]["uap5:AppExecutionAlias"]["uap5:ExecutionAlias"].SetAttribute("Alias", appName + ".exe");
+          // Debug and Release sideload builds must update the existing fork package.
+          manifest["Package"]["Identity"].SetAttribute("Name", "Notepads-Dev");
+          var legacyAlias = (XmlElement)manifest.SelectSingleNode("//*[@Alias='Notepads.exe']");
+          legacyAlias.SetAttribute("Alias", "Notepads-Dev.exe");
+          if (Configuration.Equals("Debug")) {
+              var visual = manifest["Package"]["Applications"]["Application"]["uap:VisualElements"];
+              var debugName = visual.GetAttribute("DisplayName") + " Dev";
+              manifest["Package"]["Properties"]["DisplayName"].InnerText = debugName;
+              visual.SetAttribute("DisplayName", debugName);
+              visual["uap:DefaultTile"].SetAttribute("ShortName", debugName);
+          }
           manifest.Save(ManifestPath);
         ]]>
       </Code>

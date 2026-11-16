@@ -129,7 +129,7 @@ namespace Notepads.Utilities
             try
             {
                 args = ReplaceEnvironmentVariables(args);
-                path = GetAbsolutePathFromCommandLine(dir, args, App.ApplicationName);
+                path = GetAbsolutePathFromCommandLine(dir, args);
             }
             catch (Exception ex)
             {
@@ -183,13 +183,13 @@ namespace Notepads.Utilities
             return Environment.ExpandEnvironmentVariables(args);
         }
 
-        private static string GetAbsolutePathFromCommandLine(string dir, string args, string appName)
+        private static string GetAbsolutePathFromCommandLine(string dir, string args)
         {
             if (string.IsNullOrEmpty(args)) return null;
 
             args = args.Trim();
 
-            args = RemoveExecutableNameOrPathFromCommandLineArgs(args, appName);
+            args = RemoveExecutableNameOrPathFromCommandLineArgs(args);
 
             if (string.IsNullOrEmpty(args))
             {
@@ -240,56 +240,34 @@ namespace Notepads.Utilities
             return path;
         }
 
-        private static string RemoveExecutableNameOrPathFromCommandLineArgs(string args, string appName)
+        private static string RemoveExecutableNameOrPathFromCommandLineArgs(string args)
         {
-            if (!args.StartsWith('\"'))
+            if (args.Length == 0) return null;
+            bool quoted = args[0] == '"';
+            int start = quoted ? 1 : 0;
+            int end = quoted ? args.IndexOf('"', start) : args.IndexOfAny(new[] { ' ', '\t' });
+            if (end < 0)
             {
-                // From Windows Command Line
-                // notepads <file> ...
-                // notepads.exe <file>
-
-                if (args.StartsWith($"{appName}-Dev.exe",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    args = args.Substring($"{appName}-Dev.exe".Length);
-                }
-
-                if (args.StartsWith($"{appName}.exe",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    args = args.Substring($"{appName}.exe".Length);
-                }
-
-                if (args.StartsWith($"{appName}-Dev",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    args = args.Substring($"{appName}-Dev".Length);
-                }
-
-                if (args.StartsWith(appName,
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    args = args.Substring(appName.Length);
-                }
-            }
-            else if (args.StartsWith('\"') && args.Length > 1)
-            {
-                // From PowerShell or run
-                // "notepads" <file>
-                // "notepads.exe" <file>
-                // "<app-install-path><app-name>.exe"  <file> ...
-                var index = args.IndexOf('\"', 1);
-                if (index == -1) return null;
-                if (args.Length == index + 1) return null;
-                args = args.Substring(index + 1);
-            }
-            else
-            {
-                return null;
+                if (quoted) return null;
+                end = args.Length;
             }
 
-            args = args.Trim();
-            return args;
+            var executable = Path.GetFileName(args.Substring(start, end - start));
+            var name = executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+                ? executable.Substring(0, executable.Length - 4) : executable;
+            if (name.EndsWith("-Dev", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(0, name.Length - 4);
+            }
+
+            // If the activation already omitted the executable, the first token is the document.
+            if (!name.Equals(App.ApplicationName, StringComparison.OrdinalIgnoreCase) &&
+                !name.Equals(App.InstanceCompatibilityName, StringComparison.OrdinalIgnoreCase))
+            {
+                return args;
+            }
+
+            return args.Substring(quoted ? end + 1 : end).Trim();
         }
 
         private static async Task<BasicProperties> GetFilePropertiesAsync(StorageFile file)
