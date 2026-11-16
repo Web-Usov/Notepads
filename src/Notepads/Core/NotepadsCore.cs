@@ -590,7 +590,7 @@ namespace Notepads.Core
             }
 
             if (!string.IsNullOrEmpty(args.DataView?.Properties?.ApplicationName) &&
-                string.Equals(args.DataView?.Properties?.ApplicationName, App.ApplicationName))
+                string.Equals(args.DataView?.Properties?.ApplicationName, App.InstanceCompatibilityName))
             {
                 args.DataView.Properties.TryGetValue(NotepadsTextEditorMetaData, out object dataObj);
                 if (dataObj is string data)
@@ -671,7 +671,7 @@ namespace Notepads.Core
                 args.Data.Properties.Add(NotepadsTextEditorMetaData, data);
                 args.Data.Properties.Add(NotepadsTextEditorGuid, editor.Id.ToString());
                 args.Data.Properties.Add(NotepadsInstanceId, App.InstanceId.ToString());
-                args.Data.Properties.ApplicationName = App.ApplicationName;
+                args.Data.Properties.ApplicationName = App.InstanceCompatibilityName;
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Started");
             }
@@ -690,7 +690,7 @@ namespace Notepads.Core
 
             // Handle non Notepads drop event
             if (string.IsNullOrEmpty(args.DataView?.Properties?.ApplicationName) ||
-                !string.Equals(args.DataView?.Properties?.ApplicationName, App.ApplicationName))
+                !string.Equals(args.DataView?.Properties?.ApplicationName, App.InstanceCompatibilityName))
             {
                 if (args.DataView == null || !args.DataView.Contains(StandardDataFormats.StorageItems)) return;
                 var fileDropDeferral = args.GetDeferral();

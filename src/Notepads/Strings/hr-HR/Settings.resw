@@ -122,15 +122,23 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>SOFTVER SE NUDI „TAKAV KAKAV JE”, BEZ JAMSTVA BILO KOJE VRSTE, EXPLICITNOG ILI IMPLICITNOG, UKLJUČUJUĆI, ALI NE OGRANIČAVAJUĆI SE NA JAMSTVO MOGUĆNOSTI PRODAJE, PRIMJENU ZA ODREĐENU SVRHU, KRŠENJA NEČIJIH PRAVA. NI U KOM SLUČAJU AUTORI ILI VLASNICI AUTORSKIH PRAVA NEĆE BITI ODGOVORNI ZA BILO KAKVA OŠTEĆENJA ILI NEDOSTATKE BILO KOJE VRSTE, DA LI ZBOG UGOVORA ILI NA NEKI DRUGI NAČIN, KOJA SU NASTALA IZ, KROZ ILI U VEZI SA SOFTVEROM ILI UPOTREBOM SOFTVERA.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Softver se nudi „takav kakav je”, bez jamstva bilo koje vrste, explicitnog ili implicitnog, uključujući, ali ne ograničavajući se na jamstvo mogućnosti prodaje, primjenu za određenu svrhu, kršenja nečijih prava.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>Ni u kom slučaju autori ili vlasnici autorskih prava neće biti odgovorni za bilo kakva oštećenja ili nedostatke bilo koje vrste, da li zbog ugovora ili na neki drugi način, koja su nastala iz, kroz ili u vezi sa softverom ili upotrebom softvera.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix se temelji na projektu Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Izjava o odgovornosti</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Besplatan uređivač teksta otvorenog koda izradio je i implementirao Jackie (Jiaqi) Liu</value>
+    <value>Lagani uređivač teksta s karticama i isticanjem JSON sintakse.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +180,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>Napredno</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Vrati boju aplikacije Plainix</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>Boja isticanja</value>
@@ -294,7 +305,7 @@
     <comment>AboutPage Changelog Title display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Description.Text" xml:space="preserve">
-    <value>Kad je aktivirano, Notepads će pamtiti trenutačnu sesiju za sljedeće pokretanje i redovito spremati sigurnosne kopije snimaka sesija, kako bi se spriječio slučajni gubitak podataka zbog nespremljenih promjena. Notepads te NEĆE podsjetiti da spremiš svoj rad kad se program zatvara, ako je ova funkcija aktivirana. Misli na to, da snimka sesije radi samo u prvom ili glavnom prozoru programa.</value>
+    <value>Kad je aktivirano, Plainix će pamtiti trenutačnu sesiju za sljedeće pokretanje i redovito spremati sigurnosne kopije snimaka sesija, kako bi se spriječio slučajni gubitak podataka zbog nespremljenih promjena. Plainix te NEĆE podsjetiti da spremiš svoj rad kad se program zatvara, ako je ova funkcija aktivirana. Misli na to, da snimka sesije radi samo u prvom ili glavnom prozoru programa.</value>
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
@@ -322,7 +333,7 @@
     <comment>TextAndEditorPage SpellingSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_AlwaysOpenNewWindow_Description.Text" xml:space="preserve">
-    <value>Kad je aktivirano, Notepads će uvijek otvoriti novi prozor umjesto nove kartice.</value>
+    <value>Kad je aktivirano, Plainix će uvijek otvoriti novi prozor umjesto nove kartice.</value>
     <comment>AdvancedPage LaunchPreferenceSettings AlwaysOpenNewWindow Description display text.</comment>
   </data>
   <data name="AdvancedPage_LaunchPreferenceSettings_AlwaysOpenNewWindowToggleSwitch.OffContent" xml:space="preserve">
@@ -390,11 +401,11 @@
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>Odaberite prilagođeni jezik kako biste zamijenili zadani jezik sustava koji se koristi u Notepads. Potreban je ponovni pokretanje kako bi se promjene dovršile.</value>
+    <value>Odaberite prilagođeni jezik kako biste zamijenili zadani jezik sustava koji se koristi u Plainix. Potreban je ponovni pokretanje kako bi se promjene dovršile.</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*Ponovno pokrenite Notepads kako biste dovršili promjene.</value>
+    <value>*Ponovno pokrenite Plainix kako biste dovršili promjene.</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">
@@ -402,7 +413,7 @@
     <comment>AdvancedPage LanguagePreferenceSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_Description.Text" xml:space="preserve">
-    <value>Jednom omogućeno, Notepads će pametno skraćivati početne i završne razmake, tabulatore i prazne retke prije kopiranja odabranog teksta u međuspremnik.</value>
+    <value>Jednom omogućeno, Plainix će pametno skraćivati početne i završne razmake, tabulatore i prazne retke prije kopiranja odabranog teksta u međuspremnik.</value>
     <comment>AdvancedPage SmartCopySettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_EnableSmartCopyToggleSwitch.OffContent" xml:space="preserve">

@@ -147,8 +147,7 @@ namespace Notepads.Views.Settings
         {
             if (AccentColorPicker.IsEnabled)
             {
-                ThemeSettingsService.AppAccentColor = args.NewColor;
-                if (!AccentColorToggle.IsOn) ThemeSettingsService.CustomAccentColor = args.NewColor;
+                ThemeSettingsService.SetCustomAccentColor(args.NewColor);
             }
         }
 
@@ -161,7 +160,11 @@ namespace Notepads.Views.Settings
         {
             AccentColorPicker.IsEnabled = !AccentColorToggle.IsOn;
             ThemeSettingsService.UseWindowsAccentColor = AccentColorToggle.IsOn;
-            AccentColorPicker.Color = AccentColorToggle.IsOn ? ThemeSettingsService.AppAccentColor : ThemeSettingsService.CustomAccentColor;
+        }
+
+        private void ResetAccentColor_Click(object sender, RoutedEventArgs e)
+        {
+            ThemeSettingsService.SetCustomAccentColor(null);
         }
     }
 }

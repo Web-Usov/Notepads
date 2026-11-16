@@ -1,4 +1,4 @@
 interface:
-  display_name: "Create a Notepads Extension"
-  short_description: "Build and test Notepads grammars, commands and panels"
+  display_name: "Create a Plainix Extension"
+  short_description: "Build and test Plainix grammars, commands and panels"
   default_prompt: "Use $create-notepads-extension to build a Markdown selection command, package it and verify how it edits text."

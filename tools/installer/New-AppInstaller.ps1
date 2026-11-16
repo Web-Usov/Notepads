@@ -88,10 +88,10 @@ $root.SetAttribute('Uri', $FeedUri.AbsoluteUri)
     Name = $identity.GetAttribute('Name')
     Publisher = $identity.GetAttribute('Publisher')
     Version = $identity.GetAttribute('Version')
-    Uri = [uri]::new($assetDirectory, 'Notepads-x64.msixbundle').AbsoluteUri
+    Uri = [uri]::new($assetDirectory, 'Plainix-x64.msixbundle').AbsoluteUri
 }))
 
-$files = [ordered]@{ 'Notepads-x64.msixbundle' = $bundle; 'Notepads.cer' = $certificate }
+$files = [ordered]@{ 'Plainix-x64.msixbundle' = $bundle; 'Plainix.cer' = $certificate }
 $pending = [System.Collections.Generic.Queue[System.Xml.XmlDocument]]::new()
 $pending.Enqueue($appManifest)
 $seen = @{}
@@ -130,7 +130,7 @@ $directory = [System.IO.Directory]::CreateDirectory($OutputDirectory)
 # Never leave unrelated or stale files in the directory a release job will upload.
 foreach ($existing in Get-ChildItem -LiteralPath $directory.FullName -Force) {
     if ($existing.PSIsContainer -or
-        ($existing.Name -ne 'Notepads.appinstaller' -and !$files.Contains($existing.Name))) {
+        ($existing.Name -notin @('Plainix.appinstaller', 'Notepads.appinstaller') -and !$files.Contains($existing.Name))) {
         throw "Unexpected file in feed output directory: $($existing.Name)"
     }
 }
@@ -140,8 +140,12 @@ foreach ($name in $files.Keys) {
 $xmlSettings = [System.Xml.XmlWriterSettings]::new()
 $xmlSettings.Indent = $true
 $xmlSettings.Encoding = [System.Text.UTF8Encoding]::new($false)
-$descriptor = Join-Path $directory.FullName 'Notepads.appinstaller'
-$writer = [System.Xml.XmlWriter]::Create($descriptor, $xmlSettings)
-try { $document.Save($writer) }
-finally { $writer.Dispose() }
-Write-Output "Created $descriptor with $($seen.Count) framework packages."
+# Each entry point advertises its own URI so previously registered update feeds stay valid.
+foreach ($name in 'Plainix.appinstaller', 'Notepads.appinstaller') {
+    $root.SetAttribute('Uri', [uri]::new($FeedUri, $name).AbsoluteUri)
+    $descriptor = Join-Path $directory.FullName $name
+    $writer = [System.Xml.XmlWriter]::Create($descriptor, $xmlSettings)
+    try { $document.Save($writer) }
+    finally { $writer.Dispose() }
+    Write-Output "Created $descriptor with $($seen.Count) framework packages."
+}

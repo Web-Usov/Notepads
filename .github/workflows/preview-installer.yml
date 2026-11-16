@@ -30,18 +30,10 @@ jobs:
         shell: pwsh
         run: |
           $publisher = 'CN=Web-Usov Notepads Preview'
-          foreach ($file in 'Package.appxmanifest', 'Package.StoreAssociation.xml') {
-            $path = Join-Path "$PWD/src/Notepads" $file
-            [xml]$xml = Get-Content -LiteralPath $path -Raw
-            if ($file -eq 'Package.appxmanifest') {
-              $xml.Package.Identity.SetAttribute('Publisher', $publisher)
-              $xml.Package.Properties.PublisherDisplayName = 'Web-Usov'
-            } else {
-              $xml.StoreAssociation.Publisher = $publisher
-              $xml.StoreAssociation.PublisherDisplayName = 'Web-Usov'
-            }
-            $xml.Save($path)
-          }
+          $path = Join-Path "$PWD/src/Notepads" 'Package.appxmanifest'
+          [xml]$xml = Get-Content -LiteralPath $path -Raw
+          $xml.Package.Identity.SetAttribute('Publisher', $publisher)
+          $xml.Save($path)
 
           msbuild src/Notepads.sln /restore /m /p:Configuration=Release /p:Platform=x64 `
             /p:AppxPackageDir="$env:RUNNER_TEMP\Sideload\" /p:UapAppxPackageBuildMode=SideloadOnly `
@@ -116,6 +108,14 @@ jobs:
           if ($inner.Package.Identity.Name -ne 'Notepads-Dev' -or $inner.Package.Identity.Publisher -ne $publisher) {
             throw 'Unexpected preview package identity.'
           }
+          $appManifest = $inner.Package.Applications.Application
+          $visual = $appManifest.VisualElements
+          if ($inner.Package.Properties.DisplayName -cne 'Plainix' -or $visual.DisplayName -cne 'Plainix' -or
+              $visual.DefaultTile.ShortName -cne 'Plainix') { throw 'Installer, Start and tile names must be Plainix.' }
+          $aliases = @($appManifest.SelectNodes(".//*[local-name()='ExecutionAlias']") | ForEach-Object { $_.GetAttribute('Alias') })
+          $schemes = @($appManifest.SelectNodes(".//*[local-name()='Protocol']") | ForEach-Object { $_.GetAttribute('Name') })
+          if ('plainix.exe' -notin $aliases -or 'Notepads-Dev.exe' -notin $aliases -or
+              'plainix' -notin $schemes -or 'notepads' -notin $schemes) { throw 'A current or legacy activation entry is missing.' }
           if ($inner.Package.Identity.Version -ne $version) { throw 'Packaged version differs from the source manifest.' }
           "version=$version" >> $env:GITHUB_OUTPUT
           if (!(Test-Path "$layout/Notepads.exe")) { throw 'The application executable is missing.' }
@@ -150,7 +150,7 @@ jobs:
           $stable = $env:GITHUB_EVENT_NAME -eq 'push' -and $env:GITHUB_REF_NAME.StartsWith('release/')
           $tag = if ($stable) { "v$version" } else { "v$version-preview" }
           $base = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$tag/"
-          $feed = if ($stable) { "https://github.com/$env:GITHUB_REPOSITORY/releases/latest/download/Notepads.appinstaller" } else { "${base}Notepads.appinstaller" }
+          $feed = if ($stable) { "https://github.com/$env:GITHUB_REPOSITORY/releases/latest/download/Plainix.appinstaller" } else { "${base}Plainix.appinstaller" }
           ./tools/installer/New-AppInstaller.ps1 -PackageFolder '${{ steps.package.outputs.folder }}' `
             -OutputDirectory "$env:RUNNER_TEMP/NativeInstaller" -FeedUri $feed -AssetBaseUri $base
 
@@ -163,7 +163,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Notepads-Dev-Windows-x64
+          name: Plainix-Windows-x64
           path: ${{ steps.package.outputs.folder }}/
           if-no-files-found: error
           retention-days: 30
@@ -181,7 +181,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Notepads-Dev-Windows-x64
+          name: Plainix-Windows-x64
           path: ${{ runner.temp }}/notepads-smoke-package
       - name: Verify editing, Undo and source navigation
         shell: powershell
@@ -222,7 +222,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Notepads-Dev-Windows-x64
+          name: Plainix-Windows-x64
           path: installer
       - uses: actions/download-artifact@v4
         with:
@@ -247,5 +247,5 @@ jobs:
       - name: Verify public files and deploy the downloaded App Installer descriptor
         shell: powershell
         run: |
-          [xml]$descriptor = Get-Content "$env:RUNNER_TEMP/native-installer/Notepads.appinstaller" -Raw
+          [xml]$descriptor = Get-Content "$env:RUNNER_TEMP/native-installer/Plainix.appinstaller" -Raw
           ./tests/Installer/NativeInstallerSmoke.ps1 -FeedFolder "$env:RUNNER_TEMP/native-installer" -PublishedFeedUri $descriptor.AppInstaller.Uri

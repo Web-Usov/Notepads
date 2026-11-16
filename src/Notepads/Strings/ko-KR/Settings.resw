@@ -122,15 +122,23 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>The Software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the Software or the use or other dealings in the Software.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix는 Notepads를 기반으로 합니다.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>면책</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Jackie (Jiaqi) Liu 가 제작한 무료 오픈소스 텍스트 에디터</value>
+    <value>탭과 JSON 구문 강조를 지원하는 경량 텍스트 편집기입니다.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +180,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>고급</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Plainix 강조 색 복원</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>테마 컬러</value>

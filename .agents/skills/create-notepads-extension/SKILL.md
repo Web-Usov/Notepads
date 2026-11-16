@@ -1,9 +1,9 @@
 ---
 name: create-notepads-extension
-description: Create, update, test and package extensions for Web-Usov/Notepads. Use for syntax grammars, editor commands, read-only result panels or updates to a .notepads-extension.json manifest.
+description: Create, update, test and package Plainix extensions in Web-Usov/Notepads. Use for syntax grammars, editor commands, read-only result panels or updates to a .notepads-extension.json manifest.
 ---
 
-# Create a Notepads extension
+# Create a Plainix extension
 
 Work from the repository root. Read the [extension authoring guide](../../../docs/extensions.md) for the current manifest contract and installation workflow.
 

@@ -66,8 +66,8 @@ function Install-PreviousVersion {
 
 [IO.Directory]::CreateDirectory($work) | Out-Null
 try {
-    $buildDescriptor = Join-Path $folder 'Notepads.appinstaller'
-    $entry = Join-Path $work 'Notepads.appinstaller'
+    $buildDescriptor = Join-Path $folder 'Plainix.appinstaller'
+    $entry = Join-Path $work 'Plainix.appinstaller'
     [xml]$document = Get-Content -Raw -LiteralPath $buildDescriptor
     $root = $document.DocumentElement
     $main = $root.SelectSingleNode("*[local-name()='MainBundle']")
@@ -77,10 +77,20 @@ try {
     $feedUri = [Uri]$root.GetAttribute('Uri')
     if ($feedUri.Scheme -ne 'https') { throw 'The distributed feed must advertise a stable HTTPS URL.' }
 
+    $legacyPath = Join-Path $folder 'Notepads.appinstaller'
+    [xml]$legacy = Get-Content -Raw -LiteralPath $legacyPath
+    $legacyUri = [Uri]::new($feedUri, 'Notepads.appinstaller')
+    if ($legacy.AppInstaller.Uri -cne $legacyUri.AbsoluteUri) { throw 'Incorrect legacy update URL.' }
+    $legacy.DocumentElement.SetAttribute('Uri', $feedUri.AbsoluteUri)
+    if ($legacy.OuterXml -cne $document.OuterXml) { throw 'Legacy feed must deliver the same signed update.' }
+
     if ($PublishedFeedUri) {
         if ($PublishedFeedUri -ne $feedUri) { throw "Unexpected stable update URI: $feedUri" }
         Get-WebFile $PublishedFeedUri $entry
         Assert-SameFile $entry $buildDescriptor
+        $legacyEntry = Join-Path $work 'Notepads.appinstaller'
+        Get-WebFile $legacyUri $legacyEntry
+        Assert-SameFile $legacyEntry $legacyPath
         # Exercise the exact descriptor a browser downloads, including the public bundle and dependency addresses.
         foreach ($package in @($main) + $packages) {
             $uri = [Uri]$package.GetAttribute('Uri')
@@ -89,9 +99,9 @@ try {
             Get-WebFile $uri $download
             Assert-SameFile $download (Join-Path $folder $name)
         }
-        $cer = Join-Path $work 'Notepads.cer'
-        Get-WebFile ([Uri]::new([Uri]$main.GetAttribute('Uri'), 'Notepads.cer')) $cer
-        Assert-SameFile $cer (Join-Path $folder 'Notepads.cer')
+        $cer = Join-Path $work 'Plainix.cer'
+        Get-WebFile ([Uri]::new([Uri]$main.GetAttribute('Uri'), 'Plainix.cer')) $cer
+        Assert-SameFile $cer (Join-Path $folder 'Plainix.cer')
         Write-Output 'PASS public HTTPS descriptor, bundle, dependencies and certificate are byte-identical to the signed build'
     } else {
         # Serve private PR assets with real HTTP semantics. Change only the origin/path of each URI.
@@ -106,7 +116,7 @@ try {
             Start-Sleep -Milliseconds 100
         }
         $port = [int](Get-Content -Raw -LiteralPath $portFile)
-        $feedUri = [Uri]"http://127.0.0.1:$port/Notepads.appinstaller"
+        $feedUri = [Uri]"http://127.0.0.1:$port/Plainix.appinstaller"
         $root.SetAttribute('Uri', $feedUri.AbsoluteUri)
         foreach ($package in @($main) + $packages) {
             $remote = [Uri]$package.GetAttribute('Uri')
@@ -115,11 +125,11 @@ try {
             Copy-Item -LiteralPath (Join-Path $folder $name) -Destination $testFeed
             $package.SetAttribute('Uri', [Uri]::new($feedUri, $name).AbsoluteUri)
         }
-        $document.Save((Join-Path $testFeed 'Notepads.appinstaller'))
+        $document.Save((Join-Path $testFeed 'Plainix.appinstaller'))
         Invoke-WebRequest -UseBasicParsing -Uri $feedUri -OutFile $entry
     }
 
-    Trust-Bundle (Join-Path $folder 'Notepads-x64.msixbundle') (Join-Path $folder 'Notepads.cer')
+    Trust-Bundle (Join-Path $folder 'Plainix-x64.msixbundle') (Join-Path $folder 'Plainix.cer')
     $marker = if ($TestUpgradeFromFirstRelease) { Install-PreviousVersion }
     # This switch submits the descriptor to the Windows deployment engine rather than installing the bundle directly.
     try {
@@ -143,6 +153,7 @@ try {
     if ($marker) { Write-Output "PASS upgrade from 1.6.0.0 to $($installed.Version) preserves the package family and user data" }
     $manager = [Windows.Management.Deployment.PackageManager,Windows.Management.Deployment,ContentType=WindowsRuntime]::new()
     $package = $manager.FindPackageForUser('', $installed.PackageFullName)
+    if ($package.DisplayName -cne 'Plainix') { throw "Unexpected installed product name: $($package.DisplayName)" }
     $actual = $package.GetAppInstallerInfo().Uri
     if ($actual -ne $feedUri) { throw "Expected update association $feedUri, got $actual" }
     Write-Output "PASS Windows installed $($installed.PackageFullName) via the descriptor and registered $actual"

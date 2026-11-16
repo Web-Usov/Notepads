@@ -1,4 +1,4 @@
-name: Notepads CI/CD Pipeline
+name: Plainix CI/CD Pipeline
 
 on:
   push:
@@ -358,8 +358,10 @@ jobs:
         shell: pwsh
         run: |
           Get-ChildItem -Filter *Production* -Recurse | Rename-Item -NewName { $_.name -replace "_Production|_Test",'' }
+          $folder = "Notepads_$($env:NEW_VERSION)"
+          Rename-Item "$folder/Notepads_$($env:NEW_VERSION)_x86_x64_ARM64.msixbundle" "Plainix_$($env:NEW_VERSION)_x86_x64_ARM64.msixbundle"
           Compress-Archive -Path "Notepads_$($env:NEW_VERSION)\*" `
-                           -DestinationPath "Notepads_$($env:NEW_VERSION)\Notepads_$($env:NEW_VERSION)_x86_x64_ARM64.zip"
+                           -DestinationPath "Notepads_$($env:NEW_VERSION)\Plainix_$($env:NEW_VERSION)_x86_x64_ARM64.zip"
         working-directory: ./Artifacts
 
       - name: Generate changelog
@@ -378,12 +380,12 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           tag: v${{ env.NEW_VERSION }}
-          name: Notepads v${{ env.NEW_VERSION }}
+          name: Plainix v${{ env.NEW_VERSION }}
           body: ${{ steps.generate_changlog.outputs.changelog }}
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts:
-             Artifacts/Notepads_${{ env.NEW_VERSION }}/Notepads_${{ env.NEW_VERSION }}_x86_x64_ARM64.msixbundle
-             Artifacts/Notepads_${{ env.NEW_VERSION }}/Notepads_${{ env.NEW_VERSION }}_x86_x64_ARM64.zip
+             Artifacts/Notepads_${{ env.NEW_VERSION }}/Plainix_${{ env.NEW_VERSION }}_x86_x64_ARM64.msixbundle
+             Artifacts/Notepads_${{ env.NEW_VERSION }}/Plainix_${{ env.NEW_VERSION }}_x86_x64_ARM64.zip
 
 #      - name: Publish to Windows Store
 #        id: publish_to_store

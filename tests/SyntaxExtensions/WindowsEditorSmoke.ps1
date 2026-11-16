@@ -67,9 +67,36 @@ function Invoke-Extension([string]$Name, [string]$SubmenuName) {
     Invoke-Control (Wait-For $Name { Find-AppControl $byName $Name })
 }
 
-function Open-FixtureWindow([string]$File) {
+function Assert-AboutPage([string]$Attribution, [string]$WarrantyStart, [string]$LiabilityStart) {
+    $about = Wait-For 'the About settings item' { Find-AppControl $byId 'AboutSettingsItem' }
+    $about.SetFocus()
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+
+    $link = Wait-For 'the localized upstream project link' { Find-AppControl $byId 'AboutUpstreamLink' }
+    if ($link.Current.ControlType -ne [System.Windows.Automation.ControlType]::Hyperlink -or
+        $link.Current.Name -cne $Attribution) {
+        throw "Unexpected upstream project attribution: $($link.Current.Name)"
+    }
+
+    # Read through UI Automation in the production settings pane (385 DIPs wide).
+    $notice = Wait-For 'the About disclaimer' { Find-AppControl $byId 'AboutDisclaimer' }
+    $pattern = $null
+    $text = if ($notice.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern)) {
+        $pattern.DocumentRange.GetText(-1)
+    } else {
+        $notice.Current.Name
+    }
+    $text = ($text -replace '\s+', ' ').Trim()
+    if (!$text.StartsWith($WarrantyStart, [StringComparison]::Ordinal) -or
+        $text.IndexOf($LiabilityStart, [StringComparison]::Ordinal) -lt $WarrantyStart.Length) {
+        throw "Expected both sentence-case disclaimer paragraphs, got: $text"
+    }
+    Write-Output "PASS About attribution and disclaimer: $Attribution"
+}
+
+function Open-FixtureWindow([string]$File, [string]$ExecutionAlias) {
     $name = [IO.Path]::GetFileName($File)
-    Start-Process -FilePath $alias -ArgumentList ('"' + $File + '"')
+    Start-Process -FilePath $ExecutionAlias -ArgumentList ('"' + $File + '"')
     Wait-For "the document window for $name" {
         $windows = $desktop.FindAll([System.Windows.Automation.TreeScope]::Children,
             [System.Windows.Automation.Condition]::TrueCondition)
@@ -118,9 +145,13 @@ try {
     $inputPath = Join-Path $data 'extension-smoke.json'
     $original = '{"requestId":"req-17","level":"error"}'
     [IO.File]::WriteAllText($inputPath, $original, [Text.UTF8Encoding]::new($false))
-    $alias = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\Notepads-Dev.exe'
-    $null = Wait-For 'registration of the application execution alias' { Test-Path -LiteralPath $alias }
-    $window = Open-FixtureWindow $inputPath
+    $aliases = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps'
+    $alias = Join-Path $aliases 'plainix.exe'
+    $legacyAlias = Join-Path $aliases 'Notepads-Dev.exe'
+    $null = Wait-For 'registration of the current and legacy execution aliases' {
+        (Test-Path -LiteralPath $alias) -and (Test-Path -LiteralPath $legacyAlias)
+    }
+    $window = Open-FixtureWindow $inputPath $alias
     $editor = Wait-For 'the running RichEdit control' { Find-Control $window $byId 'TextEditorCore' }
     $ownedByEditor = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $editor.Current.ProcessId)
@@ -188,6 +219,7 @@ try {
 
     Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
     Invoke-Control (Wait-For 'Settings in the main menu' { Find-AppControl $byId 'MenuSettingsButton' })
+    Assert-AboutPage 'Plainix is based on Notepads.' 'The Software is provided' 'In no event shall'
     $advanced = Wait-For 'the Advanced settings item' { Find-AppControl $byId 'AdvancedSettingsItem' }
     $advanced.SetFocus()
     [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
@@ -293,7 +325,7 @@ try {
     if (!$process.WaitForExit(10000)) { throw 'The first editor process did not exit.' }
     $russianInput = Join-Path $data 'extension-russian.json'
     [IO.File]::WriteAllText($russianInput, $original, [Text.UTF8Encoding]::new($false))
-    $window = Open-FixtureWindow $russianInput
+    $window = Open-FixtureWindow $russianInput $legacyAlias
     $editor = Wait-For 'the restarted editor' { Find-Control $window $byId 'TextEditorCore' }
     $ownedByEditor = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $editor.Current.ProcessId)
@@ -307,6 +339,10 @@ try {
         Find-AppControl $byName 'Фильтр по идентификатору запроса или фрагменту текста'
     }
     Write-Output 'PASS Russian menu, JSON commands and Log Lens in the restarted application'
+
+    Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
+    Invoke-Control (Wait-For 'Settings in the main menu' { Find-AppControl $byId 'MenuSettingsButton' })
+    Assert-AboutPage 'В основе Plainix — проект Notepads.' 'Данное программное обеспечение' 'Ни в каком случае'
 }
 finally {
     if ($installed) { Remove-AppxPackage -Package $installed.PackageFullName -ErrorAction Continue }
