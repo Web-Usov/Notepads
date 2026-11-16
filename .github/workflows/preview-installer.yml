@@ -3,7 +3,7 @@ name: Windows preview installer
 on:
   pull_request:
   push:
-    branches: ['release/v*']
+    branches: ['release/v*', 'native-preview/v*']
   workflow_dispatch:
 
 permissions:
@@ -12,6 +12,7 @@ permissions:
 jobs:
   installer:
     runs-on: windows-2022
+    environment: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/v') && 'notepads-release' || 'notepads-preview' }}
     outputs:
       version: ${{ steps.package.outputs.version }}
     steps:
@@ -29,23 +30,25 @@ jobs:
         shell: pwsh
         run: |
           $publisher = 'CN=Web-Usov Notepads Preview'
-          foreach ($file in 'Package.appxmanifest', 'Package.StoreAssociation.xml') {
-            $path = Join-Path "$PWD/src/Notepads" $file
-            [xml]$xml = Get-Content -LiteralPath $path -Raw
-            if ($file -eq 'Package.appxmanifest') {
-              $xml.Package.Identity.SetAttribute('Publisher', $publisher)
-              $xml.Package.Properties.PublisherDisplayName = 'Web-Usov'
-            } else {
-              $xml.StoreAssociation.Publisher = $publisher
-              $xml.StoreAssociation.PublisherDisplayName = 'Web-Usov'
-            }
-            $xml.Save($path)
-          }
+          $path = Join-Path "$PWD/src/Notepads" 'Package.appxmanifest'
+          [xml]$xml = Get-Content -LiteralPath $path -Raw
+          $xml.Package.Identity.SetAttribute('Publisher', $publisher)
+          $xml.Save($path)
 
           msbuild src/Notepads.sln /restore /m /p:Configuration=Release /p:Platform=x64 `
             /p:AppxPackageDir="$env:RUNNER_TEMP\Sideload\" /p:UapAppxPackageBuildMode=SideloadOnly `
             /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:AppxPackageSigningEnabled=false
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Import the release signing certificate
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/v')
+        shell: pwsh
+        env:
+          NOTEPADS_RELEASE_PFX_BASE64: ${{ secrets.NOTEPADS_RELEASE_PFX_BASE64 }}
+          NOTEPADS_RELEASE_PFX_PASSWORD: ${{ secrets.NOTEPADS_RELEASE_PFX_PASSWORD }}
+        run: |
+          $cert = & ./tools/installer/Import-ReleaseSigningCertificate.ps1 -Publisher 'CN=Web-Usov Notepads Preview'
+          "RELEASE_CERT_THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_ENV
 
       - name: Sign and verify the installer
         id: package
@@ -60,24 +63,32 @@ jobs:
 
           [xml]$source = Get-Content "$PWD/src/Notepads/Package.appxmanifest" -Raw
           $version = $source.Package.Identity.Version
-          $release = $env:GITHUB_EVENT_NAME -eq 'push'
-          if ($release -and $env:GITHUB_REF_NAME -cne "release/v$version") {
-            throw "Release branch must match the package version $version."
+          $release = $env:GITHUB_EVENT_NAME -eq 'push' -and $env:GITHUB_REF_NAME.StartsWith('release/')
+          if ($env:GITHUB_EVENT_NAME -eq 'push' -and $env:GITHUB_REF_NAME -cnotin @("release/v$version", "native-preview/v$version")) {
+            throw "Publication branch must match the package version $version."
           }
-          $expires = if ($release) { (Get-Date).AddYears(5) } else { (Get-Date).AddDays(60) }
 
-          # The private key stays on this runner. Distribute only the public certificate.
-          $cert = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature `
-            -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My `
-            -NotAfter $expires -HashAlgorithm SHA256 `
-            -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
+          # Use the public name for the offline SDK bundle and the certificate exported alongside it.
+          $bundleName = "Plainix_${version}_x64.msixbundle"
+          if ($bundle.Name -cne $bundleName) {
+            $bundle = Rename-Item -LiteralPath $bundle.FullName -NewName $bundleName -PassThru
+          }
+
+          if ($release) {
+            $cert = Get-Item "Cert:\CurrentUser\My\$env:RELEASE_CERT_THUMBPRINT"
+          } else {
+            $cert = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature `
+              -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My `
+              -NotAfter (Get-Date).AddDays(60) -HashAlgorithm SHA256 `
+              -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
+          }
           try {
-            $timestamp = if ($release) { @('/tr', 'http://timestamp.digicert.com', '/td', 'SHA256') } else { @() }
+            $timestamp = if ($env:GITHUB_EVENT_NAME -eq 'push') { @('/tr', 'http://timestamp.digicert.com', '/td', 'SHA256') } else { @() }
             & "$sdk\signtool.exe" sign /fd SHA256 /sha1 $cert.Thumbprint @timestamp $bundle.FullName
             if ($LASTEXITCODE) { throw 'SignTool could not sign the bundle.' }
             Export-Certificate -Cert $cert -FilePath "$dir/$($bundle.BaseName).cer" | Out-Null
             $signature = Get-AuthenticodeSignature -LiteralPath $bundle.FullName
-            if ($release -and !$signature.TimeStamperCertificate) { throw 'Release signature has no timestamp.' }
+            if ($env:GITHUB_EVENT_NAME -eq 'push' -and !$signature.TimeStamperCertificate) { throw 'Release signature has no timestamp.' }
             if ($signature.SignerCertificate.Thumbprint -ne $cert.Thumbprint -or $signature.Status -eq 'HashMismatch') {
               throw "Unexpected bundle signature: $($signature.Status)"
             }
@@ -103,6 +114,14 @@ jobs:
           if ($inner.Package.Identity.Name -ne 'Notepads-Dev' -or $inner.Package.Identity.Publisher -ne $publisher) {
             throw 'Unexpected preview package identity.'
           }
+          $appManifest = $inner.Package.Applications.Application
+          $visual = $appManifest.VisualElements
+          if ($inner.Package.Properties.DisplayName -cne 'Plainix' -or $visual.DisplayName -cne 'Plainix' -or
+              $visual.DefaultTile.ShortName -cne 'Plainix') { throw 'Installer, Start and tile names must be Plainix.' }
+          $aliases = @($appManifest.SelectNodes(".//*[local-name()='ExecutionAlias']") | ForEach-Object { $_.GetAttribute('Alias') })
+          $schemes = @($appManifest.SelectNodes(".//*[local-name()='Protocol']") | ForEach-Object { $_.GetAttribute('Name') })
+          if ('plainix.exe' -notin $aliases -or 'Notepads-Dev.exe' -notin $aliases -or
+              'plainix' -notin $schemes -or 'notepads' -notin $schemes) { throw 'A current or legacy activation entry is missing.' }
           if ($inner.Package.Identity.Version -ne $version) { throw 'Packaged version differs from the source manifest.' }
           "version=$version" >> $env:GITHUB_OUTPUT
           if (!(Test-Path "$layout/Notepads.exe")) { throw 'The application executable is missing.' }
@@ -130,9 +149,27 @@ jobs:
           "Installer SHA-256: $((Get-FileHash $bundle.FullName).Hash)" >> $env:GITHUB_STEP_SUMMARY
           "Certificate SHA-256: $((Get-FileHash "$dir/$($bundle.BaseName).cer").Hash)" >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Generate native App Installer feed
+        shell: pwsh
+        run: |
+          $version = '${{ steps.package.outputs.version }}'
+          $stable = $env:GITHUB_EVENT_NAME -eq 'push' -and $env:GITHUB_REF_NAME.StartsWith('release/')
+          $tag = if ($stable) { "v$version" } else { "v$version-preview" }
+          $base = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$tag/"
+          $feed = if ($stable) { "https://github.com/$env:GITHUB_REPOSITORY/releases/latest/download/Plainix.appinstaller" } else { "${base}Plainix.appinstaller" }
+          ./tools/installer/New-AppInstaller.ps1 -PackageFolder '${{ steps.package.outputs.folder }}' `
+            -OutputDirectory "$env:RUNNER_TEMP/NativeInstaller" -FeedUri $feed -AssetBaseUri $base
+
       - uses: actions/upload-artifact@v4
         with:
-          name: Notepads-Dev-Windows-x64
+          name: native-installer
+          path: ${{ runner.temp }}/NativeInstaller/
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Plainix-Windows-x64
           path: ${{ steps.package.outputs.folder }}/
           if-no-files-found: error
           retention-days: 30
@@ -150,16 +187,34 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Notepads-Dev-Windows-x64
+          name: Plainix-Windows-x64
           path: ${{ runner.temp }}/notepads-smoke-package
       - name: Verify editing, Undo and source navigation
         shell: powershell
         run: powershell.exe -NoProfile -STA -File tests/SyntaxExtensions/WindowsEditorSmoke.ps1 -PackageFolder "$env:RUNNER_TEMP\notepads-smoke-package"
 
-  publish:
-    name: Publish Windows x64 release
-    if: github.event_name == 'push'
+  native-install:
+    name: Install with Windows App Installer
     needs: installer
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-installer
+          path: ${{ runner.temp }}/native-installer
+      - name: Upgrade an existing Notepads installation using the descriptor
+        shell: powershell
+        run: ./tests/Installer/NativeInstallerSmoke.ps1 -FeedFolder "$env:RUNNER_TEMP/native-installer" -TestUpgradeFromFirstRelease
+
+  publish:
+    name: Publish Windows x64 installer
+    if: github.event_name == 'push'
+    needs: [installer, native-install]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -168,52 +223,35 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       VERSION: ${{ needs.installer.outputs.version }}
     steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Notepads-Dev-Windows-x64
+          name: Plainix-Windows-x64
           path: installer
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-installer
+          path: native-installer
+      - name: Upload all assets and publish the release
+        run: bash tools/installer/publish.sh
 
-      - name: Package installer and publish
-        shell: bash
+  public-install:
+    name: Install from the published GitHub download
+    needs: [installer, publish]
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-installer
+          path: ${{ runner.temp }}/native-installer
+      - name: Verify public files and deploy the downloaded App Installer descriptor
+        shell: powershell
         run: |
-          set -euo pipefail
-          tag="v$VERSION"
-          asset="Notepads-$VERSION-Windows-x64.zip"
-          (cd installer && zip -qr "../$asset" .)
-          unzip -tq "$asset"
-          sha256sum "$asset" > SHA256SUMS.txt
-          cert=$(find installer -maxdepth 1 -type f -iname '*.cer' -print -quit)
-          cert_sha=$(sha256sum "$cert" | cut -d ' ' -f 1)
-          cat > notes.md <<'NOTES'
-          ## What’s new
-
-          - Format or minify a JSON selection or document under **Extension commands**. Invalid JSON points to the error and leaves the text intact.
-          - Use **Open Log Lens** to filter log lines by request ID and severity. Select a result to reveal the original line.
-          - Install extensions from a local JSON or ZIP, an HTTPS download, or a public GitHub repository or release. API v2 adds commands and read-only results panels alongside existing v1 grammars.
-
-          ## Install on Windows x64
-
-          Download the Windows x64 ZIP under **Assets** and extract it. Open PowerShell in the extracted folder and run the following command. Leave the window open and follow the Windows certificate prompt.
-
-          ```powershell
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1
-          ```
-
-          Launch **Notepads-Dev** and open a `.json` file. The package uses the same app identity as the fork preview, so you can install it over that version. The ZIP includes the MSIX bundle, its dependencies and the public signing certificate. The fork uses a self-signed certificate. Windows may ask for administrator approval to trust it.
-          NOTES
-          echo >> notes.md
-          echo "SHA-256 of the included public certificate: \`$cert_sha\`." >> notes.md
-          echo >> notes.md
-          echo "[Extension authoring guide](https://github.com/$GITHUB_REPOSITORY/blob/$tag/docs/extensions.md) · [Agent skill](https://github.com/$GITHUB_REPOSITORY/blob/$tag/.agents/skills/create-notepads-extension/SKILL.md)" >> notes.md
-
-          # Keep the public release hidden until both assets have uploaded.
-          release_url="repos/$GITHUB_REPOSITORY/releases"
-          existing=$(gh api --paginate "$release_url" --jq ".[] | select(.tag_name == \"$tag\") | [.draft,.target_commitish] | @tsv")
-          if [[ -n "$existing" ]]; then
-            read -r draft target <<< "$existing"
-            [[ "$draft" == "true" && "$target" == "$GITHUB_SHA" ]] || { echo "Release already exists for $tag."; exit 1; }
-          else
-            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title "Notepads $tag" --notes-file notes.md
-          fi
-          gh release upload "$tag" "$asset" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --clobber
-          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          [xml]$descriptor = Get-Content "$env:RUNNER_TEMP/native-installer/Plainix.appinstaller" -Raw
+          ./tests/Installer/NativeInstallerSmoke.ps1 -FeedFolder "$env:RUNNER_TEMP/native-installer" -PublishedFeedUri $descriptor.AppInstaller.Uri

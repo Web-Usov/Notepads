@@ -122,15 +122,23 @@
     <comment>AboutPage DependenciesAndReferences Title display text.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Content.Text" xml:space="preserve">
-    <value>Le logiciel est fourni "tel quel", sans garantie d'aucune sorte, explicite ou implicite, incluant mais sans s'y limiter, les garanties de qualité marchande, d'adéquation à un usage particulier et de non-contrefaçon. En aucun cas, les auteurs ou les détenteurs de droits d'auteur ne peuvent être tenus responsables d'une quelconque réclamation, d'un quelconque dommage ou de toute autre responsabilité, que ce soit dans le cadre d'une action contractuelle, délictuelle ou autre, découlant du logiciel, de son utilisation ou d'autres transactions dans le logiciel, ou en relation avec ceux-ci.</value>
-    <comment>AboutPage Disclaimer Content display text. (The MIT License Disclaimer)</comment>
+    <value>Le logiciel est fourni "tel quel", sans garantie d'aucune sorte, explicite ou implicite, incluant mais sans s'y limiter, les garanties de qualité marchande, d'adéquation à un usage particulier et de non-contrefaçon.</value>
+    <comment>Warranty paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_Disclaimer_Liability.Text" xml:space="preserve">
+    <value>En aucun cas, les auteurs ou les détenteurs de droits d'auteur ne peuvent être tenus responsables d'une quelconque réclamation, d'un quelconque dommage ou de toute autre responsabilité, que ce soit dans le cadre d'une action contractuelle, délictuelle ou autre, découlant du logiciel, de son utilisation ou d'autres transactions dans le logiciel, ou en relation avec ceux-ci.</value>
+    <comment>Liability paragraph of the MIT license disclaimer.</comment>
+  </data>
+  <data name="AboutPage_UpstreamProject.Text" xml:space="preserve">
+    <value>Plainix est basé sur le projet Notepads.</value>
+    <comment>Link to the original Notepads project on which Plainix is based.</comment>
   </data>
   <data name="AboutPage_Disclaimer_Title.Text" xml:space="preserve">
     <value>Avis de non-responsabilité</value>
     <comment>AboutPage Disclaimer Title display text.</comment>
   </data>
   <data name="AboutPage_NotepadsShortDescription.Text" xml:space="preserve">
-    <value>Éditeur de texte gratuit et open source conçu et réalisé par Jackie (Jiaqi) Liu</value>
+    <value>Éditeur de texte léger avec onglets et coloration syntaxique JSON.</value>
     <comment>AboutPage NotepadsShortDescription display text.</comment>
   </data>
   <data name="AboutPage_Notepads_AuthorContactsTitle.Text" xml:space="preserve">
@@ -172,6 +180,9 @@
   <data name="AdvancedPage_Title.Content" xml:space="preserve">
     <value>Avancé</value>
     <comment>AdvancedPage Title display text.</comment>
+  </data>
+  <data name="PersonalizationPage_ResetAccentColor.Content" xml:space="preserve">
+    <value>Rétablir la couleur de Plainix</value>
   </data>
   <data name="PersonalizationPage_AccentColorSettings_Title.Text" xml:space="preserve">
     <value>Couleur d'accentuation</value>
@@ -294,7 +305,7 @@
     <comment>AboutPage Changelog Title display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_Description.Text" xml:space="preserve">
-    <value>Une fois activé, Notepads mémorisera la session en cours pour le prochain lancement et effectuera une sauvegarde périodique de la session pour éviter toute perte de données accidentelle liée à des modifications non validées. Notepads NE vous rappellera PAS d'enregistrer votre travail à la fermeture de l'application si cette fonctionnalité est activée. N'oubliez pas non plus que l'instantané de session ne fonctionne que dans la première fenêtre ou dans la fenêtre principale de Notepads.</value>
+    <value>Une fois activé, Plainix mémorisera la session en cours pour le prochain lancement et effectuera une sauvegarde périodique de la session pour éviter toute perte de données accidentelle liée à des modifications non validées. Plainix NE vous rappellera PAS d'enregistrer votre travail à la fermeture de l'application si cette fonctionnalité est activée. N'oubliez pas non plus que l'instantané de session ne fonctionne que dans la première fenêtre ou dans la fenêtre principale de Plainix.</value>
     <comment>AdvancedPage SessionSnapshotSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SessionSnapshotSettings_OnOffToggleSwitch.OffContent" xml:space="preserve">
@@ -324,7 +335,7 @@ la restauration de session</value>
     <comment>TextAndEditorPage SpellingSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_AlwaysOpenNewWindow_Description.Text" xml:space="preserve">
-    <value>Une fois activé, Notepads ouvrira toujours les fichiers dans une nouvelle fenêtre au lieu de créer un nouvel onglet.</value>
+    <value>Une fois activé, Plainix ouvrira toujours les fichiers dans une nouvelle fenêtre au lieu de créer un nouvel onglet.</value>
     <comment>AdvancedPage LaunchPreferenceSettings AlwaysOpenNewWindow Description display text.</comment>
   </data>
   <data name="AdvancedPage_LaunchPreferenceSettings_AlwaysOpenNewWindowToggleSwitch.OffContent" xml:space="preserve">
@@ -392,11 +403,11 @@ la restauration de session</value>
     <comment>TextAndEditorPage FontWeightSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Description.Text" xml:space="preserve">
-    <value>Choisir une langue personalisée pour remplacer la langue par défaut du système. Le redémarrage de Notepads est nécessaire pour prendre en compte cette modification.</value>
+    <value>Choisir une langue personalisée pour remplacer la langue par défaut du système. Le redémarrage de Plainix est nécessaire pour prendre en compte cette modification.</value>
     <comment>AdvancedPage LanguagePreferenceSettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_RestartPrompt.Text" xml:space="preserve">
-    <value>*Redémarrer Notepads pour prendre en compte les modifications.</value>
+    <value>*Redémarrer Plainix pour prendre en compte les modifications.</value>
     <comment>AdvancedPage LanguagePreferenceSettings RestartPrompt display text.</comment>
   </data>
   <data name="AdvancedPage_LanguagePreferenceSettings_Title.Text" xml:space="preserve">
@@ -404,7 +415,7 @@ la restauration de session</value>
     <comment>AdvancedPage LanguagePreferenceSettings Title display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_Description.Text" xml:space="preserve">
-    <value>Une fois activé, Notepads supprimera les espaces, tabulations et lignes vides en début et fin avant l'envoi au presse-papier.</value>
+    <value>Une fois activé, Plainix supprimera les espaces, tabulations et lignes vides en début et fin avant l'envoi au presse-papier.</value>
     <comment>AdvancedPage SmartCopySettings Description display text.</comment>
   </data>
   <data name="AdvancedPage_SmartCopySettings_EnableSmartCopyToggleSwitch.OffContent" xml:space="preserve">

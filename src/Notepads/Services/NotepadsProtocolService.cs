@@ -19,7 +19,8 @@ namespace Notepads.Services
 
     public static class NotepadsProtocolService
     {
-        private const string NewInstanceProtocolStr = "newinstance";
+        internal const string NewInstanceUri = "plainix://newinstance";
+        private const string LegacyNewInstanceUri = "notepads://newinstance";
 
         public static NotepadsOperationProtocol GetOperationProtocol(Uri uri, out string context)
         {
@@ -27,21 +28,14 @@ namespace Notepads.Services
 
             try
             {
-                var uriStr = uri.ToString().Trim();
-
-                if (string.IsNullOrEmpty(uriStr) || !uriStr.StartsWith("notepads://", StringComparison.OrdinalIgnoreCase))
+                var operation = uri.ToString().Trim();
+                if (operation.EndsWith("/", StringComparison.Ordinal))
                 {
-                    return NotepadsOperationProtocol.Unrecognized;
+                    operation = operation.Substring(0, operation.Length - 1);
                 }
 
-                var operation = uriStr.Substring("notepads://".Length);
-
-                if (operation.EndsWith("/"))
-                {
-                    operation = operation.Remove(operation.Length - 1);
-                }
-
-                if (!string.IsNullOrEmpty(operation) && string.Equals(NewInstanceProtocolStr, operation, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(operation, NewInstanceUri, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(operation, LegacyNewInstanceUri, StringComparison.OrdinalIgnoreCase))
                 {
                     return NotepadsOperationProtocol.OpenNewInstance;
                 }
@@ -69,9 +63,8 @@ namespace Notepads.Services
                 }
                 else if (operation == NotepadsOperationProtocol.OpenNewInstance)
                 {
-                    var uriToLaunch = $"notepads://{NewInstanceProtocolStr}";
                     var launchOptions = new LauncherOptions { TargetApplicationPackageFamilyName = Package.Current.Id.FamilyName };
-                    return await Launcher.LaunchUriAsync(new Uri(uriToLaunch.ToLower()), launchOptions);
+                    return await Launcher.LaunchUriAsync(new Uri(NewInstanceUri), launchOptions);
                 }
                 else
                 {

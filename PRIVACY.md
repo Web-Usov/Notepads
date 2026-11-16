@@ -1,8 +1,8 @@
-# Privacy in the Web-Usov fork of Notepads
+# Privacy in Plainix
 
 ## Documents and local storage
 
-Notepads reads the files you open and writes them to the locations you choose. Windows keeps the recent-file list and app preferences for this installation. If you enable session snapshots in **Settings → Advanced**, the main window stores recovery copies of unsaved changes in the app’s local data folder.
+Plainix reads the files you open and writes them to the locations you choose. Windows keeps the recent-file list and app preferences for this installation. If you enable session snapshots in **Settings → Advanced**, the main window stores recovery copies of unsaved changes in the app’s local data folder.
 
 Installed extension manifests are stored under `LocalState/Extensions`. The installed copy records the local filename or path, or the source URL for a remote installation. For a GitHub repository or release, it also records the resolved revision. The editor evaluates highlighting rules, formats JSON and filters log lines on your device. [How extensions work](docs/extensions.md)
 

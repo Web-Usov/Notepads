@@ -5,11 +5,11 @@
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
             <SolidColorBrush x:Key="TextEditorForeground"
-                             Color="Black"/>
+                             Color="#292A28"/>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="TextEditorForeground"
-                             Color="#F0F0F0"/>
+                             Color="#F8F5EF"/>
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
             <SolidColorBrush x:Key="TextEditorForeground"

@@ -78,6 +78,9 @@
                             IsAlphaTextInputVisible="True">
                         </ColorPicker>
                     </Viewbox>
+                    <Button x:Uid="/Settings/PersonalizationPage_ResetAccentColor"
+                            IsEnabled="{x:Bind AccentColorPicker.IsEnabled, Mode=OneWay}"
+                            Click="ResetAccentColor_Click" Margin="0,8,0,0"/>
                 </StackPanel>
 
             </StackPanel>
