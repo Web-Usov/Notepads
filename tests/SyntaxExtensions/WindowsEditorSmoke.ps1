@@ -186,8 +186,7 @@ try {
     foreach ($orientation in @('ToolbarSplitRightButton', 'ToolbarSplitDownButton')) {
         Write-Host "Opening split editor controls for $orientation"
         $toolbar = Wait-For 'the split editor toolbar' { Find-AppControl $byId 'SplitEditorToolbarButton' }
-        $toolbar.SetFocus()
-        [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+        Invoke-Control $toolbar
         Write-Host "Invoking command $orientation"
         Invoke-Control (Wait-For "the $orientation command" { Find-AppControl $byId $orientation })
         $null = Wait-For "two editor surfaces after $orientation" {
