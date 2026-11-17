@@ -10,7 +10,7 @@ Base your branch on `master` and open a [pull request against the fork](https://
 
 ## Test extensions
 
-Run the portable extension suite from the repository root with the .NET 8 SDK. It covers manifest loading, grammar selection, tokenization, editing commands, log filters and package installation.
+Run the portable extension suite from the repository root with the .NET 8 SDK. It covers manifest loading, grammar and built-in feature selection, tokenization, editing commands, log filters and package installation.
 
 ```sh
 dotnet run --project tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj -c Release

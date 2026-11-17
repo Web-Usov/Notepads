@@ -34,7 +34,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io), certific
 To use Russian, open **Settings → Advanced → Language Preferences**, select **русский** and restart the editor. Select **System Default** in the same list to use the Windows language preference again.
 
 - Open text files up to 1,000 KiB in tabs. Press **Ctrl+T** to create a tab and **Ctrl+Tab** to switch between tabs.
-- In a Markdown file, press **Alt+P** to toggle the live preview. Press **Alt+D** to compare your edits with the saved version of a file.
+- In a Markdown file, press **Alt+P** to toggle the live preview. Press **Alt+D** to compare your edits with the saved version of a file. **Markdown Preview** and **Changes Diff** are separate built-in extensions; disable either under **Settings → Advanced → Extensions** without affecting the other.
 - Open a `.json` file for live highlighting. In **Main menu → Extension commands**, choose **Format JSON** or **Minify JSON** for the current selection or the whole document.
 - Select a request ID in a log, then choose **Main menu → Extension commands → Open Log Lens**. Filter by severity and select a result to jump to its original line.
 - Install and manage extensions under **Settings → Advanced → Extensions**. Choose a local JSON manifest or ZIP, or enter an HTTPS link to a manifest, ZIP or public GitHub repository or release. See [installation and updates](docs/extensions.md#install-update-and-distribute).
@@ -43,7 +43,7 @@ Screenshots from the original Notepads interface · [Dark theme](ScreenShots/1.p
 
 ## Create an extension
 
-A UTF-8 JSON manifest can declare highlighting rules, commands and read-only panels. The [plugins directory](plugins/) contains the bundled JSON Tools and Log Lens plugins and a separately installable Markdown example.
+A UTF-8 JSON manifest can declare highlighting rules, commands, read-only panels and supported host-backed UI features. The [plugins directory](plugins/) contains JSON Tools, Log Lens, [Markdown Preview](plugins/markdown-preview/markdown-preview.notepads-extension.json), [Changes Diff](plugins/changes-diff/changes-diff.notepads-extension.json) and a separately installable Markdown emphasis example.
 
 - [Extension authoring guide](docs/extensions.md) — build a `.todo` grammar, add an editor command, or package an extension for GitHub.
 - [Wrap in bold](plugins/examples/markdown-wrap/wrap.notepads-extension.json) — a working command that adds Markdown delimiters to the current selection.

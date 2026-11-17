@@ -1,6 +1,6 @@
 # Writing Plainix extensions
 
-A Plainix extension is a UTF-8 JSON manifest with the existing `.notepads-extension.json` suffix. It can associate file suffixes with highlighting rules, add commands to the editor, or open a read-only results panel. The host implements each operation. An author can publish a new combination of supported operations by shipping a manifest. New handler implementations require a change to the app.
+A Plainix extension is a UTF-8 JSON manifest with the existing `.notepads-extension.json` suffix. It can associate file suffixes with highlighting rules, add commands to the editor, open a read-only results panel, or activate a supported host-backed UI feature. The host implements each operation. An author can publish a new combination of supported operations by shipping a manifest. New handler implementations require a change to the app; manifests never load arbitrary executable code.
 
 ## Try the bundled extensions
 
@@ -9,6 +9,12 @@ A Plainix extension is a UTF-8 JSON manifest with the existing `.notepads-extens
 Format accepts up to 1,048,576 UTF-16 code units and produces up to 4,194,304. Minify accepts up to 4,194,304 so it can compact any successful Format result. **File → Open** accepts files up to 1,024,000 bytes on disk. If indentation would take a file beyond that limit, minify it before saving to reopen it normally. Saved size depends on the file encoding and line endings.
 
 **Log Lens.** Open the [sample log](../tests/SyntaxExtensions/Fixtures/interleaved.log.txt), select `req-41`, and choose **Main menu → Extension commands → Open Log Lens**. Adjust or clear the request filter in the panel and choose a severity. For structured lines with a `requestId`, the filter matches the entire field. For plain text it searches for the literal text. The panel understands JSON lines, Docker's `log` envelope and common NestJS levels. Select a result to return to its original line and read the surrounding stack trace. Filtering and navigation leave the text and Undo history intact. [Log Lens manifest](../plugins/log-lens/log-lens.notepads-extension.json)
+
+**Markdown Preview.** Open a `.md` file and press **Alt+P** (or use the editor context menu) for rendered Markdown beside the editable text. The [Markdown Preview extension](../plugins/markdown-preview/markdown-preview.notepads-extension.json) controls availability. Disabling it closes existing preview panels, hides the context-menu action and prevents the shortcut from opening a preview. Reenable it without restarting.
+
+**Changes Diff.** Edit a file after saving, then press **Alt+D** or choose **Preview text changes** from the modification indicator for a side-by-side comparison with the last saved snapshot. The [Changes Diff extension](../plugins/changes-diff/changes-diff.notepads-extension.json) controls this action. Disabling it closes an open diff, hides the comparison menu item, and leaves **Revert All Changes** and the document untouched. Reenable it without restarting.
+
+Both extensions are bundled and enabled by default. Their switches under **Settings → Advanced → Extensions** are independent and persist across restarts. Their UWP/XAML renderers remain compiled into Plainix; installing a manifest does not download a renderer DLL.
 
 ## Create a highlighting extension
 
@@ -68,13 +74,14 @@ Install [wrap.notepads-extension.json](../plugins/examples/markdown-wrap/wrap.no
 
 ### API v2 reference
 
-Keep `id`, `displayName` and `contributes` as in v1. Set `apiVersion` to `2` and supply a numeric `version` such as `1.2.0`. Each manifest needs at least one grammar or command. Omit unused arrays.
+Keep `id`, `displayName` and `contributes` as in v1. Set `apiVersion` to `2` and supply a numeric `version` such as `1.2.0`. Each manifest needs at least one grammar, command or supported feature. Omit unused arrays.
 
 | Contribution | Fields and behavior |
 | --- | --- |
 | `grammars` | The v1 grammar format and limits apply. A grammar and commands can share a manifest and enabled setting. |
 | `commands` | Up to 32 entries. Give each a unique `id`, a user-visible `title` and a `handler` from the table below. An optional `fileExtensions` list of 1–32 suffixes selects applicable documents. Omitting it makes the command available on all documents. |
 | `panels` | Up to 16 entries. Each has a unique `id`, a `title` and a `handler`. Use `log.filter` for read-only log results. A command opens a panel by its ID in the same manifest. |
+| `features` | Up to 2 entries, each with a `handler`. Only the official, compiled-in feature/extension-ID pairs described below are accepted. |
 
 Command and panel IDs follow the extension ID rules. Titles accept up to 100 UTF-16 code units. The host recognizes these command handlers.
 
@@ -85,6 +92,31 @@ Command and panel IDs follow the extension ID rules. Titles accept up to 100 UTF
 | `panel.open` | Set `panel` to the ID of a declared results panel. The host opens it for the active document and uses the current selection as its initial filter. |
 
 When extending the host, use the [editor command contract](../src/Notepads/SyntaxExtensions/EditorCommands.cs). A handler reads an immutable snapshot containing a document ID, revision, text and selection. Its offsets are zero-based UTF-16 code units in editor text, with one carriage return per line break. Ranges use a start and length. An edit returns one replacement for one Undo step, a diagnostic returns a message and source range, and each panel result carries its original line and source range. Apply edits and navigation only while the snapshot still matches the active document and revision. Handle stale results by discarding or refreshing them.
+
+## Built-in UI feature contributions
+
+API v2 supports two *host-backed* feature handlers. A feature-only manifest is valid, but handlers and extension IDs are fixed and checked together. Other extensions **cannot** claim these handlers under a different ID. This deliberately does not expose a general-purpose native-code or XAML loader.
+
+| Manifest ID | `contributes.features[].handler` | UI affected |
+| --- | --- | --- |
+| `plainix.markdown-preview` | `markdown.preview` | Markdown context menu and Alt+P preview panel |
+| `plainix.changes-diff` | `changes.diff` | Modification-indicator comparison action and Alt+D diff viewer |
+
+For example, the [Markdown Preview manifest](../plugins/markdown-preview/markdown-preview.notepads-extension.json) declares:
+
+```json
+{
+  "apiVersion": 2,
+  "id": "plainix.markdown-preview",
+  "version": "1.0.0",
+  "displayName": "Markdown Preview",
+  "contributes": {
+    "features": [{ "handler": "markdown.preview" }]
+  }
+}
+```
+
+Omitting or disabling a built-in feature manifest makes that UI capability unavailable; there is no always-on fallback. An invalid handler, duplicate feature or mismatched owning ID is rejected. A locally installed manifest with the *same* ID takes precedence under the existing user-overrides-bundled rule, so a local override that lacks the feature also disables it. Original grammar-only API v1 manifests and existing v2 commands/panels are unchanged.
 
 ## Translate extension labels
 
@@ -137,7 +169,7 @@ For a remote installation, choose **Check for updates** to check the recorded so
 
 Existing installations of JSON Tools, Log Lens and the Markdown example can follow their move to `plugins/`. If you installed one from its previous raw URL on this fork’s `master` branch, choose **Check for updates**. The confirmation shows the new URL. Installing the update saves that URL for future checks. Sources pinned to a commit or tag keep their original location.
 
-Choose **Open extensions folder** to edit an installed `ext-<id>.notepads-extension.json` under `LocalState/Extensions`, then **Reload extensions**. To remove a user extension, delete its manifest and reload. Manifests copied directly into that folder must end in `.notepads-extension.json`. Other running instances have their own in-memory catalog; reload each instance where you want the change.
+Choose **Open extensions folder** to edit an installed `ext-<id>.notepads-extension.json` under `LocalState/Extensions`, then **Reload extensions**. To remove a user extension, delete its manifest and reload. Manifests copied directly into that folder must end in `.notepads-extension.json`. The Markdown Preview and Changes Diff switches close their open views in this process when disabled, with no document edits. Other running instances have their own in-memory catalog; reload each instance where you want the change.
 
 To bundle an extension with the app, create a directory directly under [plugins](../plugins/) and place its manifest there, for example `plugins/json/json.notepads-extension.json`. Use a unique manifest filename across bundled plugins. MSBuild matches `plugins/*/*.notepads-extension.json` and gives each manifest the package path `Assets/Extensions/<filename>`. Store independently installable examples under `plugins/examples/<name>/`.
 
@@ -147,4 +179,4 @@ A bundled plugin with its own C# handler keeps that source beside its manifest. 
 
 To run the app from source on Windows, open `src/Notepads.sln` in Visual Studio with the Universal Windows Platform tools and Windows SDK 10.0.22621.0 installed. Select **Notepads**, **Debug**, **x64**, **Local Machine** and press **F5**. This configuration runs as **Plainix Dev**.
 
-For an editor smoke test, open a sample, change a token and undo the edit. Rename or save the file under another suffix and then restore the original suffix. Check scrolling, word wrap, selection and both themes. Save and reopen the file with the original encoding and line endings to verify its contents. For the bundled JSON extension, include an escaped quote, an emoji in a key, a negative exponent and a nested array.
+For an editor smoke test, open a sample, change a token and undo the edit. Rename or save the file under another suffix and then restore the original suffix. Check scrolling, word wrap, selection and both themes. Save and reopen the file with the original encoding and line endings to verify its contents. For the bundled JSON extension, include an escaped quote, an emoji in a key, a negative exponent and a nested array. For Markdown Preview and Changes Diff, open both views in separate tabs, switch each extension off while its view is open, verify the view closes and its menu/shortcut can no longer open it, then reenable it. Repeat in English and Russian and after restarting the editor; confirm undo history and Revert All Changes are unaffected.
