@@ -58,7 +58,6 @@
                                        AllowDrop="True"
                                        Template="{StaticResource SetsViewTemplate}"
                                        Background="Transparent"
-                                       Grid.ColumnSpan="2"
                                        Loaded="Sets_Loaded">
 
                         <!--<sets:SetsView.KeyboardAccelerators>
