@@ -7,6 +7,7 @@ namespace Notepads.Controls.TextEditor
 {
     using System;
     using Notepads.Utilities;
+    using Notepads.SyntaxExtensions;
     using Windows.ApplicationModel.Resources;
     using Windows.System;
     using Windows.UI.Text;
@@ -34,6 +35,9 @@ namespace Notepads.Controls.TextEditor
 
         private readonly ITextEditor _textEditor;
         private readonly TextEditorCore _textEditorCore;
+
+        private bool CanShowMarkdownPreview => FileTypeUtility.IsPreviewSupported(_textEditor.FileType) &&
+            ExtensionCatalog.HasFeature(EditorFeatures.MarkdownPreview);
 
         private readonly ResourceLoader _resourceLoader = ResourceLoader.GetForCurrentView();
 
@@ -91,7 +95,7 @@ namespace Notepads.Controls.TextEditor
             Undo.IsEnabled = _textEditorCore.Document.CanUndo();
             Redo.IsEnabled = _textEditorCore.Document.CanRedo();
 
-            PreviewToggle.Visibility = _textEditor.CanShowMarkdownPreview ? Visibility.Visible : Visibility.Collapsed;
+            PreviewToggle.Visibility = CanShowMarkdownPreview ? Visibility.Visible : Visibility.Collapsed;
             WordWrap.Icon.Visibility = (_textEditorCore.TextWrapping == TextWrapping.Wrap) ? Visibility.Visible : Visibility.Collapsed;
             RightToLeftReadingOrder.Icon.Visibility = (_textEditorCore.FlowDirection == FlowDirection.RightToLeft) ? Visibility.Visible : Visibility.Collapsed;
 
@@ -376,7 +380,7 @@ namespace Notepads.Controls.TextEditor
                 });
                 _previewToggle.Click += (sender, args) =>
                 {
-                    if (_textEditor.CanShowMarkdownPreview)
+                    if (CanShowMarkdownPreview)
                     {
                         _textEditor.ShowHideContentPreview();
                     }
