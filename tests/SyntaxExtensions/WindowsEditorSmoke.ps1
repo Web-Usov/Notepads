@@ -170,6 +170,28 @@ try {
         if (@($original, ($original + "`r"), ($original + "`n"), ($original + "`r`n")) -ccontains $raw) { return $raw }
     }
     Write-Output 'PASS opening the source fixture'
+
+    # Split a real editor into two native groups, then merge without losing the
+    # document or replacing its undo history. Check both orientations.
+    $editor.SetFocus()
+    $editorCondition = [System.Windows.Automation.PropertyCondition]::new($byId, 'TextEditorCore')
+    foreach ($orientation in @('ToolbarSplitRightButton', 'ToolbarSplitDownButton')) {
+        Invoke-Control (Wait-For 'the split editor toolbar' { Find-AppControl $byId 'SplitEditorToolbarButton' })
+        Invoke-Control (Wait-For "the $orientation command" { Find-AppControl $byId $orientation })
+        $null = Wait-For "two editor surfaces after $orientation" {
+            $panes = $window.FindAll($subtree, $editorCondition)
+            if ($panes.Count -eq 2) { return $true }
+        }
+        Invoke-Control (Wait-For 'the close split button' { Find-AppControl $byId 'SecondaryCloseSplitButton' })
+        $null = Wait-For 'one editor surface after merging groups' {
+            $panes = $window.FindAll($subtree, $editorCondition)
+            if ($panes.Count -eq 1) { return $true }
+        }
+    }
+    $editor = Wait-For 'the editor after both split merges' { Find-Control $window $byId 'TextEditorCore' }
+    Assert-Document 'splitting and merging preserves the original file' $rawOriginal
+    Write-Output 'PASS split right, split down, and merge without document loss'
+
     $providerMarker = $rawOriginal.Substring($original.Length)
 
     $formatted = "{`n  `"requestId`": `"req-17`",`n  `"level`": `"error`"`n}"
