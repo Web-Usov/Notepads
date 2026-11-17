@@ -23,7 +23,9 @@ cat > notes.md <<EOFNOTES
 
 SHA-256 of the public certificate: \`$cert_sha\`.
 
-This release uses a **self-signed certificate**, not a SignPath Foundation certificate. A clean Windows installation does not trust this signer by default. See the [Code signing policy](https://github.com/$GITHUB_REPOSITORY/blob/master/docs/code-signing-policy.md) and [privacy policy](https://github.com/$GITHUB_REPOSITORY/blob/master/PRIVACY.md).\n\nThe ZIP under **Assets** contains the complete offline installer, including the SDK scripts. SHA256SUMS.txt covers the ZIP and native installation files.
+This release uses a **self-signed certificate**, not a SignPath Foundation certificate. A clean Windows installation does not trust this signer by default. See the [Code signing policy](https://github.com/$GITHUB_REPOSITORY/blob/master/docs/code-signing-policy.md) and [privacy policy](https://github.com/$GITHUB_REPOSITORY/blob/master/PRIVACY.md).
+
+The ZIP under **Assets** contains the complete offline installer, including the SDK scripts. SHA256SUMS.txt covers the ZIP and native installation files.
 EOFNOTES
 if [[ "$kind" == "preview" ]]; then
   echo >> notes.md
