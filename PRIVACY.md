@@ -8,7 +8,7 @@ Installed extension manifests are stored under `LocalState/Extensions`. The inst
 
 ## Diagnostics
 
-The Windows app uses the Microsoft Store Services SDK for diagnostics. It passes event names such as `AppLaunch_Settings` to the SDK. For exceptions, it passes the exception message and stack trace, which can include file paths. Debug builds also write a diagnostic log under `LocalState/Logs`. [Analytics implementation](src/Notepads/Services/AnalyticsService.cs) · [Debug logging](src/Notepads/Program.cs)
+**Previously published builds through v1.7.0.3** include legacy Microsoft Store Services diagnostic logging. It can pass event names such as `AppLaunch_Settings` and exception text or stack traces, potentially including file paths, to Microsoft's services. **In builds containing the SignPath Foundation preparation changes (Issue #9)**, the custom event and exception forwarding through `AnalyticsService` is disabled; legacy SDK package references remain under review. Debug builds can still write diagnostic logs locally under `LocalState/Logs`. The absence of these custom log calls must not be taken as a blanket guarantee about other Windows or third-party telemetry. [Analytics implementation](src/Notepads/Services/AnalyticsService.cs) · [Debug logging](src/Notepads/Program.cs)
 
 ## When information leaves the editor
 
