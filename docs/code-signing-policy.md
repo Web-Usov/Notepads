@@ -31,7 +31,7 @@ Once SignPath access is granted, configure GitHub as a trusted build system in S
 
 ## User privacy and uninstall
 
-See [Plainix privacy policy](../PRIVACY.md). The editor opens local documents and can contact third-party endpoints only for user-initiated operations described there; the current legacy Store Services diagnostics integration is under review before submitting the SignPath application. The editor can be removed using Windows **Settings → Apps → Installed apps → Plainix → Uninstall**. Uninstalling may delete the installed package's application data; back up the data before migrating between package families.
+See [Plainix privacy policy](../PRIVACY.md). The editor opens local documents and can contact third-party endpoints only for user-initiated operations described there; the legacy Store Services diagnostic event forwarding was disabled in the Issue #9 preparation branch, while remaining SDK dependencies and other network behaviors still require a pre-application audit. The editor can be removed using Windows **Settings → Apps → Installed apps → Plainix → Uninstall**. Uninstalling may delete the installed package's application data; back up the data before migrating between package families.
 
 ## Verifying a trusted release (after acceptance)
 
