@@ -6,6 +6,7 @@ namespace Notepads.Views.MainPage
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Automation;
     using Windows.UI.Xaml.Controls;
+    using Windows.UI.Xaml.Controls.Primitives;
 
     public sealed partial class NotepadsMainPage
     {
@@ -26,6 +27,8 @@ namespace Notepads.Views.MainPage
             MenuSplitDownButton.Text = ToolbarSplitDownButton.Text = downText;
             MenuCloseSplitButton.Text = ToolbarCloseSplitButton.Text = closeText;
 
+            SplitEditorToolbarButton.Click += (sender, args) =>
+                FlyoutBase.ShowAttachedFlyout((FrameworkElement)sender);
             ToolTipService.SetToolTip(SplitEditorToolbarButton, splitText);
             ToolTipService.SetToolTip(SecondaryCloseSplitButton, closeText);
             ToolTipService.SetToolTip(SecondaryNewSetButton, newTabText);
