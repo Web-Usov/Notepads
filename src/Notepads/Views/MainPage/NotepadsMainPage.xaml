@@ -254,14 +254,14 @@
                                     Padding="0"
                                     Style="{ThemeResource ButtonRevealStyle}">
                                 <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="14"/>
-                                <Button.Flyout>
+                                <FlyoutBase.AttachedFlyout>
                                     <MenuFlyout>
                                         <MenuFlyoutItem x:Name="ToolbarSplitRightButton"/>
                                         <MenuFlyoutItem x:Name="ToolbarSplitDownButton"/>
                                         <MenuFlyoutSeparator/>
                                         <MenuFlyoutItem x:Name="ToolbarCloseSplitButton"/>
                                     </MenuFlyout>
-                                </Button.Flyout>
+                                </FlyoutBase.AttachedFlyout>
                             </Button>
                             </StackPanel>
                         </controls:SetsView.SetsActionHeader>
