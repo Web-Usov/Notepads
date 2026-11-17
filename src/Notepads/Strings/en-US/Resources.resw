@@ -772,4 +772,28 @@
   <data name="ExtensionPanel_LoadError" xml:space="preserve">
     <value>Could not load results. {0}</value>
   </data>
+  <data name="SplitEditor_MenuTitle" xml:space="preserve">
+    <value>Split editor</value>
+  </data>
+  <data name="SplitEditor_Right" xml:space="preserve">
+    <value>Split right</value>
+  </data>
+  <data name="SplitEditor_Down" xml:space="preserve">
+    <value>Split down</value>
+  </data>
+  <data name="SplitEditor_Close" xml:space="preserve">
+    <value>Close split</value>
+  </data>
+  <data name="SplitEditor_NewTab" xml:space="preserve">
+    <value>New tab in this group</value>
+  </data>
+  <data name="SplitEditor_ResizeColumns" xml:space="preserve">
+    <value>Resize editor groups left and right</value>
+  </data>
+  <data name="SplitEditor_ResizeRows" xml:space="preserve">
+    <value>Resize editor groups top and bottom</value>
+  </data>
+  <data name="SplitEditor_MoveOtherGroup" xml:space="preserve">
+    <value>Move to other editor group</value>
+  </data>
 </root>
