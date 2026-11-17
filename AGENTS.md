@@ -20,6 +20,12 @@ MSBuild links bundled manifests from `plugins/*/*.notepads-extension.json` into 
 
 Editor offsets count UTF-16 code units with a single carriage return per line break. Bind edits and panel navigation to the source document and revision. Apply a text transformation as one Undo step. Use existing tests for selection offsets, stale results and source navigation when changing these paths.
 
+## Release signing and package identity
+
+Follow the [Code signing policy](docs/code-signing-policy.md) and [Issue #9 application checklist](docs/signpath-foundation-application.md). Do not claim a SignPath-signed, trusted installer until the project is accepted and the actual bundle is verified with the Foundation-issued certificate. Release signing requires a GitHub-hosted build, strict origin verification, separately restricted credentials and **manual SignPath approval**. Never expose release secrets to pull request builds.
+
+Publisher changes change the MSIX package family; review the [migration plan](docs/installer-publisher-migration.md) and verify installed extensions and settings before switching the stable feed. CI must never silently fall back to self-signing for an advertised trusted release.
+
 ## Verify the change
 
 Run the portable suite from the repository root for changes to plugins or their host.
