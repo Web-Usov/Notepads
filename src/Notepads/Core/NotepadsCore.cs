@@ -228,8 +228,9 @@ namespace Notepads.Core
             item.PrepareForClosing();
             var group = FindEditorGroup(textEditor);
             group?.Items?.Remove(item);
-            if (ReferenceEquals(group, _secondarySets) && IsSplitEditorEnabled && _secondarySets.Items.Count == 0)
+            if (IsSplitEditorEnabled && (_sets.Items.Count == 0 || _secondarySets.Items.Count == 0))
             {
+                // Never leave a visible, empty editor group after closing its last tab.
                 CloseSplitEditor();
             }
 
