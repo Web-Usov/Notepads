@@ -15,3 +15,4 @@ namespace Notepads.SyntaxExtensions
                    (handler == ChangesDiff && extensionId == ChangesDiffExtensionId);
         }
     }
+}
