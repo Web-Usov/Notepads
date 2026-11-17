@@ -61,8 +61,12 @@ try {
         (Test-Path 'plugins/markdown-preview/markdown-preview.notepads-extension.json') -and
         (Test-Path 'plugins/changes-diff/changes-diff.notepads-extension.json')
     ) { '1' } else { '0' }
+    $aliasDeadline = (Get-Date).AddSeconds(30)
+    while (!(Test-Path -LiteralPath $env:PLAINIX_UI_ALIAS) -and (Get-Date) -lt $aliasDeadline) {
+        Start-Sleep -Milliseconds 250
+    }
     if (!(Test-Path -LiteralPath $env:PLAINIX_UI_ALIAS)) {
-        throw 'Installed Plainix execution alias was not registered.'
+        throw 'Installed Plainix execution alias was not registered within 30 seconds.'
     }
 
     Write-Host "Running installed Plainix UI tests (package $($installed.Version)); feature extensions=$env:PLAINIX_UI_FEATURE_EXTENSIONS"

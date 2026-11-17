@@ -61,7 +61,7 @@ function Invoke-Control($Control) {
 
 function Invoke-Extension([string]$Name, [string]$SubmenuName) {
     Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
-    $submenu = Wait-For 'the Extension commands submenu' { Find-AppControl $byId 'MenuExtensionCommands' }
+    $submenu = Wait-For 'the Extension commands submenu' { Find-AppControl $byId 'MenuExtensionCommands' } 45
     if ($SubmenuName -and $submenu.Current.Name -cne $SubmenuName) { throw "Unexpected submenu name: $($submenu.Current.Name)" }
     $submenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
     Invoke-Control (Wait-For $Name { Find-AppControl $byName $Name })
@@ -220,7 +220,8 @@ try {
     $fixture = [IO.File]::ReadAllText((Join-Path $root $manifestPath)) | ConvertFrom-Json
     $sha = git -C $root rev-parse HEAD
     if ($LASTEXITCODE -ne 0 -or $sha -notmatch '^[a-f0-9]{40}$') { throw 'Could not resolve the fixture commit.' }
-    $source = "https://raw.githubusercontent.com/Web-Usov/Notepads/$sha/$manifestPath"
+    $repository = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { 'Web-Usov/Plainix' }
+    $source = "https://raw.githubusercontent.com/$repository/$sha/$manifestPath"
     $storedFile = Join-Path $data "Extensions\ext-$($fixture.id).notepads-extension.json"
     if (Test-Path -LiteralPath $storedFile) { throw 'The example extension is already installed.' }
     Write-Output "Verifying the v2 package installer with $source"

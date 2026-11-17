@@ -56,6 +56,51 @@ public sealed class EditorUiTests
     }
 
     [Test]
+    public void Markdown_preview_can_be_opened_and_closed_without_editing()
+    {
+        // Markdown preview is a host-backed view even before its toggleable extension ships.
+        // File-type association must be real: a .json fixture cannot open Markdown preview.
+        const string markdown = "# Plainix preview";
+        _host!.Dispose();
+        _host = new UiTestHost(markdown, ".md");
+
+        var originalWidth = App.Editor.BoundingRectangle.Width;
+        Assert.That(originalWidth, Is.GreaterThan(300), "Expected a usable editor viewport.");
+        App.Editor.Focus();
+        UiTestHost.Keys("%p"); // Alt+P opens the native Markdown preview panel.
+        UiTestHost.WaitUntil(() => App.Editor.BoundingRectangle.Width < originalWidth * 0.85,
+            "Markdown preview to split the editor", 35);
+        App.AssertDocument(markdown);
+
+        App.Editor.Focus();
+        UiTestHost.Keys("%p");
+        UiTestHost.WaitUntil(() => App.Editor.BoundingRectangle.Width >= originalWidth * 0.93,
+            "Markdown preview to close", 35);
+        App.AssertDocument(markdown);
+    }
+
+    [Test]
+    public void Diff_viewer_can_be_opened_and_closed_without_losing_edits()
+    {
+        App.Editor.Focus();
+        UiTestHost.Keys("^{END}");
+        UiTestHost.Keys("x");
+        App.AssertDocument(Original + "x");
+
+        var originalHeight = App.Editor.BoundingRectangle.Height;
+        Assert.That(originalHeight, Is.GreaterThan(250), "Expected a usable editor viewport.");
+        UiTestHost.Keys("%d"); // Alt+D opens the saved-versus-current diff.
+        UiTestHost.WaitUntil(() => App.Editor.BoundingRectangle.Height < originalHeight * 0.85,
+            "diff viewer to split the editor", 35);
+        App.AssertDocument(Original + "x");
+
+        UiTestHost.Keys("{ESC}"); // The diff viewer has an Escape accelerator.
+        UiTestHost.WaitUntil(() => App.Editor.BoundingRectangle.Height >= originalHeight * 0.93,
+            "diff viewer to close", 35);
+        App.AssertDocument(Original + "x");
+    }
+
+    [Test]
     public void Find_bar_searches_open_document()
     {
         App.Editor.Focus();

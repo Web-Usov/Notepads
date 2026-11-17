@@ -10,7 +10,7 @@ interactive Windows user session with FlaUI UIA3 + NUnit.
 | --- | --- | --- |
 | .NET 8 portable extension tests | tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj | Manifests, grammar resolution, editor commands and plugins without Windows |
 | Installed editor smoke | tests/SyntaxExtensions/WindowsEditorSmoke.ps1 | Real editor, JSON, Log Lens, install-from-URL, Undo/Redo, English/Russian |
-| Installed NUnit UI E2E | tests/UI/Plainix.UI.Tests.csproj | Editor, Find, Save, settings/theme, plugin switches, layout assertions |
+| Installed NUnit UI E2E | tests/UI/Plainix.UI.Tests.csproj | Editor, Find, Save, actual Markdown and Diff views, settings/theme, plugin switches, layout assertions |
 | Native installer smoke | tests/Installer/NativeInstallerSmoke.ps1 | App Installer descriptor, clean installation and upgrade |
 | Publication guard tests | tests/Installer/PublishGuardsTests.sh | Release tag/commit identity and monotonic release feed |
 
@@ -78,7 +78,8 @@ without making PR workflows depend on signing secrets.
   on separate GitHub-hosted Windows machines.
 - When extending plugin UI coverage, exercise the bundled JSON toggle now;
   Markdown Preview and Changes Diff switches are checked once their feature
-  manifests from #13 are present. Missing expected manifests must fail CI.
+  manifests from #13 are present. Native Alt+P/Alt+D view functionality is
+  exercised on every branch, regardless of whether those manifests exist. Missing expected manifests must fail CI.
 
 The fixture explicitly checks for an interactive desktop. Session 0 or
 non-STA execution cannot operate UWP UI controls; a successful headless

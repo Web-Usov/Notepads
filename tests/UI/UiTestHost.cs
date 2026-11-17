@@ -19,7 +19,7 @@ internal sealed class UiTestHost : IDisposable
     private readonly int _editorProcessId;
     private bool _disposed;
 
-    public UiTestHost(string contents)
+    public UiTestHost(string contents, string extension = ".json")
     {
         var alias = Environment.GetEnvironmentVariable("PLAINIX_UI_ALIAS");
         var data = Environment.GetEnvironmentVariable("PLAINIX_UI_DATA");
@@ -29,8 +29,12 @@ internal sealed class UiTestHost : IDisposable
                 "Run the UI tests through tests/UI/Run-UiTests.ps1 after installing the MSIX package.");
         }
 
+        if (extension != ".json" && extension != ".md")
+        {
+            throw new ArgumentException("Only safe fixture file extensions are allowed.", nameof(extension));
+        }
         Directory.CreateDirectory(data);
-        _sourceFile = Path.Combine(data, "plainix-ui-" + Guid.NewGuid().ToString("N") + ".json");
+        _sourceFile = Path.Combine(data, "plainix-ui-" + Guid.NewGuid().ToString("N") + extension);
         File.WriteAllText(_sourceFile, contents, new UTF8Encoding(false));
 
         var start = new ProcessStartInfo(alias)
