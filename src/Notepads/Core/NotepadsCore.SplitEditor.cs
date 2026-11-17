@@ -109,6 +109,7 @@ namespace Notepads.Core
 
         public void SplitSelectedEditor(EditorSplitOrientation orientation)
         {
+            if (orientation != EditorSplitOrientation.Right && orientation != EditorSplitOrientation.Down) return;
             if (_secondarySets == null || GetSelectedTextEditor() == null) return;
             if (IsSplitEditorEnabled)
             {
