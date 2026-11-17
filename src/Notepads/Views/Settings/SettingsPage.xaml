@@ -29,6 +29,7 @@
             </NavigationViewItem>
             <NavigationViewItem Style="{StaticResource CustomNavigationViewItemStyle}" 
                                 x:Uid="/Settings/PersonalizationPage_Title"
+                                AutomationProperties.AutomationId="PersonalizationSettingsItem"
                                 Tag="Personalization" >
                 <NavigationViewItem.Icon>
                     <FontIcon FontFamily="Segoe MDL2 Assets"
