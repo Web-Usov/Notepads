@@ -11,10 +11,10 @@ release_guard_valid_version() {
 }
 
 release_guard_validate_context() {
-  release_guard_valid_version "$VERSION" || release_guard_error "Invalid four-part package version: $VERSION"
-  [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]] || release_guard_error "GITHUB_SHA must be a full commit SHA."
+  release_guard_valid_version "$VERSION" || { release_guard_error "Invalid four-part package version: $VERSION"; return 1; }
+  [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]] || { release_guard_error "GITHUB_SHA must be a full commit SHA."; return 1; }
   [[ "$GITHUB_REPOSITORY" =~ ^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$ ]] ||
-    release_guard_error "Unexpected GitHub repository name."
+    { release_guard_error "Unexpected GitHub repository name."; return 1; }
 }
 
 # GitHub matching-refs returns an empty array for missing tags (not a 404).
