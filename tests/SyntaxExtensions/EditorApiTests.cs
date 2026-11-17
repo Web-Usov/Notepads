@@ -83,8 +83,8 @@ internal static class EditorApiTests
         Reject(markdownManifest.Replace("plainix.markdown-preview", "third-party.preview"));
         Reject(markdownManifest.Replace("markdown.preview", "changes.diff"));
         Reject(markdownManifest.Replace("markdown.preview", "unknown.feature"));
-        Reject(markdownManifest.Replace("{ \"handler\": \"markdown.preview\" }",
-            "{ \"handler\": \"markdown.preview\" }, { \"handler\": \"markdown.preview\" }"));
+        Reject(markdownManifest.Replace("\"features\": [",
+            "\"features\": [{\"handler\":\"markdown.preview\"},"));
     }
 
     private static void CheckTranslations(string sample)

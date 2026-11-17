@@ -22,6 +22,7 @@ namespace Notepads.Views.MainPage
     using Notepads.Controls.TextEditor;
     using Notepads.Extensions;
     using Notepads.Services;
+    using Notepads.SyntaxExtensions;
     using Notepads.Utilities;
 
     public sealed partial class NotepadsMainPage
@@ -418,7 +419,9 @@ namespace Notepads.Views.MainPage
 
         private void ModificationIndicatorClicked(ITextEditor selectedEditor)
         {
-            PreviewTextChangesFlyoutItem.IsEnabled =
+            var diffAvailable = ExtensionCatalog.HasFeature(EditorFeatures.ChangesDiff);
+            PreviewTextChangesFlyoutItem.Visibility = diffAvailable ? Visibility.Visible : Visibility.Collapsed;
+            PreviewTextChangesFlyoutItem.IsEnabled = diffAvailable &&
                 !selectedEditor.NoChangesSinceLastSaved(compareTextOnly: true) &&
                 selectedEditor.Mode != TextEditorMode.DiffPreview;
             ModificationIndicator?.ContextFlyout.ShowAt(ModificationIndicator);
