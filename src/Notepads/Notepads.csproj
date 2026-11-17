@@ -241,6 +241,7 @@
     <Compile Include="Controls\DiffViewer\ScrollViewerSynchronizer.cs" />
     <Compile Include="Controls\DiffViewer\RichTextBlockDiffRenderer.cs" />
     <Compile Include="Views\MainPage\NotepadsMainPage.MainMenu.cs" />
+    <Compile Include="Views\MainPage\NotepadsMainPage.SplitEditor.cs" />
     <Compile Include="Views\MainPage\NotepadsMainPage.Notification.cs" />
     <Compile Include="Views\MainPage\NotepadsMainPage.Theme.cs" />
     <Compile Include="Services\FileExtensionProvider.cs" />
