@@ -6,22 +6,28 @@ Plainix is the new name of the Web-Usov fork of Notepads. Builds through 1.7.0.2
 
 ## Install on Windows
 
-Open the [latest stable release](https://github.com/Web-Usov/Notepads/releases/latest) and expand **Assets**. For versions with a native installer, download its `.appinstaller` and `.cer` files together. For offline installation or version 1.6.0.0, download the complete ZIP. To try changes still under development, use a [pull request build](CONTRIBUTING.md#try-a-pull-request-build).
+Open the [latest stable release](https://github.com/Web-Usov/Plainix/releases/latest) and expand **Assets**. For versions with a native installer, download its `.appinstaller` and `.cer` files together. For offline installation or version 1.6.0.0, download the complete ZIP. To try changes still under development, use a [pull request build](CONTRIBUTING.md#try-a-pull-request-build).
 
 | Build | Native installer | Public certificate | Start menu name |
 | --- | --- | --- | --- |
 | Plainix (from 1.7.0.3) | `Plainix.appinstaller` | `Plainix.cer` | Plainix |
-| [Notepads 1.7.0.2 preview](https://github.com/Web-Usov/Notepads/releases/tag/v1.7.0.2-preview) | `Notepads.appinstaller` | `Notepads.cer` | Notepads-Dev |
+| [Notepads 1.7.0.2 preview](https://github.com/Web-Usov/Plainix/releases/tag/v1.7.0.2-preview) | `Notepads.appinstaller` | `Notepads.cer` | Notepads-Dev |
 
 1. Download the public certificate from the release and compare its SHA-256 with the fingerprint in the release notes. The first time you install a package from that signer, open the certificate and choose **Install Certificate → Local Machine → Place all certificates in the following store → Trusted People**. This step requires Windows administrator approval.
 2. Download the matching `.appinstaller` file, double-click it, and choose **Install** or **Update**. Windows App Installer downloads the editor and its x64 frameworks. An update from the Web-Usov fork reuses the existing package identity and local data, including installed extensions.
-3. Open the editor from Start. Stable builds check for updates when the app starts. Each preview points to a specific version. To move to a newer release with a different signer, trust its public certificate and open its descriptor.
+3. Open the editor from Start. Stable builds check for updates when the app starts. Each preview points to a specific version. A future SignPath Foundation release will use a different package publisher and **cannot automatically upgrade** the old self-signed package; see [publisher migration](docs/installer-publisher-migration.md).
 
-Windows 10 build 17763 or later and Windows 11 x64 are supported. Windows App Installer must be installed. On Windows 10 versions before 2004, enable sideloading of trusted apps in Windows settings. The [v1.6.0.0 release](https://github.com/Web-Usov/Notepads/releases/tag/v1.6.0.0) and offline installations use the complete ZIP. Extract it, open PowerShell in its folder and run:
+Windows 10 build 17763 or later and Windows 11 x64 are supported. Windows App Installer must be installed. On Windows 10 versions before 2004, enable sideloading of trusted apps in Windows settings. The [v1.6.0.0 release](https://github.com/Web-Usov/Plainix/releases/tag/v1.6.0.0) and offline installations use the complete ZIP. Extract it, open PowerShell in its folder and run:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1
 ```
+
+## Code signing policy
+
+**Signing status:** Release v1.7.0.3 uses a **self-signed certificate**, so the existing certificate-import procedure above is still necessary. Plainix is preparing an application for **SignPath Foundation** and has **not yet received a trusted signing certificate**. Do not install untrusted certificates from unofficial sources.
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org/) **once approved and activated**. See the project's [Code signing policy](docs/code-signing-policy.md), [application/readiness checklist](docs/signpath-foundation-application.md) and [migration instructions](docs/installer-publisher-migration.md). Windows SmartScreen reputation warnings are independent of package signature trust.
 
 ## Use the editor
 
