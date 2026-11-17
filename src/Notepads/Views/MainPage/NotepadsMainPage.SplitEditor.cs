@@ -77,6 +77,11 @@ namespace Notepads.Views.MainPage
             HorizontalDividerRow.Height = down ? new GridLength(6) : new GridLength(0);
             Grid.SetColumn(SecondarySets, right ? 2 : 0);
             Grid.SetRow(SecondarySets, down ? 2 : 0);
+            // Window caption controls occupy the upper-right 180 DIPs.
+            // When split right, reserve that area in the second tab strip,
+            // not the primary strip. A split-down view keeps it in the first.
+            TitleBarReservedArea.Width = !App.IsGameBarWidget && !right ? 180 : 0;
+            SecondaryTitleBarReservedArea.Width = !App.IsGameBarWidget && right ? 180 : 0;
             SecondarySets.Visibility = split ? Visibility.Visible : Visibility.Collapsed;
             VerticalSplitDivider.Visibility = right ? Visibility.Visible : Visibility.Collapsed;
             HorizontalSplitDivider.Visibility = down ? Visibility.Visible : Visibility.Collapsed;
