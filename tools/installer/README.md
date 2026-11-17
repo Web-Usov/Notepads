@@ -58,3 +58,17 @@ $password.Dispose()
 ```
 
 Keep the same release key across versions. When rotating a self-signed certificate, distribute its public certificate to users before publishing the first bundle signed with the replacement. [Microsoft's package signing guide](https://learn.microsoft.com/windows/msix/package/create-certificate-package-signing) · [GitHub CLI environment secrets](https://cli.github.com/manual/gh_secret_set)
+
+## Release publication integrity
+
+The release job uses a **shared stable-publication queue** for all `release/v*` branches; preview branches use separate queues. Stable releases are eligible for `/releases/latest/download/Plainix.appinstaller` **only** if their numeric four-part version is greater than the current latest release. Older and equal versions fail publication instead of resetting the stable update feed. If a newer release overtakes an in-progress draft, that draft stays unpublished for maintainer inspection. A manual release outside this workflow is not protected by the workflow concurrency lock.
+
+Before creating or publishing a draft, `publish.sh` verifies that any existing exact Git tag resolves to `GITHUB_SHA`. The check dereferences annotated tags (including nested tags), rejects non-commit targets and ignores prefix matches such as `v1.7.0.40` for `v1.7.0.4`. Missing tags are allowed: the GitHub Releases API can create them from the specified commit. GitHub API errors abort publication; a draft is never considered sufficient evidence of tag integrity. Do not manually move release tags after assets have been published.
+
+The pre-publication guards have deterministic offline tests, with mocked GitHub read-only responses and no release uploads or signing secrets:
+
+```sh
+bash tests/Installer/PublishGuardsTests.sh
+```
+
+The pull-request installer workflow runs these checks on Ubuntu. Production signing, packaging, and Windows installation still require the existing Windows jobs.
