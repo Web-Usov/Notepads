@@ -211,14 +211,28 @@ jobs:
         shell: powershell
         run: ./tests/Installer/NativeInstallerSmoke.ps1 -FeedFolder "$env:RUNNER_TEMP/native-installer" -TestUpgradeFromFirstRelease
 
+  release-guards-tests:
+    name: Test release publication guards (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Check release tag and version invariants without API writes
+        run: bash tests/Installer/PublishGuardsTests.sh
+
   publish:
     name: Publish Windows x64 installer
     if: github.event_name == 'push'
-    needs: [installer, native-install]
+    needs: [installer, native-install, release-guards-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    concurrency: publish-${{ github.ref }}
+    # Stable tags all update the same /releases/latest feed. Queue jobs rather than dropping pending releases.
+    concurrency:
+      group: ${{ startsWith(github.ref, 'refs/heads/release/v') && 'plainix-stable-publication' || format('plainix-preview-publication-{0}', github.ref) }}
+      cancel-in-progress: false
+      queue: max
     env:
       GH_TOKEN: ${{ github.token }}
       VERSION: ${{ needs.installer.outputs.version }}

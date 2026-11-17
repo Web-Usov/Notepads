@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/release-guards.sh"
+release_guard_validate_context
 
 case "$GITHUB_REF_NAME" in
   "release/v$VERSION") tag="v$VERSION"; latest=true; prerelease=false; kind="stable release" ;;
   "native-preview/v$VERSION") tag="v$VERSION-preview"; latest=false; prerelease=true; kind="preview" ;;
   *) echo "Unexpected publication branch." >&2; exit 1 ;;
 esac
+
+# Verify source identity and stable-channel ordering before touching a draft.
+release_guard_require_matching_tag "$tag"
+if [[ "$latest" == true ]]; then release_guard_require_new_stable; fi
 
 archive="Plainix-$VERSION-Windows-x64.zip"
 (cd installer && zip -qr "../$archive" .)
@@ -67,5 +73,9 @@ for file in native-installer/* "$archive" SHA256SUMS.txt; do
   jq -e --arg digest "$digest" --arg name "$name" --arg mime "$mime" --argjson bytes "$(stat -c %s "$file")" \
     '.state == "uploaded" and .name == $name and .size == $bytes and .content_type == $mime and .digest == $digest' <<< "$result" >/dev/null
 done
+# A tag or latest release may have changed while assets were uploaded.
+# A mismatched tag or superseded stable version must remain an unpublished draft.
+release_guard_require_matching_tag "$tag"
+if [[ "$latest" == true ]]; then release_guard_require_new_stable; fi
 gh api --method PATCH "$api/$id" --field 'body=@notes.md' --field draft=false \
   --field "prerelease=$prerelease" --raw-field "make_latest=$latest" --jq .html_url
