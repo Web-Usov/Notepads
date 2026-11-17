@@ -119,25 +119,45 @@ public sealed class EditorUiTests
         App.OpenSettings("AdvancedSettingsItem");
         var toggle = App.RequireId("ShowStatusBarToggleSwitch");
         var initial = toggle.Patterns.Toggle.Pattern.ToggleState.Value.ToString();
+
+        // Changing the status bar can dismiss the Settings pane. Always reopen it
+        // before verifying the persisted preference, instead of reusing a stale peer.
+        AutomationElement CurrentToggle()
+        {
+            var control = App.FindById("ShowStatusBarToggleSwitch");
+            if (control is not null) return control;
+
+            App.OpenSettings("AdvancedSettingsItem");
+            return App.RequireId("ShowStatusBarToggleSwitch");
+        }
+
         try
         {
-            toggle.Patterns.Toggle.Pattern.Toggle();
-            UiTestHost.WaitUntil(() =>
-                App.RequireId("ShowStatusBarToggleSwitch").Patterns.Toggle.Pattern.ToggleState.Value.ToString() != initial,
-                "status bar preference to change");
+            // Drive the actual UI, including its Click/Toggled handlers.
+            toggle.Click();
+            UiTestHost.WaitUntil(
+                () => CurrentToggle().Patterns.Toggle.Pattern.ToggleState.Value.ToString() != initial,
+                "status bar preference to change", 20);
         }
         finally
         {
-            var fresh = App.RequireId("ShowStatusBarToggleSwitch");
-            if (fresh.Patterns.Toggle.Pattern.ToggleState.Value.ToString() != initial)
+            try
             {
-                fresh.Patterns.Toggle.Pattern.Toggle();
+                var current = CurrentToggle();
+                if (current.Patterns.Toggle.Pattern.ToggleState.Value.ToString() != initial)
+                {
+                    current.Click();
+                }
+            }
+            catch (Exception ex)
+            {
+                TestContext.Error.WriteLine("Could not restore the status bar preference: " + ex);
             }
         }
 
-        UiTestHost.WaitUntil(() =>
-            App.RequireId("ShowStatusBarToggleSwitch").Patterns.Toggle.Pattern.ToggleState.Value.ToString() == initial,
-            "status bar preference to be restored");
+        UiTestHost.WaitUntil(
+            () => CurrentToggle().Patterns.Toggle.Pattern.ToggleState.Value.ToString() == initial,
+            "status bar preference to be restored", 20);
     }
 
     [Test]
