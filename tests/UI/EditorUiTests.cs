@@ -73,25 +73,25 @@ public sealed class EditorUiTests
     {
         App.OpenSettings("AdvancedSettingsItem");
         var toggle = App.RequireId("ShowStatusBarToggleSwitch");
-        var initial = toggle.Patterns.Toggle.Pattern.ToggleState.ToString();
+        var initial = toggle.Patterns.Toggle.Pattern.ToggleState.Value.ToString();
         try
         {
             toggle.Patterns.Toggle.Pattern.Toggle();
             UiTestHost.WaitUntil(() =>
-                App.RequireId("ShowStatusBarToggleSwitch").Patterns.Toggle.Pattern.ToggleState.ToString() != initial,
+                App.RequireId("ShowStatusBarToggleSwitch").Patterns.Toggle.Pattern.ToggleState.Value.ToString() != initial,
                 "status bar preference to change");
         }
         finally
         {
             var fresh = App.RequireId("ShowStatusBarToggleSwitch");
-            if (fresh.Patterns.Toggle.Pattern.ToggleState.ToString() != initial)
+            if (fresh.Patterns.Toggle.Pattern.ToggleState.Value.ToString() != initial)
             {
                 fresh.Patterns.Toggle.Pattern.Toggle();
             }
         }
 
         UiTestHost.WaitUntil(() =>
-            App.RequireId("ShowStatusBarToggleSwitch").Patterns.Toggle.Pattern.ToggleState.ToString() == initial,
+            App.RequireId("ShowStatusBarToggleSwitch").Patterns.Toggle.Pattern.ToggleState.Value.ToString() == initial,
             "status bar preference to be restored");
     }
 
@@ -100,16 +100,16 @@ public sealed class EditorUiTests
     {
         App.OpenSettings("PersonalizationSettingsItem");
         var ids = new[] { "ThemeModeDefaultButton", "ThemeModeLightButton", "ThemeModeDarkButton" };
-        var initial = ids.Single(id => App.RequireId(id).Patterns.SelectionItem.Pattern.IsSelected);
+        var initial = ids.Single(id => App.RequireId(id).Patterns.SelectionItem.Pattern.IsSelected.Value);
         try
         {
             App.RequireId("ThemeModeLightButton").Click();
             UiTestHost.WaitUntil(() =>
-                App.RequireId("ThemeModeLightButton").Patterns.SelectionItem.Pattern.IsSelected,
+                App.RequireId("ThemeModeLightButton").Patterns.SelectionItem.Pattern.IsSelected.Value,
                 "light theme selection");
             App.RequireId("ThemeModeDarkButton").Click();
             UiTestHost.WaitUntil(() =>
-                App.RequireId("ThemeModeDarkButton").Patterns.SelectionItem.Pattern.IsSelected,
+                App.RequireId("ThemeModeDarkButton").Patterns.SelectionItem.Pattern.IsSelected.Value,
                 "dark theme selection");
         }
         finally
@@ -118,7 +118,7 @@ public sealed class EditorUiTests
         }
 
         UiTestHost.WaitUntil(() =>
-            App.RequireId(initial).Patterns.SelectionItem.Pattern.IsSelected,
+            App.RequireId(initial).Patterns.SelectionItem.Pattern.IsSelected.Value,
             "original theme selection to be restored");
     }
 
@@ -127,7 +127,7 @@ public sealed class EditorUiTests
     {
         App.OpenSettings("AdvancedSettingsItem");
         var toggle = FindExtension("JSON");
-        Assert.That(toggle.Patterns.Toggle.Pattern.ToggleState.ToString(), Is.EqualTo("On"),
+        Assert.That(toggle.Patterns.Toggle.Pattern.ToggleState.Value.ToString(), Is.EqualTo("On"),
             "Bundled JSON commands must be enabled in a clean profile.");
 
         ToggleExtension("JSON", "Off");
@@ -144,7 +144,7 @@ public sealed class EditorUiTests
         {
             foreach (var name in names)
             {
-                Assert.That(FindExtension(name).Patterns.Toggle.Pattern.ToggleState.ToString(),
+                Assert.That(FindExtension(name).Patterns.Toggle.Pattern.ToggleState.Value.ToString(),
                     Is.EqualTo("On"), name + " must be enabled by default.");
                 ToggleExtension(name, "Off");
                 ToggleExtension(name, "On");
@@ -161,7 +161,7 @@ public sealed class EditorUiTests
                     name + " should not appear as a feature extension without its manifest.");
             }
 
-            Assert.That(FindExtension("JSON").Patterns.Toggle.Pattern.ToggleState.ToString(),
+            Assert.That(FindExtension("JSON").Patterns.Toggle.Pattern.ToggleState.Value.ToString(),
                 Is.EqualTo("On"));
         }
     }
@@ -184,7 +184,7 @@ public sealed class EditorUiTests
             Assert.That(menu.Height, Is.GreaterThan(10));
         });
         // This test also exports a screenshot, even on success, for nightly UI review.
-        App.CaptureEvidence("Visual-layout-snapshot", failed: true);
+        App.CaptureEvidence("Visual-layout-snapshot", failed: false, captureScreenshot: true);
     }
 
     private AutomationElement? TryFindExtension(string label)
@@ -203,13 +203,13 @@ public sealed class EditorUiTests
     private void ToggleExtension(string label, string targetState)
     {
         var check = FindExtension(label);
-        if (check.Patterns.Toggle.Pattern.ToggleState.ToString() != targetState)
+        if (check.Patterns.Toggle.Pattern.ToggleState.Value.ToString() != targetState)
         {
             check.Patterns.Toggle.Pattern.Toggle();
         }
         // The app destroys and recreates CheckBox controls on each registry reload.
         UiTestHost.WaitUntil(() =>
-            FindExtension(label).Patterns.Toggle.Pattern.ToggleState.ToString() == targetState,
+            FindExtension(label).Patterns.Toggle.Pattern.ToggleState.Value.ToString() == targetState,
             label + " toggle to become " + targetState, 30);
     }
 }
