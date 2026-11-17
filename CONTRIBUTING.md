@@ -22,6 +22,10 @@ For a new grammar, use the same command with `-- <manifest-file> <sample-file>` 
 
 Open the **Windows preview installer** run for the pull request. When its `installer` job succeeds, download **Plainix-Windows-x64** under **Artifacts**, extract the ZIP, open PowerShell in the directory containing `Add-AppDevPackage.ps1` and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1`. Open **Plainix** from Start. Sign in to GitHub to download a preview artifact. It is available for 30 days. Published installers are available on the [fork’s Releases page](https://github.com/Web-Usov/Plainix/releases).
 
+## Automated UI tests
+
+Windows UI tests run against the **installed** MSIX on an interactive Windows desktop using NUnit and FlaUI UIA3, in addition to the existing editor smoke and App Installer smoke. The [UI testing guide](docs/ui-testing.md) covers CI gates, local reproduction, TRX and screenshot artifacts, cleanup, and test authoring. The release workflow requires these UI jobs to pass before publication.
+
 ## Code signing and release security
 
 The current signing instructions below cover **legacy self-signed releases only**. Plainix has prepared a [Code signing policy](docs/code-signing-policy.md) and [SignPath Foundation application checklist](docs/signpath-foundation-application.md) under [Issue #9](https://github.com/Web-Usov/Plainix/issues/9). The SignPath release workflow may replace these steps **only after approval**, verification of the actual certificate subject and a manual signing approval policy. PR artifacts must never gain production SignPath credentials.
