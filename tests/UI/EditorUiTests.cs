@@ -172,17 +172,14 @@ public sealed class EditorUiTests
         var frame = App.Window.BoundingRectangle;
         var editor = App.Editor.BoundingRectangle;
         var menu = App.RequireId("MainMenuButton").BoundingRectangle;
-        Assert.Multiple(() =>
-        {
-            Assert.That(frame.Width, Is.GreaterThanOrEqualTo(500));
-            Assert.That(frame.Height, Is.GreaterThanOrEqualTo(350));
-            Assert.That(editor.Width, Is.GreaterThan(250));
-            Assert.That(editor.Height, Is.GreaterThan(150));
-            Assert.That(editor.Left, Is.GreaterThanOrEqualTo(frame.Left - 2));
-            Assert.That(editor.Top, Is.GreaterThanOrEqualTo(frame.Top));
-            Assert.That(menu.Width, Is.GreaterThan(10));
-            Assert.That(menu.Height, Is.GreaterThan(10));
-        });
+        Assert.That(frame.Width, Is.GreaterThanOrEqualTo(500));
+        Assert.That(frame.Height, Is.GreaterThanOrEqualTo(350));
+        Assert.That(editor.Width, Is.GreaterThan(250));
+        Assert.That(editor.Height, Is.GreaterThan(150));
+        Assert.That(editor.Left, Is.GreaterThanOrEqualTo(frame.Left - 2));
+        Assert.That(editor.Top, Is.GreaterThanOrEqualTo(frame.Top));
+        Assert.That(menu.Width, Is.GreaterThan(10));
+        Assert.That(menu.Height, Is.GreaterThan(10));
         // This test also exports a screenshot, even on success, for nightly UI review.
         App.CaptureEvidence("Visual-layout-snapshot", failed: false, captureScreenshot: true);
     }
