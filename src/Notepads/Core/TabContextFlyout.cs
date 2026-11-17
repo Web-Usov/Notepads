@@ -25,6 +25,10 @@ namespace Notepads.Core
         private MenuFlyoutItem _closeOthers;
         private MenuFlyoutItem _closeRight;
         private MenuFlyoutItem _closeSaved;
+        private MenuFlyoutItem _splitRight;
+        private MenuFlyoutItem _splitDown;
+        private MenuFlyoutItem _moveToOtherGroup;
+        private MenuFlyoutItem _closeSplit;
         private MenuFlyoutItem _copyFullPath;
         private MenuFlyoutItem _openContainingFolder;
         private MenuFlyoutItem _rename;
@@ -46,6 +50,11 @@ namespace Notepads.Core
             Items.Add(CloseOthers);
             Items.Add(CloseRight);
             Items.Add(CloseSaved);
+            Items.Add(new MenuFlyoutSeparator());
+            Items.Add(SplitRight);
+            Items.Add(SplitDown);
+            Items.Add(MoveToOtherGroup);
+            Items.Add(CloseSplit);
             Items.Add(new MenuFlyoutSeparator());
             Items.Add(CopyFullPath);
             Items.Add(OpenContainingFolder);
@@ -76,7 +85,8 @@ namespace Notepads.Core
                 isFileReadonly = FileSystemUtility.IsFileReadOnly(_textEditor.EditingFile);
             }
 
-            CloseOthers.IsEnabled = CloseRight.IsEnabled = _notepadsCore.GetNumberOfOpenedTextEditors() > 1;
+            CloseOthers.IsEnabled = CloseRight.IsEnabled = _notepadsCore.GetEditorsInSameGroup(_textEditor).Count > 1;
+            CloseSplit.IsEnabled = _notepadsCore.IsSplitEditorEnabled;
             CopyFullPath.IsEnabled = !string.IsNullOrEmpty(_filePath);
             OpenContainingFolder.IsEnabled = !string.IsNullOrEmpty(_containingFolderPath);
             Rename.IsEnabled = _textEditor.FileModificationState != FileModificationState.RenamedMovedOrDeleted && !isFileReadonly;
@@ -84,12 +94,68 @@ namespace Notepads.Core
             if (App.IsGameBarWidget)
             {
                 OpenContainingFolder.Visibility = Visibility.Collapsed;
+                SplitRight.Visibility = Visibility.Collapsed;
+                SplitDown.Visibility = Visibility.Collapsed;
+                MoveToOtherGroup.Visibility = Visibility.Collapsed;
+                CloseSplit.Visibility = Visibility.Collapsed;
             }
         }
 
         private void TabContextFlyout_Closed(object sender, object e)
         {
             _notepadsCore.FocusOnSelectedTextEditor();
+        }
+
+        private MenuFlyoutItem SplitRight
+        {
+            get
+            {
+                if (_splitRight != null) return _splitRight;
+                _splitRight = new MenuFlyoutItem { Text = _resourceLoader.GetString("SplitEditor_Right") };
+                _splitRight.Click += (sender, args) =>
+                {
+                    _notepadsCore.SwitchTo(_textEditor);
+                    _notepadsCore.SplitSelectedEditor(EditorSplitOrientation.Right);
+                };
+                return _splitRight;
+            }
+        }
+
+        private MenuFlyoutItem SplitDown
+        {
+            get
+            {
+                if (_splitDown != null) return _splitDown;
+                _splitDown = new MenuFlyoutItem { Text = _resourceLoader.GetString("SplitEditor_Down") };
+                _splitDown.Click += (sender, args) =>
+                {
+                    _notepadsCore.SwitchTo(_textEditor);
+                    _notepadsCore.SplitSelectedEditor(EditorSplitOrientation.Down);
+                };
+                return _splitDown;
+            }
+        }
+
+        private MenuFlyoutItem MoveToOtherGroup
+        {
+            get
+            {
+                if (_moveToOtherGroup != null) return _moveToOtherGroup;
+                _moveToOtherGroup = new MenuFlyoutItem { Text = _resourceLoader.GetString("SplitEditor_MoveOtherGroup") };
+                _moveToOtherGroup.Click += (sender, args) => _notepadsCore.MoveEditorToOtherGroup(_textEditor);
+                return _moveToOtherGroup;
+            }
+        }
+
+        private MenuFlyoutItem CloseSplit
+        {
+            get
+            {
+                if (_closeSplit != null) return _closeSplit;
+                _closeSplit = new MenuFlyoutItem { Text = _resourceLoader.GetString("SplitEditor_Close") };
+                _closeSplit.Click += (sender, args) => _notepadsCore.CloseSplitEditor();
+                return _closeSplit;
+            }
         }
 
         private MenuFlyoutItem Close
@@ -272,7 +338,7 @@ namespace Notepads.Core
 
         private void ExecuteOnAllTextEditors(Action<ITextEditor> action)
         {
-            foreach (ITextEditor textEditor in _notepadsCore.GetAllTextEditors())
+            foreach (ITextEditor textEditor in _notepadsCore.GetEditorsInSameGroup(_textEditor))
             {
                 action(textEditor);
             }
