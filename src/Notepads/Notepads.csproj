@@ -225,6 +225,8 @@
     <Compile Include="Core\INotepadsCore.cs" />
     <Compile Include="Core\ISessionManager.cs" />
     <Compile Include="Core\NotepadsCore.cs" />
+    <Compile Include="Core\NotepadsCore.SplitEditor.cs" />
+    <Compile Include="Core\EditorSplitLayout.cs" />
     <Compile Include="Core\SessionDataModels\NotepadsSessionData.cs" />
     <Compile Include="Core\SessionManager.cs" />
     <Compile Include="Core\TabContextFlyout.cs" />
