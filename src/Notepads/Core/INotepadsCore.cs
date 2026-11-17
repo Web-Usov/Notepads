@@ -46,6 +46,7 @@ namespace Notepads.Core
         void SplitSelectedEditor(EditorSplitOrientation orientation);
         void MoveEditorToOtherGroup(ITextEditor editor);
         void CloseSplitEditor();
+        IReadOnlyList<ITextEditor> GetEditorsInSameGroup(ITextEditor editor);
         EditorSplitLayout GetSplitEditorLayout();
         void RestoreSplitEditorLayout(EditorSplitLayout layout);
 
