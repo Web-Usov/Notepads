@@ -55,8 +55,16 @@ function Find-AppControl($Property, [string]$Value) {
 }
 
 function Invoke-Control($Control) {
-    $pattern = $Control.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-    $pattern.Invoke()
+    $id = $Control.Current.AutomationId
+    $name = $Control.Current.Name
+    Write-Host ("Invoking UI control: {0} ({1})" -f $id, $name)
+    try {
+        $pattern = $Control.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+        $pattern.Invoke()
+    }
+    catch {
+        throw "UI Automation failed to invoke '$id' ('$name'): $($_.Exception.Message)"
+    }
 }
 
 function Invoke-Extension([string]$Name, [string]$SubmenuName) {
@@ -176,7 +184,11 @@ try {
     $editor.SetFocus()
     $editorCondition = [System.Windows.Automation.PropertyCondition]::new($byId, 'TextEditorCore')
     foreach ($orientation in @('ToolbarSplitRightButton', 'ToolbarSplitDownButton')) {
-        Invoke-Control (Wait-For 'the split editor toolbar' { Find-AppControl $byId 'SplitEditorToolbarButton' })
+        Write-Host "Opening split editor controls for $orientation"
+        $toolbar = Wait-For 'the split editor toolbar' { Find-AppControl $byId 'SplitEditorToolbarButton' }
+        $toolbar.SetFocus()
+        [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+        Write-Host "Invoking command $orientation"
         Invoke-Control (Wait-For "the $orientation command" { Find-AppControl $byId $orientation })
         $null = Wait-For "two editor surfaces after $orientation" {
             $panes = $window.FindAll($subtree, $editorCondition)
