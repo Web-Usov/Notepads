@@ -18,10 +18,11 @@ namespace Notepads.SyntaxExtensions
             "property", "string", "number", "keyword", "punctuation", "comment"
         };
 
-        private SyntaxExtension(string id, string displayName, List<SyntaxGrammar> grammars, string version, List<ExtensionCommand> commands)
+        private SyntaxExtension(string id, string displayName, List<SyntaxGrammar> grammars, string version, List<ExtensionCommand> commands, List<string> features)
         {
             Version = version;
             Commands = commands.AsReadOnly();
+            Features = features.AsReadOnly();
             Id = id;
             DisplayName = displayName;
             Grammars = grammars.AsReadOnly();
@@ -30,6 +31,7 @@ namespace Notepads.SyntaxExtensions
         public string Id { get; }
         public string Version { get; }
         public IReadOnlyList<ExtensionCommand> Commands { get; }
+        public IReadOnlyList<string> Features { get; }
         public string DisplayName { get; }
         public IReadOnlyList<SyntaxGrammar> Grammars { get; }
 
@@ -87,9 +89,10 @@ namespace Notepads.SyntaxExtensions
                         grammars.Add(new SyntaxGrammar(suffixes, rules));
                     }
                     var commands = version == 2 ? ReadCommands(contributes, language) : new List<ExtensionCommand>();
-                    if (grammars.Count == 0 && commands.Count == 0)
+                    var features = version == 2 ? ReadFeatures(contributes, id) : new List<string>();
+                    if (grammars.Count == 0 && commands.Count == 0 && features.Count == 0)
                         throw new FormatException(ExtensionMessages.Get("MissingContributions"));
-                    return new SyntaxExtension(id, name, grammars, packageVersion, commands);
+                    return new SyntaxExtension(id, name, grammars, packageVersion, commands, features);
                 }
             }
             catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException || ex is ArgumentException)

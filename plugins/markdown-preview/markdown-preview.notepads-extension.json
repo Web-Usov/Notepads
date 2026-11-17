@@ -1,0 +1,16 @@
+{
+  "apiVersion": 2,
+  "id": "plainix.markdown-preview",
+  "version": "1.0.0",
+  "displayName": "Markdown Preview",
+  "displayNameTranslations": {
+    "ru": "Предпросмотр Markdown"
+  },
+  "contributes": {
+    "features": [
+      {
+        "handler": "markdown.preview"
+      }
+    ]
+  }
+}

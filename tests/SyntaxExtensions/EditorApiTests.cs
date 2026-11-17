@@ -33,6 +33,7 @@ internal static class EditorApiTests
         Check(json.Id == "notepads.json" && json.Commands.Count == 2 && json.Grammars.Count == 1, "bundled JSON upgrade");
         var disabled = new GrammarRegistry(new[] {json, log}.Where(e => e.Id != json.Id));
         Check(!disabled.Extensions.Contains(json) && disabled.FindGrammar(".json") == null, "disabled JSON removes both contributions");
+        CheckFeatureExtensions(sample);
 
         Reject(sample.Replace("text.wrap", "unknown"));
         Reject(sample.Replace("text.wrap", "panel.open"));
@@ -40,6 +41,50 @@ internal static class EditorApiTests
         Reject(sample.Replace(extension.Version, "1.00.0"));
         Reject("{\"apiVersion\":2,\"id\":\"x\",\"displayName\":\"X\",\"version\":\"1.0.0\",\"contributes\":{}}");
         Console.WriteLine("Extension command, panel and stale-result tests passed.");
+    }
+
+    private static void CheckFeatureExtensions(string commandManifest)
+    {
+        var markdownManifest = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "markdown-preview.notepads-extension.json"));
+        var diffManifest = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "changes-diff.notepads-extension.json"));
+        var markdown = SyntaxExtension.Parse(markdownManifest, "en-US");
+        var changes = SyntaxExtension.Parse(diffManifest, "en-US");
+
+        Check(markdown.Id == EditorFeatures.MarkdownPreviewExtensionId &&
+              markdown.Features.SequenceEqual(new[] { EditorFeatures.MarkdownPreview }) &&
+              markdown.Commands.Count == 0 && markdown.Grammars.Count == 0, "Markdown feature-only extension");
+        Check(changes.Id == EditorFeatures.ChangesDiffExtensionId &&
+              changes.Features.SequenceEqual(new[] { EditorFeatures.ChangesDiff }) &&
+              changes.Commands.Count == 0 && changes.Grammars.Count == 0, "Changes Diff feature-only extension");
+        Check(SyntaxExtension.Parse(markdownManifest, "ru-RU").DisplayName == "Предпросмотр Markdown" &&
+              SyntaxExtension.Parse(diffManifest, "ru-RU").DisplayName == "Сравнение изменений",
+              "feature extension localization");
+
+        var both = new GrammarRegistry(new[] { markdown, changes });
+        Check(both.HasFeature(EditorFeatures.MarkdownPreview) &&
+              both.HasFeature(EditorFeatures.ChangesDiff), "both features available by default");
+        var withoutMarkdown = new GrammarRegistry(new[] { changes });
+        var withoutChanges = new GrammarRegistry(new[] { markdown });
+        Check(!withoutMarkdown.HasFeature(EditorFeatures.MarkdownPreview) &&
+              withoutMarkdown.HasFeature(EditorFeatures.ChangesDiff), "independent Markdown disable");
+        Check(!withoutChanges.HasFeature(EditorFeatures.ChangesDiff) &&
+              withoutChanges.HasFeature(EditorFeatures.MarkdownPreview), "independent diff disable");
+        Check(!new GrammarRegistry(Array.Empty<SyntaxExtension>()).HasFeature(EditorFeatures.MarkdownPreview),
+              "missing bundled feature fails closed");
+
+        // A local override wins by ID, so removing its contribution disables
+        // only that feature, just as with existing grammar overrides.
+        var shadow = SyntaxExtension.Parse(commandManifest.Replace("example.markdown-wrap",
+            EditorFeatures.MarkdownPreviewExtensionId));
+        var overridden = new GrammarRegistry(new[] { shadow, markdown, changes });
+        Check(!overridden.HasFeature(EditorFeatures.MarkdownPreview) &&
+              overridden.HasFeature(EditorFeatures.ChangesDiff), "feature override takes precedence");
+
+        Reject(markdownManifest.Replace("plainix.markdown-preview", "third-party.preview"));
+        Reject(markdownManifest.Replace("markdown.preview", "changes.diff"));
+        Reject(markdownManifest.Replace("markdown.preview", "unknown.feature"));
+        Reject(markdownManifest.Replace("{ \"handler\": \"markdown.preview\" }",
+            "{ \"handler\": \"markdown.preview\" }, { \"handler\": \"markdown.preview\" }"));
     }
 
     private static void CheckTranslations(string sample)

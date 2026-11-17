@@ -74,7 +74,7 @@
     <value>Неизвестный тип токена: {0}</value>
   </data>
   <data name="MissingContributions" xml:space="preserve">
-    <value>Объявите хотя бы одну грамматику или команду.</value>
+    <value>Объявите хотя бы одну грамматику, команду или функцию.</value>
   </data>
   <data name="InvalidJsonManifest" xml:space="preserve">
     <value>Некорректный JSON в манифесте расширения.</value>
@@ -108,6 +108,9 @@
   </data>
   <data name="PanelHandler" xml:space="preserve">
     <value>Неизвестный обработчик панели или повторяющийся идентификатор панели.</value>
+  </data>
+  <data name="FeatureHandler" xml:space="preserve">
+    <value>Неизвестная, повторяющаяся или принадлежащая другому расширению функция редактора: {0}</value>
   </data>
   <data name="DuplicateCommand" xml:space="preserve">
     <value>Повторяющийся идентификатор команды: {0}</value>

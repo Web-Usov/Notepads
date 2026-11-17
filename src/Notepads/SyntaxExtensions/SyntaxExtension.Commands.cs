@@ -74,6 +74,21 @@ namespace Notepads.SyntaxExtensions
             return panels;
         }
 
+        // Feature handlers are compiled into Plainix; a manifest never loads executable code.
+        // Bind each supported handler to its official extension ID to prevent hijacking.
+        private static List<string> ReadFeatures(JsonElement contributes, string extensionId)
+        {
+            var features = new List<string>();
+            foreach (var entry in OptionalArray(contributes, "features", 2))
+            {
+                var handler = ReadString(entry, "handler", 80);
+                if (!EditorFeatures.IsOwnedBy(handler, extensionId) || features.Contains(handler))
+                    throw new FormatException(ExtensionMessages.Get("FeatureHandler", handler));
+                features.Add(handler);
+            }
+            return features;
+        }
+
         private static List<ExtensionCommand> ReadCommands(JsonElement contributes, string language)
         {
             var panels = ReadPanels(contributes, language);
