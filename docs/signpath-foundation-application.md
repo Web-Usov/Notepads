@@ -2,7 +2,7 @@
 
 **Status:** application package prepared; **not submitted / not approved** as of 18 November 2026. Do not record an approval or certificate subject without official confirmation.
 
-Use [SignPath Foundation's application page](https://signpath.org/apply.html). The maintainer must submit the application using an address they control and agree to the Foundation's conditions. Do not share API tokens, GitHub secrets, PFX files, or other credentials in the application.
+Use [SignPath Foundation's application page](https://signpath.org/apply.html) and the currently referenced [OSSRequestForm-v4.xlsx](https://signpath.org/assets/OSSRequestForm-v4.xlsx) (verify the required form/version on the official site before sending). The maintainer must complete the contact and acceptance sections and submit from an address they control. **Do not commit a filled application form containing personal contact details to this public repository.** Do not share API tokens, GitHub secrets, PFX files, or other credentials in the application.
 
 ## Project facts
 
