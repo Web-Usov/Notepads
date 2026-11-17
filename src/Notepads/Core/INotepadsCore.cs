@@ -35,6 +35,19 @@ namespace Notepads.Core
         event EventHandler<ITextEditor> TextEditorMovedToAnotherAppInstance;
         event EventHandler<IReadOnlyList<IStorageItem>> StorageItemsDropped;
         event KeyEventHandler TextEditorKeyDown;
+        event EventHandler SplitLayoutChanged;
+        event EventHandler<ITextEditor> ActiveTextEditorChanged;
+
+        EditorSplitOrientation SplitOrientation { get; }
+        bool IsSplitEditorEnabled { get; }
+
+        void ActivateEditorGroup(int group);
+        void SetSplitEditorOrientation(EditorSplitOrientation orientation);
+        void SplitSelectedEditor(EditorSplitOrientation orientation);
+        void MoveEditorToOtherGroup(ITextEditor editor);
+        void CloseSplitEditor();
+        EditorSplitLayout GetSplitEditorLayout();
+        void RestoreSplitEditorLayout(EditorSplitLayout layout);
 
         Task<ITextEditor> CreateTextEditorAsync(
             Guid id,
