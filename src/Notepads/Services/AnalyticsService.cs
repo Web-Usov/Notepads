@@ -7,51 +7,22 @@ namespace Notepads.Services
 {
     using System;
     using System.Collections.Generic;
-    using Microsoft.Services.Store.Engagement;
 
+    /// <summary>
+    /// Keeps legacy telemetry call sites source-compatible without transmitting diagnostics.
+    /// Standalone Plainix releases must not forward document paths, exception text or
+    /// stack traces to Store Services without informed user consent.
+    /// </summary>
     public static class AnalyticsService
     {
-        private static StoreServicesCustomEventLogger Logger;
-
-        static AnalyticsService()
-        {
-            try
-            {
-                Logger = StoreServicesCustomEventLogger.GetDefault();
-            }
-            catch
-            {
-                // best effort
-            }
-        }
-
-
         public static void TrackEvent(string eventName, IDictionary<string, string> properties = null)
         {
-            try
-            {
-                // TODO: Simplify this to use a single line, reduce complexity of properties by all the callers
-                //string eventMessage = properties != null
-                //    ? $"{eventName} - {Newtonsoft.Json.JsonConvert.SerializeObject(properties)}"
-                //    : eventName;
-                Logger?.Log(eventName);
-            }
-            catch
-            {
-                // best effort
-            }
+            // Intentionally disabled for the standalone fork.
         }
 
         public static void TrackError(Exception exception, IDictionary<string, string> properties = null)
         {
-            try
-            {
-                Logger?.Log($"Error - {exception.Message} - {exception.StackTrace}");
-            }
-            catch
-            {
-                // best effort
-            }
+            // Intentionally disabled for the standalone fork.
         }
     }
 }
