@@ -29,6 +29,7 @@ namespace Notepads.SyntaxExtensions
         }
         public static IReadOnlyList<string> LoadErrors { get; private set; } = Array.Empty<string>();
         public static SyntaxGrammar FindGrammar(string extension) => _registry.FindGrammar(extension);
+        public static bool HasFeature(string feature) => _registry.HasFeature(feature);
 
         public static Task InitializeAsync() => _initialized ? Task.CompletedTask : LoadAsync(false);
         public static Task ReloadAsync() => LoadAsync(true);

@@ -1,0 +1,16 @@
+{
+  "apiVersion": 2,
+  "id": "plainix.changes-diff",
+  "version": "1.0.0",
+  "displayName": "Changes Diff",
+  "displayNameTranslations": {
+    "ru": "Сравнение изменений"
+  },
+  "contributes": {
+    "features": [
+      {
+        "handler": "changes.diff"
+      }
+    ]
+  }
+}

@@ -11,6 +11,7 @@
     using Notepads.Extensions;
     using Notepads.Models;
     using Notepads.Services;
+    using Notepads.SyntaxExtensions;
     using Notepads.Utilities;
     using Windows.ApplicationModel.DataTransfer;
     using Windows.ApplicationModel.Resources;
@@ -62,6 +63,9 @@
 
         public FileType FileType { get; private set; }
 
+        internal bool CanShowMarkdownPreview => FileTypeUtility.IsPreviewSupported(FileType) &&
+            ExtensionCatalog.HasFeature(EditorFeatures.MarkdownPreview);
+
         public TextFile LastSavedSnapshot { get; private set; }
 
         public LineEnding? RequestedLineEnding { get; private set; }
@@ -104,7 +108,7 @@
             if (_panelCommand != null && !_panelCommand.AppliesTo(CommandFileExtension)) CloseExtensionPanel();
 
             // Hide content preview if current file type is not supported for previewing
-            if (!FileTypeUtility.IsPreviewSupported(FileType))
+            if (!CanShowMarkdownPreview)
             {
                 if (_isContentPreviewPanelOpened)
                 {
@@ -142,6 +146,7 @@
         }
 
         private bool _loaded;
+        private bool _featureCatalogActive = true;
 
         private FileModificationState _fileModificationState;
 
@@ -205,6 +210,7 @@
             _keyboardCommandHandler = GetKeyboardCommandHandler();
 
             ThemeSettingsService.OnThemeChanged += ThemeSettingsService_OnThemeChanged;
+            ExtensionCatalog.Changed += OnFeatureCatalogChanged;
 
             base.Loaded += TextEditor_Loaded;
             base.Unloaded += TextEditor_Unloaded;
@@ -218,9 +224,43 @@
             KeyDown?.Invoke(this, e);
         }
 
+        private async void OnFeatureCatalogChanged(object sender, EventArgs args)
+        {
+            try
+            {
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                {
+                    if (!_featureCatalogActive) return;
+                    if (!CanShowMarkdownPreview)
+                    {
+                        if (_isContentPreviewPanelOpened) ShowHideContentPreview();
+                        // Release the cached renderer and its event subscriptions when disabled.
+                        if (_contentPreviewExtension != null)
+                        {
+                            if (SplitPanel != null && ReferenceEquals(SplitPanel.Content, _contentPreviewExtension))
+                                SplitPanel.Content = null;
+                            _contentPreviewExtension.Dispose();
+                            _contentPreviewExtension = null;
+                        }
+                    }
+
+                    if (Mode == TextEditorMode.DiffPreview &&
+                        !ExtensionCatalog.HasFeature(EditorFeatures.ChangesDiff))
+                        CloseSideBySideDiffViewer();
+                });
+            }
+            catch (Exception ex) when (ex.HResult == unchecked((int)0x80010108) ||
+                                       ex.HResult == unchecked((int)0x80000013))
+            {
+                // A window can close while the extension catalog is reloading.
+            }
+        }
+
         // Unhook events and clear state
         public void Dispose()
         {
+            _featureCatalogActive = false;
+            ExtensionCatalog.Changed -= OnFeatureCatalogChanged;
             _extensionRevision++;
             CloseExtensionPanel();
             StopCheckingFileStatus();
@@ -465,7 +505,7 @@
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.F, (args) => ShowFindAndReplaceControl(showReplaceBar: true)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.H, (args) => ShowFindAndReplaceControl(showReplaceBar: true)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.G, (args) => ShowGoToControl()),
-                new KeyboardCommand<KeyRoutedEventArgs>(false, true, false, VirtualKey.P, (args) => { if (FileTypeUtility.IsPreviewSupported(FileType)) ShowHideContentPreview(); }),
+                new KeyboardCommand<KeyRoutedEventArgs>(false, true, false, VirtualKey.P, (args) => { if (CanShowMarkdownPreview) ShowHideContentPreview(); }),
                 new KeyboardCommand<KeyRoutedEventArgs>(false, true, false, VirtualKey.D, (args) => ShowHideSideBySideDiffViewer()),
                 new KeyboardCommand<KeyRoutedEventArgs>(VirtualKey.F3, (args) =>
                     InitiateFindAndReplace(new FindAndReplaceEventArgs (_lastSearchContext, string.Empty, FindAndReplaceMode.FindOnly, SearchDirection.Next), out _)),
@@ -620,6 +660,15 @@
 
         public void ShowHideContentPreview()
         {
+            // Closing must remain possible if a feature was disabled while visible.
+            if (_isContentPreviewPanelOpened)
+            {
+                _contentPreviewExtension.IsExtensionEnabled = false;
+                CloseSplitView();
+                return;
+            }
+
+            if (!CanShowMarkdownPreview) return;
             CloseExtensionPanel();
             if (_contentPreviewExtension == null)
             {
@@ -629,21 +678,13 @@
             }
 
             if (SplitPanel == null) LoadSplitView();
-
-            if (SplitPanel.Visibility == Visibility.Collapsed)
-            {
-                _contentPreviewExtension.IsExtensionEnabled = true;
-                OpenSplitView(_contentPreviewExtension);
-            }
-            else
-            {
-                _contentPreviewExtension.IsExtensionEnabled = false;
-                CloseSplitView();
-            }
+            _contentPreviewExtension.IsExtensionEnabled = true;
+            OpenSplitView(_contentPreviewExtension);
         }
 
         public void OpenSideBySideDiffViewer()
         {
+            if (!ExtensionCatalog.HasFeature(EditorFeatures.ChangesDiff)) return;
             if (string.Equals(LastSavedSnapshot.Content, TextEditorCore.GetText())) return;
             if (Mode == TextEditorMode.DiffPreview) return;
             if (SideBySideDiffViewer == null) LoadSideBySideDiffViewer();

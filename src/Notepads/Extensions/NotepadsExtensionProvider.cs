@@ -6,6 +6,7 @@
 namespace Notepads.Extensions
 {
     using Notepads.Controls.Markdown;
+    using Notepads.SyntaxExtensions;
     using Notepads.Utilities;
 
     public class NotepadsExtensionProvider : INotepadsExtensionProvider
@@ -15,7 +16,8 @@ namespace Notepads.Extensions
             switch (fileType)
             {
                 case FileType.MarkdownFile:
-                    return new MarkdownExtensionView();
+                    return ExtensionCatalog.HasFeature(EditorFeatures.MarkdownPreview)
+                        ? new MarkdownExtensionView() : null;
                 default:
                     return null;
             }

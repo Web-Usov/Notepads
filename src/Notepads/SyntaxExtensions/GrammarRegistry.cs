@@ -8,6 +8,7 @@ namespace Notepads.SyntaxExtensions
     {
         private readonly Dictionary<string, SyntaxGrammar> _byExtension =
             new Dictionary<string, SyntaxGrammar>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _features = new HashSet<string>(StringComparer.Ordinal);
 
         // Input order determines priority. Display sorting must not change resolution.
         public GrammarRegistry(IEnumerable<SyntaxExtension> extensions)
@@ -20,6 +21,8 @@ namespace Notepads.SyntaxExtensions
                     continue;
 
                 active.Add(extension);
+                foreach (var feature in extension.Features)
+                    _features.Add(feature);
                 foreach (var grammar in extension.Grammars)
                 {
                     foreach (var suffix in grammar.FileExtensions)
@@ -35,6 +38,8 @@ namespace Notepads.SyntaxExtensions
         }
 
         public IReadOnlyList<SyntaxExtension> Extensions { get; }
+
+        public bool HasFeature(string feature) => feature != null && _features.Contains(feature);
 
         public SyntaxGrammar FindGrammar(string extension)
         {

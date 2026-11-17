@@ -74,7 +74,7 @@
     <value>Unknown token scope: {0}</value>
   </data>
   <data name="MissingContributions" xml:space="preserve">
-    <value>Declare at least one grammar or command.</value>
+    <value>Declare at least one grammar, command or feature.</value>
   </data>
   <data name="InvalidJsonManifest" xml:space="preserve">
     <value>Invalid extension JSON.</value>
@@ -108,6 +108,9 @@
   </data>
   <data name="PanelHandler" xml:space="preserve">
     <value>Unknown panel handler or duplicate panel id.</value>
+  </data>
+  <data name="FeatureHandler" xml:space="preserve">
+    <value>Unknown, duplicate or incorrectly owned editor feature: {0}</value>
   </data>
   <data name="DuplicateCommand" xml:space="preserve">
     <value>Duplicate command id: {0}</value>
