@@ -33,7 +33,7 @@ Use [SignPath Foundation's application page](https://signpath.org/apply.html). T
 - [x] Publicly released Windows installer, documented features and source-controlled build workflow.
 - [ ] Confirm the original Notepads project publishes signed releases and that the fork's release branches meet SignPath's *modified upstream* conditions. A visible fork alone is not sufficient; SignPath decides eligibility.
 - [ ] Audit bundled components and redistributable licenses, including Microsoft Store Services SDK, against the Foundation's restrictions on proprietary code and upstream binary signing.
-- [ ] Review or disable automatic Microsoft Store Services diagnostics/exception telemetry and confirm the resulting [privacy disclosure](../PRIVACY.md) meets the Foundation's requirements.
+- [ ] The legacy `AnalyticsService` diagnostic forwarding has been disabled in this preparation PR; review remaining SDK dependencies and other network behaviors, and confirm the [privacy disclosure](../PRIVACY.md) meets the Foundation's requirements.
 - [ ] Confirm all maintainers and signing approvers use MFA; assign and document code-review/approval rights.
 - [ ] Ensure the applicable code signing policy is linked from the README and release notes.
 - [ ] Submit the application and record its date, ticket or correspondence in [Issue #9](https://github.com/Web-Usov/Plainix/issues/9) **without posting private account data**.
