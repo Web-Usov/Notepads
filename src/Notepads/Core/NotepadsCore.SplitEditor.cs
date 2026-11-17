@@ -7,6 +7,7 @@ namespace Notepads.Core
     using System.Linq;
     using Notepads.Controls;
     using Notepads.Controls.TextEditor;
+    using Notepads.Services;
     using Windows.UI.Xaml;
 
     public partial class NotepadsCore
@@ -111,22 +112,29 @@ namespace Notepads.Core
         {
             if (orientation != EditorSplitOrientation.Right && orientation != EditorSplitOrientation.Down) return;
             if (_secondarySets == null || GetSelectedTextEditor() == null) return;
-            if (IsSplitEditorEnabled)
+            try
             {
-                SetSplitEditorOrientation(orientation);
-                return;
-            }
-            if (orientation == EditorSplitOrientation.None) return;
+                if (IsSplitEditorEnabled)
+                {
+                    SetSplitEditorOrientation(orientation);
+                    return;
+                }
 
-            var editor = GetSelectedTextEditor();
-            // Keep the primary pane usable when splitting the only document.
-            if (_sets.Items.Count == 1)
-            {
-                _activeSets = _sets;
-                OpenNewTextEditor(_resourceLoader.GetString("TextEditor_DefaultNewFileName"));
+                var editor = GetSelectedTextEditor();
+                // Keep the primary pane usable when splitting the only document.
+                if (_sets.Items.Count == 1)
+                {
+                    _activeSets = _sets;
+                    OpenNewTextEditor(_resourceLoader.GetString("TextEditor_DefaultNewFileName"));
+                }
+                SetSplitEditorOrientation(orientation);
+                MoveEditorToGroup(editor, _secondarySets);
             }
-            SetSplitEditorOrientation(orientation);
-            MoveEditorToGroup(editor, _secondarySets);
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"[{nameof(NotepadsCore)}] SplitSelectedEditor({orientation}) failed: {ex}");
+                throw;
+            }
         }
 
         public void MoveEditorToOtherGroup(ITextEditor editor)
