@@ -686,6 +686,8 @@ namespace Notepads.Core
                 if (args.DataView == null || !args.DataView.Contains(StandardDataFormats.StorageItems)) return;
                 var fileDropDeferral = args.GetDeferral();
                 var storageItems = await args.DataView.GetStorageItemsAsync();
+                // File drops open in the pane beneath the pointer.
+                ActivateEditorGroup(ReferenceEquals(sets, _secondarySets) ? 1 : 0);
                 StorageItemsDropped?.Invoke(this, storageItems);
                 fileDropDeferral.Complete();
                 return;
