@@ -63,6 +63,15 @@ function Invoke-Control($Control) {
         $pattern.Invoke()
     }
     catch {
+        # UWP automation can surface the HRESULT rather than a managed
+        # exception. Report the app's own exception log before exiting.
+        Start-Sleep -Seconds 11
+        $logs = Join-Path $data 'Logs'
+        if (Test-Path -LiteralPath $logs) {
+            Get-ChildItem -LiteralPath $logs -Filter '*.log' -File |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 2 |
+                ForEach-Object { Write-Host "App log: $($_.FullName)"; Get-Content -LiteralPath $_.FullName -Tail 75 }
+        }
         throw "UI Automation failed to invoke '$id' ('$name'): $($_.Exception.Message)"
     }
 }
