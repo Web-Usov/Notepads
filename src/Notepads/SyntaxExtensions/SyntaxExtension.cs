@@ -129,6 +129,9 @@ namespace Notepads.SyntaxExtensions
             Scope = scope;
             try
             {
+                // \G anchors to the search start passed to Regex.Match, unlike ordinary matches.
+                // A previous match (including a failed one) cannot be reused after the cursor moves.
+                DependsOnSearchStart = pattern.IndexOf(@"\G", StringComparison.Ordinal) >= 0;
                 Pattern = new Regex(pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(40));
                 if (Pattern.IsMatch(string.Empty))
                     throw new FormatException(ExtensionMessages.Get("EmptySyntaxRule"));
@@ -145,6 +148,7 @@ namespace Notepads.SyntaxExtensions
 
         public string Scope { get; }
         public Regex Pattern { get; }
+        public bool DependsOnSearchStart { get; }
     }
 
     internal sealed class SyntaxGrammar
@@ -182,7 +186,7 @@ namespace Notepads.SyntaxExtensions
 
                         // A later match is still valid after another rule consumed an earlier token.
                         var match = matches[i];
-                        if (match == null || (match.Success && match.Index < position))
+                        if (match == null || _rules[i].DependsOnSearchStart || (match.Success && match.Index < position))
                         {
                             match = _rules[i].Pattern.Match(text, position);
                             matches[i] = match;

@@ -49,6 +49,18 @@ internal static class Program
         Check(other.Grammars[0].FileExtensions[0] == ".example", "suffix normalization");
         ExpectTokens(other.Grammars[0], "abc key #key\nkey", "string|abc", "keyword|key", "comment|#key", "keyword|key");
 
+        // \G must be re-evaluated at each search start, even after an earlier failed match.
+        var searchStart = SyntaxExtension.Parse(Manifest(new[] { ".anchor" },
+            Rule("keyword", @"\Gfoo"), Rule("string", "bar"))).Grammars[0];
+        ExpectTokens(searchStart, "barfoo", "string|bar", "keyword|foo");
+        ExpectTokens(searchStart, "foobarfoo", "keyword|foo", "string|bar", "keyword|foo");
+
+        // A cached later unanchored alternative must not hide an earlier \G match
+        // when another rule advances the cursor.
+        var anchoredAlternative = SyntaxExtension.Parse(Manifest(new[] { ".anchor" },
+            Rule("keyword", @"some|\Gfoo"), Rule("string", "bar"))).Grammars[0];
+        ExpectTokens(anchoredAlternative, "barfoosome", "string|bar", "keyword|foo", "keyword|some");
+
         CheckRegistry(extension);
         EditorApiTests.Run();
         JsonToolsTests.Run();
