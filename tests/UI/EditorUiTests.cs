@@ -50,9 +50,23 @@ public sealed class EditorUiTests
         App.AssertDocument(Original + "x");
 
         UiTestHost.Keys("^s");
-        UiTestHost.WaitUntil(() => File.ReadAllText(App.SourceFile) == Original + "x",
-            "saving the modified document", 30);
-        Assert.That(File.ReadAllText(App.SourceFile), Is.EqualTo(Original + "x"));
+        // The packaged editor may hold an exclusive file handle while saving.
+        // Wait for the completed write, rather than treating a transient lock
+        // as a failed save. Assert the exact bytes read on the successful poll.
+        string? savedContents = null;
+        UiTestHost.WaitUntil(() =>
+        {
+            try
+            {
+                savedContents = File.ReadAllText(App.SourceFile);
+                return savedContents == Original + "x";
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+        }, "saving the modified document", 30);
+        Assert.That(savedContents, Is.EqualTo(Original + "x"));
     }
 
     [Test]
