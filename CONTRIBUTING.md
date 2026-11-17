@@ -1,6 +1,6 @@
 # Contributing to Plainix
 
-Base your branch on `master` and open a [pull request against the fork](https://github.com/Web-Usov/Notepads/compare). Describe what changed and how you tested it. To report a problem with a proposed change, comment on its PR with the app version, Windows build and steps to reproduce it. Include a small sample when it helps reproduce the problem.
+Base your branch on `master` and open a [pull request against the fork](https://github.com/Web-Usov/Plainix/compare). Describe what changed and how you tested it. To report a problem with a proposed change, comment on its PR with the app version, Windows build and steps to reproduce it. Include a small sample when it helps reproduce the problem.
 
 ## Run the Windows app from source
 
@@ -20,7 +20,13 @@ For a new grammar, use the same command with `-- <manifest-file> <sample-file>` 
 
 ## Try a pull request build
 
-Open the **Windows preview installer** run for the pull request. When its `installer` job succeeds, download **Plainix-Windows-x64** under **Artifacts**, extract the ZIP, open PowerShell in the directory containing `Add-AppDevPackage.ps1` and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1`. Open **Plainix** from Start. Sign in to GitHub to download a preview artifact. It is available for 30 days. Published installers are available on the [fork’s Releases page](https://github.com/Web-Usov/Notepads/releases).
+Open the **Windows preview installer** run for the pull request. When its `installer` job succeeds, download **Plainix-Windows-x64** under **Artifacts**, extract the ZIP, open PowerShell in the directory containing `Add-AppDevPackage.ps1` and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1`. Open **Plainix** from Start. Sign in to GitHub to download a preview artifact. It is available for 30 days. Published installers are available on the [fork’s Releases page](https://github.com/Web-Usov/Plainix/releases).
+
+## Code signing and release security
+
+The current signing instructions below cover **legacy self-signed releases only**. Plainix has prepared a [Code signing policy](docs/code-signing-policy.md) and [SignPath Foundation application checklist](docs/signpath-foundation-application.md) under [Issue #9](https://github.com/Web-Usov/Plainix/issues/9). The SignPath release workflow may replace these steps **only after approval**, verification of the actual certificate subject and a manual signing approval policy. PR artifacts must never gain production SignPath credentials.
+
+Changing the MSIX publisher changes the package family. Maintain the [publisher-migration plan](docs/installer-publisher-migration.md) and preserve user profiles; an update across those identities cannot be tested as a normal in-place update.
 
 ## Publish an installer
 
