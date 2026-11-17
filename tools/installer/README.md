@@ -1,10 +1,12 @@
 # Release signing for Plainix
 
-The fork uses the package identity `Notepads-Dev` with publisher `CN=Web-Usov Notepads Preview`. Keep that subject when provisioning a release signer so Windows can update existing installations in place. A PC that trusted an earlier preview certificate needs to trust the production certificate once.
+> **Current state (18 November 2026):** Public releases use a self-signed certificate. This section documents the **legacy** signer only, and does **not** make the installer trusted by clean Windows installations. We are preparing a [SignPath Foundation application](../../docs/signpath-foundation-application.md) and [Code signing policy](../../docs/code-signing-policy.md). Do not create or upload additional PFX secrets once SignPath is activated. SignPath holds its private key; its manually approved release workflow must replace legacy self-signing.
+
+The fork uses the package identity `Notepads-Dev` with publisher `CN=Web-Usov Notepads Preview`. That subject is used **only** for currently published self-signed builds and enables in-family updates while it remains unchanged. The planned SignPath certificate has a different publisher, so existing installations will require the [migration procedure](../../docs/installer-publisher-migration.md), not an in-place update. A PC that trusted an earlier self-signed preview certificate might need to trust a different self-signed certificate for *legacy* packages; this import step will not be necessary for a properly trusted SignPath release.
 
 Stable releases publish both `Plainix.appinstaller` and `Notepads.appinstaller`. Both install the same signed bundle and frameworks. Each descriptor keeps its own stable update URL for Windows installations already subscribed to that address.
 
-## Provision the signing environment
+## Provision the legacy self-signed environment (do not use for SignPath)
 
 After the first release run has created the `notepads-release` environment, sign in to GitHub CLI on your Windows PC with an account that manages the repository. From the repository root, run:
 
@@ -36,7 +38,7 @@ Open the failed release run in **Actions** and choose **Re-run failed jobs** to 
    ```powershell
    # When using an existing PFX, set $pfxPath and read $password with Read-Host -AsSecureString.
    $OutputEncoding = [Text.UTF8Encoding]::new($false)
-   $repo = 'Web-Usov/Notepads'
+   $repo = 'Web-Usov/Plainix'
    [Convert]::ToBase64String([IO.File]::ReadAllBytes($pfxPath)) |
        gh secret set NOTEPADS_RELEASE_PFX_BASE64 --repo $repo --env notepads-release
    if ($LASTEXITCODE) { throw 'Could not upload the release PFX.' }
