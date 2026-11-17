@@ -200,6 +200,15 @@ namespace Notepads.Core
             FocusOnSelectedTextEditor();
         }
 
+        public IReadOnlyList<ITextEditor> GetEditorsInSameGroup(ITextEditor editor)
+        {
+            var sets = FindEditorGroup(editor);
+            if (sets == null) return Array.Empty<ITextEditor>();
+            return sets.Items.Cast<SetsViewItem>()
+                .Select(item => item.Content as ITextEditor)
+                .Where(item => item != null).ToArray();
+        }
+
         public EditorSplitLayout GetSplitEditorLayout()
         {
             var layout = new EditorSplitLayout
