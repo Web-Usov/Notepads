@@ -323,6 +323,10 @@
                                 </Button>
                             </StackPanel>
                         </controls:SetsView.SetsActionHeader>
+                        <controls:SetsView.SetsEndHeader>
+                            <Grid x:Name="SecondaryTitleBarReservedArea"
+                                  Background="Transparent" Width="0" Height="32"/>
+                        </controls:SetsView.SetsEndHeader>
                     </controls:SetsView>
                     </Grid>
 
