@@ -130,7 +130,7 @@ internal sealed class UiTestHost : IDisposable
         Keys("{ENTER}");
     }
 
-    public void CaptureEvidence(string testName, bool failed)
+    public void CaptureEvidence(string testName, bool failed, bool captureScreenshot = false)
     {
         var root = Environment.GetEnvironmentVariable("PLAINIX_UI_ARTIFACTS");
         if (string.IsNullOrWhiteSpace(root)) return;
@@ -139,9 +139,10 @@ internal sealed class UiTestHost : IDisposable
             char.IsLetterOrDigit(c) || c == '-' ? c : '_'));
         try
         {
-            if (failed)
+            if (failed || captureScreenshot)
             {
-                Capture.Element(Window).ToFile(Path.Combine(root, safeName + ".png"));
+                using var screenshot = Capture.Element(Window);
+                screenshot.ToFile(Path.Combine(root, safeName + ".png"));
             }
 
             var lines = new List<string>
