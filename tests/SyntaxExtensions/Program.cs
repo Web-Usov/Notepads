@@ -67,6 +67,7 @@ internal static class Program
         CheckRussianDiagnostics();
         LogLensTests.Run();
         PackageTests.Run();
+        EditorSplitLayoutTests.Run();
 
         Reject("{}", "incomplete manifest");
         Reject("{", "malformed manifest");
