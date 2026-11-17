@@ -157,6 +157,16 @@ namespace Notepads.Core
                 return;
             }
 
+            if (ReferenceEquals(source, _sets) && ReferenceEquals(target, _secondarySets) &&
+                source.Items.Count == 1)
+            {
+                // Also cover dragging the last primary tab into the second group.
+                var previousActive = _activeSets;
+                _activeSets = _sets;
+                OpenNewTextEditor(_resourceLoader.GetString("TextEditor_DefaultNewFileName"));
+                _activeSets = previousActive;
+            }
+
             var oldItem = GetTextEditorSetsViewItem(editor);
             source.Items.Remove(oldItem);
             if (oldItem.ContextFlyout is TabContextFlyout oldFlyout) oldFlyout.Dispose();
