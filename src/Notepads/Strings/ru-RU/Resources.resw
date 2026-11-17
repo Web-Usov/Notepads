@@ -772,4 +772,28 @@
   <data name="ExtensionPanel_LoadError" xml:space="preserve">
     <value>Не удалось загрузить результаты. {0}</value>
   </data>
+  <data name="SplitEditor_MenuTitle" xml:space="preserve">
+    <value>Разделить редактор</value>
+  </data>
+  <data name="SplitEditor_Right" xml:space="preserve">
+    <value>Разделить справа</value>
+  </data>
+  <data name="SplitEditor_Down" xml:space="preserve">
+    <value>Разделить снизу</value>
+  </data>
+  <data name="SplitEditor_Close" xml:space="preserve">
+    <value>Закрыть разделение</value>
+  </data>
+  <data name="SplitEditor_NewTab" xml:space="preserve">
+    <value>Новая вкладка в этой группе</value>
+  </data>
+  <data name="SplitEditor_ResizeColumns" xml:space="preserve">
+    <value>Изменить ширину областей редактора</value>
+  </data>
+  <data name="SplitEditor_ResizeRows" xml:space="preserve">
+    <value>Изменить высоту областей редактора</value>
+  </data>
+  <data name="SplitEditor_MoveOtherGroup" xml:space="preserve">
+    <value>Переместить в другую группу вкладок</value>
+  </data>
 </root>
