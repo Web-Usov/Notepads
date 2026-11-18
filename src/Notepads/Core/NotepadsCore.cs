@@ -677,6 +677,7 @@ namespace Notepads.Core
                 return;
             }
             LoggingService.LogInfo($"[TabTransfer] Drag started for {editor.Id} from group {GetEditorGroupIndex(editor)}.");
+            TraceTabTransfer($"start group {GetEditorGroupIndex(editor)}");
 
             try
             {
@@ -748,6 +749,7 @@ namespace Notepads.Core
                     if (!IsSplitEditorEnabled) return;
                     args.AcceptedOperation = DataPackageOperation.Move;
                     args.Handled = true;
+                    TraceTabTransfer("drop in group " + (ReferenceEquals(sets, _secondarySets) ? 1 : 0));
                     LoggingService.LogInfo($"[TabTransfer] Drop received for {localEditor.Id}: " +
                         $"{GetEditorGroupIndex(localEditor)} -> {(ReferenceEquals(sets, _secondarySets) ? 1 : 0)}.");
                     MoveEditorToGroup(localEditor, sets, GetTabInsertIndex(sets, args));
@@ -886,6 +888,7 @@ namespace Notepads.Core
         private void Sets_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
         {
             LoggingService.LogInfo($"[TabTransfer] Drag completed: result = {args.DropResult}.");
+            TraceTabTransfer($"completed {args.DropResult}");
             if (ApplicationSettingsStore.Read(SetDragAndDropActionStatus) is string setDragAndDropActionStatus && setDragAndDropActionStatus == "Handled")
             {
                 var dragged = args.Items.FirstOrDefault();
