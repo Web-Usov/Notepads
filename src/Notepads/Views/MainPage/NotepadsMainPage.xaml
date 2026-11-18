@@ -35,7 +35,20 @@
 
             <SplitView.Content>
                 <Grid>
+                    <Grid x:Name="EditorGroupsGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="PrimaryEditorColumn" Width="*"/>
+                            <ColumnDefinition x:Name="VerticalDividerColumn" Width="0"/>
+                            <ColumnDefinition x:Name="SecondaryEditorColumn" Width="0"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition x:Name="PrimaryEditorRow" Height="*"/>
+                            <RowDefinition x:Name="HorizontalDividerRow" Height="0"/>
+                            <RowDefinition x:Name="SecondaryEditorRow" Height="0"/>
+                        </Grid.RowDefinitions>
                     <controls:SetsView x:Name="Sets"
+                                       Grid.Row="0"
+                                       Grid.Column="0"
                                        TabIndex="0"
                                        SetsWidthBehavior="Equal"
                                        CanCloseSets="True"
@@ -45,7 +58,6 @@
                                        AllowDrop="True"
                                        Template="{StaticResource SetsViewTemplate}"
                                        Background="Transparent"
-                                       Grid.ColumnSpan="2"
                                        Loaded="Sets_Loaded">
 
                         <!--<sets:SetsView.KeyboardAccelerators>
@@ -159,6 +171,13 @@
                                                     <KeyboardAccelerator Key="F" Modifiers="Control,Shift" IsEnabled="False"/>
                                                 </MenuFlyoutItem.KeyboardAccelerators>
                                             </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator/>
+                                            <MenuFlyoutSubItem x:Name="MenuSplitEditor">
+                                                <MenuFlyoutItem x:Name="MenuSplitRightButton"/>
+                                                <MenuFlyoutItem x:Name="MenuSplitDownButton"/>
+                                                <MenuFlyoutSeparator/>
+                                                <MenuFlyoutItem x:Name="MenuCloseSplitButton"/>
+                                            </MenuFlyoutSubItem>
                                             <MenuFlyoutSeparator x:Name="MenuFullScreenSeparator"/>
                                             <MenuFlyoutItem Text="Enter Full Screen" x:Name="MenuFullScreenButton">
                                                 <MenuFlyoutItem.Icon>
@@ -210,6 +229,7 @@
                         </controls:SetsView.SetsStartHeader>
 
                         <controls:SetsView.SetsActionHeader>
+                            <StackPanel Orientation="Horizontal">
                             <Button x:Name="NewSetButton"
                                     Grid.Column="0"
                                     IsTabStop="False"
@@ -225,6 +245,25 @@
                                             Glyph="&#xE710;" />
                                     </Viewbox>
                             </Button>
+                            <Button x:Name="SplitEditorToolbarButton"
+                                    Width="36"
+                                    Height="32"
+                                    IsTabStop="True"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="0"
+                                    Style="{ThemeResource ButtonRevealStyle}">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="14"/>
+                                <FlyoutBase.AttachedFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem x:Name="ToolbarSplitRightButton"/>
+                                        <MenuFlyoutItem x:Name="ToolbarSplitDownButton"/>
+                                        <MenuFlyoutSeparator/>
+                                        <MenuFlyoutItem x:Name="ToolbarCloseSplitButton"/>
+                                    </MenuFlyout>
+                                </FlyoutBase.AttachedFlyout>
+                            </Button>
+                            </StackPanel>
                         </controls:SetsView.SetsActionHeader>
 
                         <controls:SetsView.SetsPaddingHeader>
@@ -236,6 +275,59 @@
                         </controls:SetsView.SetsEndHeader>
 
                     </controls:SetsView>
+
+                    <!-- Two-pane editor: independent tab strips and a
+                         keyboard-accessible, theme-aware resize handle. -->
+                    <controls:GridSplitter x:Name="VerticalSplitDivider"
+                                           Grid.Row="0" Grid.Column="1"
+                                           ResizeDirection="Columns"
+                                           ResizeBehavior="PreviousAndNext"
+                                           Width="6" MinWidth="6"
+                                           Background="{ThemeResource SystemControlHighlightListLowBrush}"
+                                           GripperForeground="Transparent"
+                                           Visibility="Collapsed"/>
+                    <controls:GridSplitter x:Name="HorizontalSplitDivider"
+                                           Grid.Row="1" Grid.Column="0"
+                                           ResizeDirection="Rows"
+                                           ResizeBehavior="PreviousAndNext"
+                                           Height="6" MinHeight="6"
+                                           Background="{ThemeResource SystemControlHighlightListLowBrush}"
+                                           GripperForeground="Transparent"
+                                           Visibility="Collapsed"/>
+                    <controls:SetsView x:Name="SecondarySets"
+                                       Grid.Row="0" Grid.Column="2"
+                                       TabIndex="1"
+                                       SetsWidthBehavior="Equal"
+                                       CanCloseSets="True"
+                                       IsCloseButtonOverlay="False"
+                                       CanDragItems="True"
+                                       CanReorderItems="True"
+                                       AllowDrop="True"
+                                       Template="{StaticResource SetsViewTemplate}"
+                                       Background="Transparent"
+                                       Visibility="Collapsed">
+                        <controls:SetsView.SetsActionHeader>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="SecondaryNewSetButton"
+                                        Width="36" Height="32" IsTabStop="True"
+                                        Background="Transparent" BorderThickness="0"
+                                        Style="{ThemeResource ButtonRevealStyle}">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="13"/>
+                                </Button>
+                                <Button x:Name="SecondaryCloseSplitButton"
+                                        Width="36" Height="32" IsTabStop="True"
+                                        Background="Transparent" BorderThickness="0"
+                                        Style="{ThemeResource ButtonRevealStyle}">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8BB;" FontSize="13"/>
+                                </Button>
+                            </StackPanel>
+                        </controls:SetsView.SetsActionHeader>
+                        <controls:SetsView.SetsEndHeader>
+                            <Grid x:Name="SecondaryTitleBarReservedArea"
+                                  Background="Transparent" Width="0" Height="32"/>
+                        </controls:SetsView.SetsEndHeader>
+                    </controls:SetsView>
+                    </Grid>
 
                     <controls:InAppNotification x:Name="StatusNotification"
                                                 x:Load="false"

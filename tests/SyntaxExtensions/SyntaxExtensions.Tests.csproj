@@ -5,6 +5,7 @@
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/Notepads/Core/EditorSplitLayout.cs" Link="Core/EditorSplitLayout.cs" />
     <Compile Include="../../src/Notepads/SyntaxExtensions/*.cs" Exclude="../../src/Notepads/SyntaxExtensions/ExtensionCatalog.cs"
              Link="%(Filename)%(Extension)" />
     <Compile Include="../../plugins/json/JsonTools.cs" Link="Plugins/json/JsonTools.cs" />

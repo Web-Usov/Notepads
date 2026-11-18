@@ -225,6 +225,8 @@
     <Compile Include="Core\INotepadsCore.cs" />
     <Compile Include="Core\ISessionManager.cs" />
     <Compile Include="Core\NotepadsCore.cs" />
+    <Compile Include="Core\NotepadsCore.SplitEditor.cs" />
+    <Compile Include="Core\EditorSplitLayout.cs" />
     <Compile Include="Core\SessionDataModels\NotepadsSessionData.cs" />
     <Compile Include="Core\SessionManager.cs" />
     <Compile Include="Core\TabContextFlyout.cs" />
@@ -239,6 +241,7 @@
     <Compile Include="Controls\DiffViewer\ScrollViewerSynchronizer.cs" />
     <Compile Include="Controls\DiffViewer\RichTextBlockDiffRenderer.cs" />
     <Compile Include="Views\MainPage\NotepadsMainPage.MainMenu.cs" />
+    <Compile Include="Views\MainPage\NotepadsMainPage.SplitEditor.cs" />
     <Compile Include="Views\MainPage\NotepadsMainPage.Notification.cs" />
     <Compile Include="Views\MainPage\NotepadsMainPage.Theme.cs" />
     <Compile Include="Services\FileExtensionProvider.cs" />

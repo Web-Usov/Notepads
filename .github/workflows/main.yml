@@ -25,6 +25,12 @@ on:
   schedule:
     - cron: '0 8 * * *'
 
+# Superseded PR builds should not consume Windows runners or delay review.
+# Push, scheduled and manually dispatched workflows are not cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   setup:
     runs-on: windows-2022

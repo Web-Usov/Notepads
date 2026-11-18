@@ -17,5 +17,8 @@ namespace Notepads.Core.SessionDataModels
         public double TabScrollViewerHorizontalOffset { get; set; } = 0;
 
         public List<TextEditorSessionDataV1> TextEditors { get; set; } = new List<TextEditorSessionDataV1>();
+
+        // Optional in legacy v1 sessions; absent metadata means a single group.
+        public EditorSplitLayout EditorSplitLayout { get; set; } = new EditorSplitLayout();
     }
 }

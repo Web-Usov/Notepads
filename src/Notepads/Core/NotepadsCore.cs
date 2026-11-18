@@ -29,7 +29,7 @@ namespace Notepads.Core
     using Windows.UI.Xaml.Input;
     using Windows.UI.Xaml.Media;
 
-    public class NotepadsCore : INotepadsCore
+    public partial class NotepadsCore : INotepadsCore
     {
         public event EventHandler<ITextEditor> TextEditorLoaded;
         public event EventHandler<ITextEditor> TextEditorUnloaded;
@@ -73,15 +73,8 @@ namespace Notepads.Core
             CoreDispatcher dispatcher)
         {
             _sets = sets;
-            _sets.SelectionChanged += SetsView_OnSelectionChanged;
-            _sets.Items.VectorChanged += SetsView_OnItemsChanged;
-            _sets.SetClosing += SetsView_OnSetClosing;
-            _sets.SetTapped += (sender, args) => { FocusOnTextEditor(args.Item as ITextEditor); };
-            _sets.SetDraggedOutside += Sets_SetDraggedOutside;
-            _sets.DragOver += Sets_DragOver;
-            _sets.Drop += Sets_Drop;
-            _sets.DragItemsStarting += Sets_DragItemsStarting;
-            _sets.DragItemsCompleted += Sets_DragItemsCompleted;
+            _activeSets = sets;
+            BindSetsView(_sets);
 
             _dispatcher = dispatcher;
             _extensionProvider = extensionProvider;
@@ -93,11 +86,14 @@ namespace Notepads.Core
         {
             await _dispatcher.CallOnUIThreadAsync(() =>
             {
-                if (_sets.Items == null) return;
-                foreach (SetsViewItem item in _sets.Items)
+                foreach (var sets in EnumerateEditorGroups())
                 {
-                    item.Icon.Foreground = new SolidColorBrush(color);
-                    item.SelectionIndicatorForeground = new SolidColorBrush(color);
+                    if (sets.Items == null) continue;
+                    foreach (SetsViewItem item in sets.Items)
+                    {
+                        item.Icon.Foreground = new SolidColorBrush(color);
+                        item.SelectionIndicatorForeground = new SolidColorBrush(color);
+                    }
                 }
             });
         }
@@ -117,6 +113,7 @@ namespace Notepads.Core
 
         public void OpenTextEditor(ITextEditor textEditor, int atIndex = -1)
         {
+            var sets = _activeSets ?? _sets;
             SetsViewItem textEditorSetsViewItem = CreateTextEditorSetsViewItem(textEditor);
 
             // Notepads should replace current "Untitled.txt" with open file if it is empty and it is the only tab that has been created.
@@ -126,25 +123,25 @@ namespace Notepads.Core
                 var selectedEditor = GetAllTextEditors().First();
                 if (selectedEditor.EditingFile == null && !selectedEditor.IsModified)
                 {
-                    _sets.Items?.Clear();
+                    sets.Items?.Clear();
                 }
             }
 
             if (atIndex == -1)
             {
-                _sets.Items?.Add(textEditorSetsViewItem);
+                sets.Items?.Add(textEditorSetsViewItem);
             }
             else
             {
-                _sets.Items?.Insert(atIndex, textEditorSetsViewItem);
+                sets.Items?.Insert(atIndex, textEditorSetsViewItem);
             }
 
             if (GetNumberOfOpenedTextEditors() > 1)
             {
-                _sets.SelectedItem = textEditorSetsViewItem;
+                sets.SelectedItem = textEditorSetsViewItem;
                 if (atIndex == -1)
                 {
-                    _sets.ScrollToLastSet();
+                    sets.ScrollToLastSet();
                 }
             }
         }
@@ -199,6 +196,10 @@ namespace Notepads.Core
             textEditor.Loaded += TextEditor_Loaded;
             textEditor.Unloaded += TextEditor_Unloaded;
             textEditor.SelectionChanged += TextEditor_OnSelectionChanged;
+            if (textEditor is FrameworkElement focusElement)
+            {
+                focusElement.GotFocus += TextEditor_GotFocus;
+            }
             textEditor.FontZoomFactorChanged += TextEditor_OnFontZoomFactorChanged;
             textEditor.KeyDown += TextEditorKeyDown;
             textEditor.ModificationStateChanged += TextEditor_OnEditorModificationStateChanged;
@@ -225,7 +226,13 @@ namespace Notepads.Core
             if (item == null) return;
             item.IsEnabled = false;
             item.PrepareForClosing();
-            _sets.Items?.Remove(item);
+            var group = FindEditorGroup(textEditor);
+            group?.Items?.Remove(item);
+            if (IsSplitEditorEnabled && (_sets.Items.Count == 0 || _secondarySets.Items.Count == 0))
+            {
+                // Never leave a visible, empty editor group after closing its last tab.
+                CloseSplitEditor();
+            }
 
             if (item.ContextFlyout is TabContextFlyout tabContextFlyout)
             {
@@ -238,6 +245,10 @@ namespace Notepads.Core
             textEditor.Unloaded -= TextEditor_Unloaded;
             textEditor.KeyDown -= TextEditorKeyDown;
             textEditor.SelectionChanged -= TextEditor_OnSelectionChanged;
+            if (textEditor is FrameworkElement focusElement)
+            {
+                focusElement.GotFocus -= TextEditor_GotFocus;
+            }
             textEditor.FontZoomFactorChanged -= TextEditor_OnFontZoomFactorChanged;
             textEditor.ModificationStateChanged -= TextEditor_OnEditorModificationStateChanged;
             textEditor.ModeChanged -= TextEditor_OnModeChanged;
@@ -250,7 +261,7 @@ namespace Notepads.Core
 
         public int GetNumberOfOpenedTextEditors()
         {
-            return _sets.Items?.Count ?? 0;
+            return EnumerateEditorGroups().Sum(sets => sets.Items?.Count ?? 0);
         }
 
         public bool TryGetSharingContent(ITextEditor textEditor, out string title, out string content)
@@ -262,26 +273,13 @@ namespace Notepads.Core
 
         public bool HaveUnsavedTextEditor()
         {
-            if (_sets.Items == null || _sets.Items.Count == 0) return false;
-            foreach (SetsViewItem setsItem in _sets.Items)
-            {
-                if (!(setsItem.Content is ITextEditor textEditor)) continue;
-                if (!textEditor.IsModified) continue;
-                return true;
-            }
-            return false;
+            return GetAllTextEditors().Any(editor => editor.IsModified);
         }
 
         public bool HaveNonemptyTextEditor()
         {
-            if (_sets.Items == null || _sets.Items.Count <= 1) return false;
-            foreach (SetsViewItem setsItem in _sets.Items)
-            {
-                if (!(setsItem.Content is ITextEditor textEditor)) continue;
-                if (string.IsNullOrEmpty(textEditor.GetText())) continue;
-                return true;
-            }
-            return false;
+            return GetNumberOfOpenedTextEditors() > 1 &&
+                GetAllTextEditors().Any(editor => !string.IsNullOrEmpty(editor.GetText()));
         }
 
         public void ChangeLineEnding(ITextEditor textEditor, LineEnding lineEnding)
@@ -291,49 +289,30 @@ namespace Notepads.Core
 
         public void SwitchTo(bool next)
         {
-            if (_sets.Items == null) return;
-            if (_sets.Items.Count < 2) return;
-
-            var setsCount = _sets.Items.Count;
-            var selected = _sets.SelectedIndex;
-
-            if (next && setsCount > 1)
-            {
-                if (selected == setsCount - 1)
-                {
-                    _sets.SelectedIndex = 0;
-                }
-                else
-                {
-                    _sets.SelectedIndex += 1;
-                }
-            }
-            else if (!next && setsCount > 1)
-            {
-                if (selected == 0)
-                {
-                    _sets.SelectedIndex = setsCount - 1;
-                }
-                else
-                {
-                    _sets.SelectedIndex -= 1;
-                }
-            }
+            var sets = _activeSets ?? _sets;
+            if (sets.Items == null || sets.Items.Count < 2) return;
+            var count = sets.Items.Count;
+            var selected = sets.SelectedIndex;
+            sets.SelectedIndex = next ? (selected + 1) % count : (selected + count - 1) % count;
         }
 
         public void SwitchTo(int index)
         {
-            if (_sets.Items == null || index < 0 || index >= _sets.Items.Count) return;
-            _sets.SelectedIndex = index;
+            var sets = _activeSets ?? _sets;
+            if (sets.Items == null || index < 0 || index >= sets.Items.Count) return;
+            sets.SelectedIndex = index;
         }
 
         public void SwitchTo(ITextEditor textEditor)
         {
             var item = GetTextEditorSetsViewItem(textEditor);
-            if (_sets.SelectedItem != item)
+            var sets = FindEditorGroup(textEditor);
+            if (item == null || sets == null) return;
+            ActivateEditorGroup(ReferenceEquals(sets, _secondarySets) ? 1 : 0);
+            if (sets.SelectedItem != item)
             {
-                _sets.SelectedItem = item;
-                _sets.ScrollIntoView(item);
+                sets.SelectedItem = item;
+                sets.ScrollIntoView(item);
             }
         }
 
@@ -341,8 +320,7 @@ namespace Notepads.Core
         {
             if (ThreadUtility.IsOnUIThread())
             {
-                if ((!((_sets.SelectedItem as SetsViewItem)?.Content is ITextEditor textEditor))) return null;
-                return textEditor;
+                return ((_activeSets ?? _sets).SelectedItem as SetsViewItem)?.Content as ITextEditor;
             }
             return _selectedTextEditor;
         }
@@ -357,13 +335,13 @@ namespace Notepads.Core
         public ITextEditor[] GetAllTextEditors()
         {
             if (!ThreadUtility.IsOnUIThread()) return _allTextEditors;
-            if (_sets.Items == null) return Array.Empty<ITextEditor>();
             var editors = new List<ITextEditor>();
-            foreach (SetsViewItem item in _sets.Items)
+            foreach (var sets in EnumerateEditorGroups())
             {
-                if (item.Content is ITextEditor textEditor)
+                if (sets.Items == null) continue;
+                foreach (SetsViewItem item in sets.Items)
                 {
-                    editors.Add(textEditor);
+                    if (item.Content is ITextEditor textEditor) editors.Add(textEditor);
                 }
             }
             return editors.ToArray();
@@ -433,13 +411,14 @@ namespace Notepads.Core
 
         private SetsViewItem GetTextEditorSetsViewItem(StorageFile file)
         {
-            if (_sets.Items == null) return null;
-            foreach (SetsViewItem setsItem in _sets.Items)
+            if (file == null) return null;
+            foreach (var sets in EnumerateEditorGroups())
             {
-                if (!(setsItem.Content is ITextEditor textEditor)) continue;
-                if (textEditor.EditingFilePath != null && string.Equals(textEditor.EditingFilePath, file.Path, StringComparison.OrdinalIgnoreCase))
+                if (sets.Items == null) continue;
+                foreach (SetsViewItem setsItem in sets.Items)
                 {
-                    return setsItem;
+                    if (setsItem.Content is ITextEditor editor && editor.EditingFilePath != null &&
+                        string.Equals(editor.EditingFilePath, file.Path, StringComparison.OrdinalIgnoreCase)) return setsItem;
                 }
             }
             return null;
@@ -447,12 +426,13 @@ namespace Notepads.Core
 
         private SetsViewItem GetTextEditorSetsViewItem(ITextEditor textEditor)
         {
-            if (_sets.Items == null) return null;
-            foreach (SetsViewItem setsItem in _sets.Items)
+            if (textEditor == null) return null;
+            foreach (var sets in EnumerateEditorGroups())
             {
-                if (setsItem.Content is ITextEditor editor)
+                if (sets.Items == null) continue;
+                foreach (SetsViewItem setsItem in sets.Items)
                 {
-                    if (textEditor == editor) return setsItem;
+                    if (ReferenceEquals(setsItem.Content, textEditor)) return setsItem;
                 }
             }
             return null;
@@ -484,7 +464,15 @@ namespace Notepads.Core
 
         private void SetsView_OnSelectionChanged(object sender, RoutedEventArgs e)
         {
-            _selectedTextEditor = GetSelectedTextEditor();
+            if (!(sender is SetsView sets)) return;
+            if (sets.SelectedItem != null)
+            {
+                ActivateEditorGroup(ReferenceEquals(sets, _secondarySets) ? 1 : 0);
+            }
+            else if (ReferenceEquals(sets, _activeSets))
+            {
+                _selectedTextEditor = null;
+            }
         }
 
         private void SetsView_OnItemsChanged(object sender, IVectorChangedEventArgs e)
@@ -518,6 +506,10 @@ namespace Notepads.Core
         private void TextEditor_OnSelectionChanged(object sender, EventArgs e)
         {
             if (!(sender is ITextEditor textEditor)) return;
+            if (FindEditorGroup(textEditor) is SetsView sets)
+            {
+                ActivateEditorGroup(ReferenceEquals(sets, _secondarySets) ? 1 : 0);
+            }
             TextEditorSelectionChanged?.Invoke(this, textEditor);
         }
 
@@ -695,6 +687,8 @@ namespace Notepads.Core
                 if (args.DataView == null || !args.DataView.Contains(StandardDataFormats.StorageItems)) return;
                 var fileDropDeferral = args.GetDeferral();
                 var storageItems = await args.DataView.GetStorageItemsAsync();
+                // File drops open in the pane beneath the pointer.
+                ActivateEditorGroup(ReferenceEquals(sets, _secondarySets) ? 1 : 0);
                 StorageItemsDropped?.Invoke(this, storageItems);
                 fileDropDeferral.Complete();
                 return;
@@ -716,9 +710,14 @@ namespace Notepads.Core
                     var editor = GetTextEditor(editingFilePath);
                     if (editor != null)
                     {
-                        SwitchTo(editor);
-                        NotificationCenter.Instance.PostNotification(_resourceLoader.GetString("TextEditor_NotificationMsg_FileAlreadyOpened"), 2500);
-                        throw new Exception("Failed to drop editor set: File already opened.");
+                        var localDrop = args.DataView.Properties.TryGetValue(NotepadsInstanceId, out object instanceId) &&
+                            instanceId is string sourceId && sourceId == App.InstanceId.ToString();
+                        if (!localDrop)
+                        {
+                            SwitchTo(editor);
+                            NotificationCenter.Instance.PostNotification(_resourceLoader.GetString("TextEditor_NotificationMsg_FileAlreadyOpened"), 2500);
+                            throw new Exception("Failed to drop editor set: File already opened.");
+                        }
                     }
                 }
 
@@ -756,8 +755,6 @@ namespace Notepads.Core
                     pendingText = pendingContent;
                 }
 
-                ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Handled");
-
                 var index = -1;
 
                 // Determine which items in the list our pointer is in between.
@@ -773,6 +770,24 @@ namespace Notepads.Core
                 }
 
                 var atIndex = index == -1 ? sets.Items.Count : index;
+
+                // Dragging a tab between groups must never duplicate the document.
+                if (args.DataView.Properties.TryGetValue(NotepadsInstanceId, out object appId) &&
+                    appId is string sourceInstanceId && sourceInstanceId == App.InstanceId.ToString() &&
+                    args.DataView.Properties.TryGetValue(NotepadsTextEditorGuid, out object tabId) &&
+                    tabId is string sourceTabId && Guid.TryParse(sourceTabId, out var editorId))
+                {
+                    var sourceEditor = GetAllTextEditors().FirstOrDefault(editor => editor.Id == editorId);
+                    if (sourceEditor != null)
+                    {
+                        MoveEditorToGroup(sourceEditor, sets, atIndex);
+                        deferral.Complete();
+                        return;
+                    }
+                }
+
+                ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Handled");
+                ActivateEditorGroup(ReferenceEquals(sets, _secondarySets) ? 1 : 0);
 
                 var textFile = new TextFile(lastSavedText,
                     EncodingUtility.GetEncodingByName(metaData.LastSavedEncoding),
@@ -818,7 +833,7 @@ namespace Notepads.Core
 
         private async void Sets_SetDraggedOutside(object sender, SetDraggedOutsideEventArgs e)
         {
-            if (_sets.Items?.Count > 1 && e.Set?.Content is ITextEditor textEditor)
+            if (GetNumberOfOpenedTextEditors() > 1 && e.Set?.Content is ITextEditor textEditor)
             {
                 // Only allow untitled empty document to be dragged outside for now
                 if (!textEditor.IsModified && textEditor.EditingFile == null)

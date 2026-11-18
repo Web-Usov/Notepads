@@ -128,6 +128,7 @@ namespace Notepads.Core
             }
 
             _notepadsCore.OpenTextEditors(recoveredEditor.ToArray(), sessionData.SelectedTextEditor);
+            _notepadsCore.RestoreSplitEditorLayout(sessionData.EditorSplitLayout);
             _notepadsCore.SetTabScrollViewerHorizontalOffset(sessionData.TabScrollViewerHorizontalOffset);
 
             _loaded = true;
@@ -218,6 +219,7 @@ namespace Notepads.Core
 
             sessionData.TabScrollViewerHorizontalOffset =
                 _notepadsCore.GetTabScrollViewerHorizontalOffset();
+            sessionData.EditorSplitLayout = _notepadsCore.GetSplitEditorLayout();
 
             bool sessionDataSaved = false;
 

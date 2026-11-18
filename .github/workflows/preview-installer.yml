@@ -12,6 +12,11 @@ on:
 permissions:
   contents: read
 
+# Only keep the newest build for a PR; never cancel release publishing jobs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   installer:
     runs-on: windows-2022

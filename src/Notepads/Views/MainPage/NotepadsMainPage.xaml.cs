@@ -53,7 +53,9 @@ namespace Notepads.Views.MainPage
             {
                 if (_notepadsCore != null) return _notepadsCore;
 
-                _notepadsCore = new NotepadsCore(Sets, new NotepadsExtensionProvider(), Dispatcher);
+                var core = new NotepadsCore(Sets, new NotepadsExtensionProvider(), Dispatcher);
+                core.AttachSecondarySetsView(SecondarySets);
+                _notepadsCore = core;
                 _notepadsCore.StorageItemsDropped += OnStorageItemsDropped;
                 _notepadsCore.TextEditorLoaded += OnTextEditorLoaded;
                 _notepadsCore.TextEditorUnloaded += OnTextEditorUnloaded;
@@ -128,7 +130,12 @@ namespace Notepads.Views.MainPage
             ToolTipService.SetToolTip(ExitCompactOverlayButton, _resourceLoader.GetString("App_ExitCompactOverlayMode_Text"));
             RootSplitView.PaneOpening += delegate { SettingsFrame.Navigate(typeof(SettingsPage), null, new SuppressNavigationTransitionInfo()); };
             RootSplitView.PaneClosed += delegate { NotepadsCore.FocusOnSelectedTextEditor(); };
-            NewSetButton.Click += delegate { NotepadsCore.OpenNewTextEditor(_defaultNewFileName); };
+            NewSetButton.Click += delegate
+            {
+                NotepadsCore.ActivateEditorGroup(0);
+                NotepadsCore.OpenNewTextEditor(_defaultNewFileName);
+            };
+            InitializeSplitEditorControls();
         }
 
         private void InitializeKeyboardShortcuts()
@@ -147,6 +154,16 @@ namespace Notepads.Views.MainPage
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.P, async (args) => await PrintAllAsync(NotepadsCore.GetAllTextEditors())),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.R, (args) => ReloadFileFromDiskAsync(this, new RoutedEventArgs())),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, true, VirtualKey.N, async (args) => await OpenNewAppInstanceAsync()),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, true, false, VirtualKey.Right,
+                    (args) => { if (!App.IsGameBarWidget) NotepadsCore.SplitSelectedEditor(EditorSplitOrientation.Right); }),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, true, false, VirtualKey.Down,
+                    (args) => { if (!App.IsGameBarWidget) NotepadsCore.SplitSelectedEditor(EditorSplitOrientation.Down); }),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, true, false, VirtualKey.Up,
+                    (args) => { if (!App.IsGameBarWidget) NotepadsCore.CloseSplitEditor(); }),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, true, false, VirtualKey.PageUp,
+                    (args) => { NotepadsCore.ActivateEditorGroup(0); NotepadsCore.FocusOnSelectedTextEditor(); }),
+                new KeyboardCommand<KeyRoutedEventArgs>(true, true, false, VirtualKey.PageDown,
+                    (args) => { NotepadsCore.ActivateEditorGroup(1); NotepadsCore.FocusOnSelectedTextEditor(); }),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number1, (args) => NotepadsCore.SwitchTo(0)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number2, (args) => NotepadsCore.SwitchTo(1)),
                 new KeyboardCommand<KeyRoutedEventArgs>(true, false, false, VirtualKey.Number3, (args) => NotepadsCore.SwitchTo(2)),

@@ -60,8 +60,25 @@ function Find-AppControl($Property, [string]$Value) {
 }
 
 function Invoke-Control($Control) {
-    $pattern = $Control.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-    $pattern.Invoke()
+    $id = $Control.Current.AutomationId
+    $name = $Control.Current.Name
+    Write-Host ("Invoking UI control: {0} ({1})" -f $id, $name)
+    try {
+        $pattern = $Control.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+        $pattern.Invoke()
+    }
+    catch {
+        # UWP automation can surface the HRESULT rather than a managed
+        # exception. Report the app's own exception log before exiting.
+        Start-Sleep -Seconds 11
+        $logs = Join-Path $data 'Logs'
+        if (Test-Path -LiteralPath $logs) {
+            Get-ChildItem -LiteralPath $logs -Filter '*.log' -File |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 2 |
+                ForEach-Object { Write-Host "App log: $($_.FullName)"; Get-Content -LiteralPath $_.FullName -Tail 75 }
+        }
+        throw "UI Automation failed to invoke '$id' ('$name'): $($_.Exception.Message)"
+    }
 }
 
 function Invoke-Extension([string]$Name, [string]$SubmenuName) {
@@ -187,6 +204,38 @@ try {
         if (@($original, ($original + "`r"), ($original + "`n"), ($original + "`r`n")) -ccontains $raw) { return $raw }
     }
     Write-Output 'PASS opening the source fixture'
+
+    # Split a real editor into two native groups, then merge without losing the
+    # document or replacing its undo history. Check both orientations.
+    $editor.SetFocus()
+    $editorCondition = [System.Windows.Automation.PropertyCondition]::new($byId, 'TextEditorCore')
+    foreach ($orientation in @('ToolbarSplitRightButton', 'ToolbarSplitDownButton')) {
+        Write-Host "Opening split editor controls for $orientation"
+        $toolbar = Wait-For 'the split editor toolbar' { Find-AppControl $byId 'SplitEditorToolbarButton' }
+        Invoke-Control $toolbar
+        Write-Host "Invoking command $orientation"
+        Invoke-Control (Wait-For "the $orientation command" { Find-AppControl $byId $orientation })
+        $null = Wait-For "two editor surfaces after $orientation" {
+            $toolbar = Find-AppControl $byId 'SplitEditorToolbarButton'
+            if ($toolbar) {
+                $diagnostic = $toolbar.Current.HelpText
+                if (![string]::IsNullOrWhiteSpace($diagnostic)) {
+                    throw "Split operation failed with: $diagnostic"
+                }
+            }
+            $panes = $window.FindAll($subtree, $editorCondition)
+            if ($panes.Count -eq 2) { return $true }
+        }
+        Invoke-Control (Wait-For 'the close split button' { Find-AppControl $byId 'SecondaryCloseSplitButton' })
+        $null = Wait-For 'one editor surface after merging groups' {
+            $panes = $window.FindAll($subtree, $editorCondition)
+            if ($panes.Count -eq 1) { return $true }
+        }
+    }
+    $editor = Wait-For 'the editor after both split merges' { Find-Control $window $byId 'TextEditorCore' }
+    Assert-Document 'splitting and merging preserves the original file' $rawOriginal
+    Write-Output 'PASS split right, split down, and merge without document loss'
+
     $providerMarker = $rawOriginal.Substring($original.Length)
 
     $formatted = "{`n  `"requestId`": `"req-17`",`n  `"level`": `"error`"`n}"
