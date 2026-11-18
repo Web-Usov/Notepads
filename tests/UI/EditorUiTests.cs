@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using FlaUI.Core.Input;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
@@ -314,13 +315,18 @@ public sealed class EditorUiTests
         Mouse.Down();
         try
         {
-            Thread.Sleep(160);
-            // Cross the Windows drag threshold first, then traverse to the
-            // destination tab strip with real pointer movement.
-            Mouse.MoveTo(from.X - 20, from.Y);
-            Thread.Sleep(160);
-            Mouse.MoveTo(to);
-            Thread.Sleep(300);
+            Thread.Sleep(180);
+            // FlaUI Mouse.MoveTo uses SetCursorPos, which can fail to generate
+            // WM_POINTERUPDATE on an interactive UWP test runner. Inject
+            // successive absolute mouse input events like a real drag gesture.
+            for (var step = 1; step <= 24; step++)
+            {
+                var x = (int)Math.Round(from.X + (to.X - from.X) * step / 24.0);
+                var y = (int)Math.Round(from.Y + (to.Y - from.Y) * step / 24.0);
+                MoveMouseAsInput(x, y);
+                Thread.Sleep(22);
+            }
+            Thread.Sleep(200);
         }
         finally
         {
@@ -339,6 +345,27 @@ public sealed class EditorUiTests
         }
         Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Drag cannot create a duplicate tab.");
         App.AssertDocument(Original);
+    }
+
+    [DllImport("user32.dll")]
+    private static extern int GetSystemMetrics(int index);
+
+    [DllImport("user32.dll", EntryPoint = "mouse_event")]
+    private static extern void SendMouseEvent(uint flags, uint x, uint y, uint data, UIntPtr extraInfo);
+
+    private static void MoveMouseAsInput(int screenX, int screenY)
+    {
+        const uint mouseMove = 0x0001;
+        const uint absolute = 0x8000;
+        const uint virtualDesktop = 0x4000;
+        var left = GetSystemMetrics(76);
+        var top = GetSystemMetrics(77);
+        var width = Math.Max(GetSystemMetrics(78) - 1, 1);
+        var height = Math.Max(GetSystemMetrics(79) - 1, 1);
+
+        var x = (uint)Math.Clamp((long)Math.Round((screenX - left) * 65535.0 / width), 0, 65535);
+        var y = (uint)Math.Clamp((long)Math.Round((screenY - top) * 65535.0 / height), 0, 65535);
+        SendMouseEvent(mouseMove | absolute | virtualDesktop, x, y, 0, UIntPtr.Zero);
     }
 
     private void PrepareSplitForTabMoves()
