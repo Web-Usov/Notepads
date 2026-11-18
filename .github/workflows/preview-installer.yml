@@ -12,6 +12,12 @@ on:
 permissions:
   contents: read
 
+# A human-readable postfix distinguishes each downloaded CI build.
+# The package's Identity.Version is independently made unique and numeric.
+# Published release/native-preview workflows retain their established asset names.
+env:
+  CI_ARTIFACT_SUFFIX: ${{ github.event_name != 'push' && format('-ci-{0}-a{1}', github.run_number, github.run_attempt) || '' }}
+
 # Only keep the newest build for a PR; never cancel release publishing jobs.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -184,14 +190,14 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: native-installer
+          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
           path: ${{ runner.temp }}/NativeInstaller/
           if-no-files-found: error
           retention-days: 30
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Plainix-Windows-x64
+          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
           path: ${{ steps.package.outputs.folder }}/
           if-no-files-found: error
           retention-days: 30
@@ -208,7 +214,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Plainix-Windows-x64
+          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
           path: ${{ runner.temp }}/notepads-smoke-package
       - name: Verify editing, Undo and source navigation
         shell: powershell
@@ -229,7 +235,7 @@ jobs:
           dotnet-version: '8.0.x'
       - uses: actions/download-artifact@v4
         with:
-          name: Plainix-Windows-x64
+          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
           path: ${{ runner.temp }}/plainix-ui-package
       - name: Exercise editor, find, preferences, extensions and visual landmarks
         shell: powershell
@@ -238,7 +244,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-test-results
+          name: ui-test-results${{ env.CI_ARTIFACT_SUFFIX }}
           path: ${{ runner.temp }}/plainix-ui-results/
           if-no-files-found: warn
           retention-days: 14
@@ -255,7 +261,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: native-installer
+          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
           path: ${{ runner.temp }}/native-installer
       - name: Upgrade an existing Notepads installation using the descriptor
         shell: powershell
@@ -292,11 +298,11 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Plainix-Windows-x64
+          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
           path: installer
       - uses: actions/download-artifact@v4
         with:
-          name: native-installer
+          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
           path: native-installer
       - name: Upload all assets and publish the release
         run: bash tools/installer/publish.sh
@@ -312,7 +318,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: native-installer
+          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
           path: ${{ runner.temp }}/native-installer
       - name: Verify public files and deploy the downloaded App Installer descriptor
         shell: powershell
