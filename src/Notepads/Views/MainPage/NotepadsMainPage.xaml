@@ -47,6 +47,7 @@
                             <RowDefinition x:Name="SecondaryEditorRow" Height="0"/>
                         </Grid.RowDefinitions>
                     <controls:SetsView x:Name="Sets"
+                                       AutomationProperties.AutomationId="PrimaryEditorGroup"
                                        Grid.Row="0"
                                        Grid.Column="0"
                                        TabIndex="0"
@@ -295,6 +296,7 @@
                                            GripperForeground="Transparent"
                                            Visibility="Collapsed"/>
                     <controls:SetsView x:Name="SecondarySets"
+                                       AutomationProperties.AutomationId="SecondaryEditorGroup"
                                        Grid.Row="0" Grid.Column="2"
                                        TabIndex="1"
                                        SetsWidthBehavior="Equal"
