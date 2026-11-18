@@ -3,6 +3,7 @@
 namespace Notepads.Views.MainPage
 {
     using Notepads.Core;
+    using Windows.UI.Core;
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Automation;
     using Windows.UI.Xaml.Controls;
@@ -38,13 +39,31 @@ namespace Notepads.Views.MainPage
             AutomationProperties.SetName(VerticalSplitDivider, _resourceLoader.GetString("SplitEditor_ResizeColumns"));
             AutomationProperties.SetName(HorizontalSplitDivider, _resourceLoader.GetString("SplitEditor_ResizeRows"));
 
-            MenuSplitRightButton.Click += (sender, args) => core.SplitSelectedEditor(EditorSplitOrientation.Right);
-            ToolbarSplitRightButton.Click += (sender, args) => core.SplitSelectedEditor(EditorSplitOrientation.Right);
-            MenuSplitDownButton.Click += (sender, args) => core.SplitSelectedEditor(EditorSplitOrientation.Down);
-            ToolbarSplitDownButton.Click += (sender, args) => core.SplitSelectedEditor(EditorSplitOrientation.Down);
-            MenuCloseSplitButton.Click += (sender, args) => core.CloseSplitEditor();
-            ToolbarCloseSplitButton.Click += (sender, args) => core.CloseSplitEditor();
-            SecondaryCloseSplitButton.Click += (sender, args) => core.CloseSplitEditor();
+            // MenuFlyoutItem.Invoke is synchronous for UI Automation. Reparenting
+            // editors while the invoking flyout is still closing invalidates its
+            // automation provider (0x800F1000) and can re-enter SetsView layout.
+            // Queue document operations after the popup input event completes.
+            MenuSplitRightButton.Click += async (sender, args) =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => core.SplitSelectedEditor(EditorSplitOrientation.Right));
+            ToolbarSplitRightButton.Click += async (sender, args) =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => core.SplitSelectedEditor(EditorSplitOrientation.Right));
+            MenuSplitDownButton.Click += async (sender, args) =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => core.SplitSelectedEditor(EditorSplitOrientation.Down));
+            ToolbarSplitDownButton.Click += async (sender, args) =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => core.SplitSelectedEditor(EditorSplitOrientation.Down));
+            MenuCloseSplitButton.Click += async (sender, args) =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => core.CloseSplitEditor());
+            ToolbarCloseSplitButton.Click += async (sender, args) =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => core.CloseSplitEditor());
+            SecondaryCloseSplitButton.Click += async (sender, args) =>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => core.CloseSplitEditor());
 
             SecondaryNewSetButton.Click += (sender, args) =>
             {
