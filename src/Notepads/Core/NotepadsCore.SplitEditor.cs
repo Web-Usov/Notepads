@@ -177,19 +177,48 @@ namespace Notepads.Core
             }
 
             var oldItem = GetTextEditorSetsViewItem(editor);
+            var originalIndex = source.Items.IndexOf(oldItem);
             source.Items.Remove(oldItem);
-            if (oldItem.ContextFlyout is TabContextFlyout oldFlyout) oldFlyout.Dispose();
 
-            var newItem = CreateTextEditorSetsViewItem(editor);
-            if (atIndex < 0 || atIndex > target.Items.Count)
+            // A SetsViewItem is a ContentControl. Removing it from ListView.Items
+            // does not release its Content reference. Reusing the editor as the
+            // Content of a *second* item would throw XAML 0x800F1000:
+            // "Element is already the child of another element."
+            // Detach the existing visual owner before assigning the same editor
+            // to a new tab container. The document and Undo history stay intact.
+            oldItem.Content = null;
+
+            SetsViewItem newItem = null;
+            try
             {
-                target.Items.Add(newItem);
+                newItem = CreateTextEditorSetsViewItem(editor);
+                if (atIndex < 0 || atIndex > target.Items.Count)
+                {
+                    target.Items.Add(newItem);
+                }
+                else
+                {
+                    target.Items.Insert(atIndex, newItem);
+                }
+                target.SelectedItem = newItem;
             }
-            else
+            catch
             {
-                target.Items.Insert(atIndex, newItem);
+                // A failed transfer must not orphan an unsaved document. Return
+                // the same editor to its original group before rethrowing.
+                if (newItem != null)
+                {
+                    target.Items.Remove(newItem);
+                    newItem.Content = null;
+                    if (newItem.ContextFlyout is TabContextFlyout newFlyout) newFlyout.Dispose();
+                }
+                oldItem.Content = editor;
+                source.Items.Insert(Math.Min(originalIndex, source.Items.Count), oldItem);
+                source.SelectedItem = oldItem;
+                ActivateEditorGroup(ReferenceEquals(source, _secondarySets) ? 1 : 0);
+                throw;
             }
-            target.SelectedItem = newItem;
+            if (oldItem.ContextFlyout is TabContextFlyout oldFlyout) oldFlyout.Dispose();
             ActivateEditorGroup(ReferenceEquals(target, _secondarySets) ? 1 : 0);
 
             if (!_isMergingGroups && IsSplitEditorEnabled && _secondarySets.Items.Count == 0)
