@@ -328,7 +328,7 @@ public sealed class EditorUiTests
         App.Invoke(App.RequireId("SplitEditorToolbarButton"));
         App.Invoke(App.RequireId("ToolbarSplitRightButton"));
         UiTestHost.WaitUntil(() => App.Window.FindAllDescendants()
-                .Count(element => element.AutomationId == "TextEditorCore") == 2,
+                .Count(element => element.Properties.AutomationId.ValueOrDefault ?? string.Empty == "TextEditorCore") == 2,
             "two text editors after splitting", 35);
 
         // Keep both groups occupied when the file moves. Otherwise the normal
@@ -342,7 +342,7 @@ public sealed class EditorUiTests
     {
         var name = Path.GetFileName(App.SourceFile);
         return App.Window.FindAllDescendants().Count(element =>
-            element.AutomationId.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            element.Properties.AutomationId.ValueOrDefault ?? string.Empty.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
             string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -350,7 +350,7 @@ public sealed class EditorUiTests
     {
         var name = Path.GetFileName(App.SourceFile);
         return UiTestHost.WaitFor(() => App.Window.FindAllDescendants().FirstOrDefault(element =>
-            element.AutomationId.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            element.Properties.AutomationId.ValueOrDefault ?? string.Empty.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
             string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)),
             "document tab named " + name);
     }
@@ -360,7 +360,7 @@ public sealed class EditorUiTests
         var group = App.FindById(groupAutomationId);
         var name = Path.GetFileName(App.SourceFile);
         return group?.FindAllDescendants().Any(element =>
-            element.AutomationId.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            element.Properties.AutomationId.ValueOrDefault ?? string.Empty.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
             string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)) ?? false;
     }
 
