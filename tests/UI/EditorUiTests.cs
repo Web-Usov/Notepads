@@ -295,12 +295,17 @@ public sealed class EditorUiTests
         PrepareSplitForTabMoves();
 
         var tab = CurrentFileTab();
-        var destination = App.RequireId("PrimaryEditorGroup").BoundingRectangle;
         var tabBounds = tab.BoundingRectangle;
-        var from = new Point((int)(tabBounds.Left + Math.Min(tabBounds.Width / 3, 55)),
+        var divider = App.RequireId("VerticalSplitDivider").BoundingRectangle;
+        var primaryTab = UiTestHost.WaitFor(() => App.Window.FindAllDescendants()
+            .FirstOrDefault(element => element.ControlType == ControlType.ListItem &&
+                element.Name == "Untitled.txt" && element.BoundingRectangle.Right <= divider.Left),
+            "the primary group's target tab");
+        var targetBounds = primaryTab.BoundingRectangle;
+        var from = new Point((int)(tabBounds.Left + Math.Min(tabBounds.Width / 3, 35)),
             (int)(tabBounds.Top + tabBounds.Height / 2));
-        var to = new Point((int)(destination.Left + destination.Width / 2),
-            (int)(tabBounds.Top + tabBounds.Height / 2));
+        var to = new Point((int)(targetBounds.Left + targetBounds.Width / 2),
+            (int)(targetBounds.Top + targetBounds.Height / 2));
 
         Mouse.Position = from;
         Mouse.Down();
@@ -327,7 +332,9 @@ public sealed class EditorUiTests
     {
         App.Invoke(App.RequireId("SplitEditorToolbarButton"));
         App.Invoke(App.RequireId("ToolbarSplitRightButton"));
-        UiTestHost.WaitUntil(() => App.Window.FindAllDescendants()
+        UiTestHost.WaitUntil(() =>
+            App.RequireId("VerticalSplitDivider").BoundingRectangle.Width > 1 &&
+            App.Window.FindAllDescendants()
                 .Count(element => (element.Properties.AutomationId.ValueOrDefault ?? string.Empty) == "TextEditorCore") == 2,
             "two text editors after splitting", 35);
 
@@ -357,11 +364,20 @@ public sealed class EditorUiTests
 
     private bool IsCurrentFileInGroup(string groupAutomationId)
     {
-        var group = App.FindById(groupAutomationId);
+        // The custom SetsView template does not expose its parent ListView as a
+        // UIA element. Its *tabs* and the themed divider are accessible, so
+        // assert destination group ownership by their screen coordinates.
         var name = Path.GetFileName(App.SourceFile);
-        return group?.FindAllDescendants().Any(element =>
+        var tab = App.Window.FindAllDescendants().FirstOrDefault(element =>
             (element.Properties.AutomationId.ValueOrDefault ?? string.Empty).StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
-            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)) ?? false;
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase));
+        var divider = App.FindById("VerticalSplitDivider");
+        if (tab == null || divider == null) return false;
+        var boundary = divider.BoundingRectangle;
+        var tabRect = tab.BoundingRectangle;
+        if (groupAutomationId == "PrimaryEditorGroup") return tabRect.Right <= boundary.Left;
+        if (groupAutomationId == "SecondaryEditorGroup") return tabRect.Left >= boundary.Right;
+        throw new ArgumentOutOfRangeException(nameof(groupAutomationId));
     }
 
     private void MoveCurrentFileFromContextMenu(string destinationLabel)
