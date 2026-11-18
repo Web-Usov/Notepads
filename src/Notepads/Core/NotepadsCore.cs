@@ -638,7 +638,10 @@ namespace Notepads.Core
             if (canHandle)
             {
                 args.Handled = true;
-                args.AcceptedOperation = isLocalTab ? DataPackageOperation.Move : DataPackageOperation.Link;
+                // The core transfers the existing editor after Drop. A native
+                // ListView Move result would also remove its source item and can
+                // orphan an unsaved document; accept Link for manual transfers.
+                args.AcceptedOperation = DataPackageOperation.Link;
                 try
                 {
                     if (args.DragUIOverride != null)
@@ -707,7 +710,9 @@ namespace Notepads.Core
                 args.Data.Properties.Add(NotepadsTextEditorGuid, editor.Id.ToString());
                 args.Data.Properties.Add(NotepadsInstanceId, App.InstanceId.ToString());
                 args.Data.Properties.ApplicationName = App.InstanceCompatibilityName;
-                args.Data.RequestedOperation = DataPackageOperation.Move;
+                // Keep ListView from automatically removing the source item.
+                // Cross-group movement is committed transactionally by the core.
+                args.Data.RequestedOperation = DataPackageOperation.Link;
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Started");
             }
@@ -749,14 +754,34 @@ namespace Notepads.Core
                 try
                 {
                     if (!IsSplitEditorEnabled) return;
-                    args.AcceptedOperation = DataPackageOperation.Move;
+                    // Link is deliberate: the source ListView must not remove
+                    // a tab before our core-owned, rollback-safe transfer.
+                    args.AcceptedOperation = DataPackageOperation.Link;
                     args.Handled = true;
-                    TraceTabTransfer("drop in group " + (ReferenceEquals(sets, _secondarySets) ? 1 : 0));
-                    LoggingService.LogInfo($"[TabTransfer] Drop received for {localEditor.Id}: " +
-                        $"{GetEditorGroupIndex(localEditor)} -> {(ReferenceEquals(sets, _secondarySets) ? 1 : 0)}.");
-                    MoveEditorToGroup(localEditor, sets, GetTabInsertIndex(sets, args));
-                    LoggingService.LogInfo($"[TabTransfer] Drop completed for {localEditor.Id}.");
-                    AnalyticsService.TrackEvent("OnTabMovedBetweenGroups");
+                    var index = GetTabInsertIndex(sets, args);
+                    TraceTabTransfer("drop accepted in group " + (ReferenceEquals(sets, _secondarySets) ? 1 : 0));
+
+                    // Reparenting during the native drag completion callback can
+                    // invalidate the visual tree. Defer until the drop is finished
+                    // and the source ListView has released its drag state.
+                    _ = _dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+                    {
+                        if (FindEditorGroup(localEditor) == null || !IsSplitEditorEnabled ||
+                            ReferenceEquals(FindEditorGroup(localEditor), sets)) return;
+                        try
+                        {
+                            LoggingService.LogInfo($"[TabTransfer] Commit {localEditor.Id} to " +
+                                $"{(ReferenceEquals(sets, _secondarySets) ? 1 : 0)}.");
+                            MoveEditorToGroup(localEditor, sets, index);
+                            TraceTabTransfer("drop committed");
+                            AnalyticsService.TrackEvent("OnTabMovedBetweenGroups");
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingService.LogException(ex);
+                            TraceTabTransfer("drop commit failed: " + ex.Message);
+                        }
+                    });
                 }
                 catch (Exception ex)
                 {
