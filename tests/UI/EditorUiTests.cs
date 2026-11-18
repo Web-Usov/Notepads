@@ -327,8 +327,16 @@ public sealed class EditorUiTests
             Mouse.Up();
         }
 
-        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("PrimaryEditorGroup"),
-            "dragged tab to appear in the first group", 30);
+        try
+        {
+            UiTestHost.WaitUntil(() => IsCurrentFileInGroup("PrimaryEditorGroup"),
+                "dragged tab to appear in the first group", 30);
+        }
+        catch (AssertionException ex)
+        {
+            var trace = App.RequireId("SplitEditorToolbarButton").Properties.HelpText.ValueOrDefault;
+            throw new AssertionException(ex.Message + " [tab drag events: " + trace + "]");
+        }
         Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Drag cannot create a duplicate tab.");
         App.AssertDocument(Original);
     }
