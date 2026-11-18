@@ -23,9 +23,7 @@ namespace Notepads.Core
 
         // UI-only feedback. Document ownership and tab moves remain core-owned.
         public event EventHandler<int> TabDropTargetChanged;
-        public event EventHandler<string> TabTransferDiagnosticChanged;
 
-        private void TraceTabTransfer(string stage) => TabTransferDiagnosticChanged?.Invoke(this, stage);
 
         // The editor surface provides stable coordinates for native drop
         // completion, including UWP ListView's DropResult.None edge case.
@@ -70,7 +68,6 @@ namespace Notepads.Core
             if (targetGroup >= 0)
             {
                 LoggingService.LogInfo($"[TabTransfer] Hover destination group {targetGroup}.");
-                TraceTabTransfer($"hover group {targetGroup}");
             }
             TabDropTargetChanged?.Invoke(this, targetGroup);
         }
