@@ -193,6 +193,28 @@ internal sealed class UiTestHost : IDisposable
                 }
             }
             File.WriteAllLines(Path.Combine(root, safeName + ".uia.txt"), lines);
+
+            if (failed)
+            {
+                var appData = Environment.GetEnvironmentVariable("PLAINIX_UI_DATA");
+                var logsFolder = string.IsNullOrWhiteSpace(appData)
+                    ? null : Path.Combine(appData, "Logs");
+                if (logsFolder is not null && Directory.Exists(logsFolder))
+                {
+                    foreach (var log in Directory.GetFiles(logsFolder, "*.log")
+                        .OrderByDescending(File.GetLastWriteTimeUtc).Take(2))
+                    {
+                        try
+                        {
+                            File.Copy(log, Path.Combine(root, safeName + "." + Path.GetFileName(log)), true);
+                        }
+                        catch (IOException ex)
+                        {
+                            TestContext.Error.WriteLine("Could not copy app log: " + ex.Message);
+                        }
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {
