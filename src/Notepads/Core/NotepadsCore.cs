@@ -682,7 +682,6 @@ namespace Notepads.Core
                 return;
             }
             LoggingService.LogInfo($"[TabTransfer] Drag started for {editor.Id} from group {GetEditorGroupIndex(editor)}.");
-            TraceTabTransfer($"start group {GetEditorGroupIndex(editor)}");
 
             try
             {
@@ -759,7 +758,6 @@ namespace Notepads.Core
                     args.AcceptedOperation = DataPackageOperation.Link;
                     args.Handled = true;
                     var index = GetTabInsertIndex(sets, args);
-                    TraceTabTransfer("drop accepted in group " + (ReferenceEquals(sets, _secondarySets) ? 1 : 0));
 
                     // Reparenting during the native drag completion callback can
                     // invalidate the visual tree. Defer until the drop is finished
@@ -773,13 +771,11 @@ namespace Notepads.Core
                             LoggingService.LogInfo($"[TabTransfer] Commit {localEditor.Id} to " +
                                 $"{(ReferenceEquals(sets, _secondarySets) ? 1 : 0)}.");
                             MoveEditorToGroup(localEditor, sets, index);
-                            TraceTabTransfer("drop committed");
                             AnalyticsService.TrackEvent("OnTabMovedBetweenGroups");
                         }
                         catch (Exception ex)
                         {
                             LoggingService.LogException(ex);
-                            TraceTabTransfer("drop commit failed: " + ex.Message);
                         }
                     });
                 }
@@ -925,7 +921,6 @@ namespace Notepads.Core
             var editor = dragged as ITextEditor ?? (dragged as SetsViewItem)?.Content as ITextEditor;
             var source = GetEditorGroupIndex(editor);
             var destination = GetGroupAtCurrentDragPointer();
-            TraceTabTransfer($"completed {args.DropResult}; source={source}; pointerTarget={destination}");
 
             if (source >= 0 && destination >= 0 && source != destination)
             {
@@ -940,12 +935,10 @@ namespace Notepads.Core
                     try
                     {
                         MoveEditorToGroup(editor, destination);
-                        TraceTabTransfer("completion transfer committed");
                     }
                     catch (Exception ex)
                     {
                         LoggingService.LogException(ex);
-                        TraceTabTransfer("completion transfer failed: " + ex.Message);
                     }
                 });
                 ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
