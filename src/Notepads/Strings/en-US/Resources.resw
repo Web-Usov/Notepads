@@ -796,4 +796,13 @@
   <data name="SplitEditor_MoveOtherGroup" xml:space="preserve">
     <value>Move to other editor group</value>
   </data>
+  <data name="SplitEditor_MoveToGroup" xml:space="preserve">
+    <value>Move to group</value>
+  </data>
+  <data name="SplitEditor_Group1" xml:space="preserve">
+    <value>Group 1 — first pane</value>
+  </data>
+  <data name="SplitEditor_Group2" xml:space="preserve">
+    <value>Group 2 — second pane</value>
+  </data>
 </root>
