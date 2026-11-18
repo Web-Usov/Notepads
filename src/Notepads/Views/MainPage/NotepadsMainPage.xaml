@@ -327,6 +327,23 @@
                                   Background="Transparent" Width="0" Height="32"/>
                         </controls:SetsView.SetsEndHeader>
                     </controls:SetsView>
+
+                    <!-- Transient drag targets; no permanent move buttons.
+                         Do not intercept pointer input or cover text editor drag events. -->
+                    <Border x:Name="PrimaryTabDropHighlight"
+                            Grid.Row="0" Grid.Column="0" Canvas.ZIndex="100"
+                            BorderThickness="2" CornerRadius="4"
+                            BorderBrush="{ThemeResource SystemControlForegroundAccentBrush}"
+                            Background="Transparent"
+                            IsHitTestVisible="False" Visibility="Collapsed"
+                            AutomationProperties.AccessibilityView="Raw" />
+                    <Border x:Name="SecondaryTabDropHighlight"
+                            Grid.Row="0" Grid.Column="2" Canvas.ZIndex="100"
+                            BorderThickness="2" CornerRadius="4"
+                            BorderBrush="{ThemeResource SystemControlForegroundAccentBrush}"
+                            Background="Transparent"
+                            IsHitTestVisible="False" Visibility="Collapsed"
+                            AutomationProperties.AccessibilityView="Raw" />
                     </Grid>
 
                     <controls:InAppNotification x:Name="StatusNotification"
