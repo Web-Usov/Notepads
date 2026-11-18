@@ -7,6 +7,7 @@ namespace Notepads.Core
     using System.Linq;
     using Notepads.Controls;
     using Notepads.Controls.TextEditor;
+    using Windows.ApplicationModel.DataTransfer;
     using Notepads.Services;
     using Windows.UI.Xaml;
 
@@ -16,6 +17,34 @@ namespace Notepads.Core
         private SetsView _activeSets;
         private EditorSplitOrientation _splitOrientation;
         private bool _isMergingGroups;
+        private int _tabDropTargetGroup = -1;
+
+        // UI-only feedback. Document ownership and tab moves remain core-owned.
+        public event EventHandler<int> TabDropTargetChanged;
+
+        private void SetTabDropTarget(int targetGroup)
+        {
+            if (_tabDropTargetGroup == targetGroup) return;
+            _tabDropTargetGroup = targetGroup;
+            TabDropTargetChanged?.Invoke(this, targetGroup);
+        }
+
+        private bool TryGetDraggedEditor(DataPackageView view, out ITextEditor editor)
+        {
+            editor = null;
+            if (view?.Properties == null ||
+                !view.Properties.TryGetValue(NotepadsInstanceId, out object instanceId) ||
+                !(instanceId is string sourceId) ||
+                !string.Equals(sourceId, App.InstanceId.ToString(), StringComparison.Ordinal) ||
+                !view.Properties.TryGetValue(NotepadsTextEditorGuid, out object tabId) ||
+                !(tabId is string editorId) || !Guid.TryParse(editorId, out Guid id))
+            {
+                return false;
+            }
+
+            editor = GetAllTextEditors().FirstOrDefault(item => item.Id == id);
+            return editor != null;
+        }
 
         public event EventHandler SplitLayoutChanged;
         public event EventHandler<ITextEditor> ActiveTextEditorChanged;
@@ -44,6 +73,7 @@ namespace Notepads.Core
             };
             sets.SetDraggedOutside += Sets_SetDraggedOutside;
             sets.DragOver += Sets_DragOver;
+            sets.DragLeave += Sets_DragLeave;
             sets.Drop += Sets_Drop;
             sets.DragItemsStarting += Sets_DragItemsStarting;
             sets.DragItemsCompleted += Sets_DragItemsCompleted;
@@ -137,21 +167,32 @@ namespace Notepads.Core
             }
         }
 
+        // Stable two-group API for tab context menus and keyboard users.
+        public int GetEditorGroupIndex(ITextEditor editor)
+        {
+            var group = FindEditorGroup(editor);
+            if (group == null) return -1;
+            return ReferenceEquals(group, _secondarySets) ? 1 : 0;
+        }
+
+        public void MoveEditorToGroup(ITextEditor editor, int targetGroup)
+        {
+            if (editor == null || !IsSplitEditorEnabled || _secondarySets == null ||
+                (targetGroup != 0 && targetGroup != 1)) return;
+            var target = targetGroup == 0 ? _sets : _secondarySets;
+            if (FindEditorGroup(editor) == null || ReferenceEquals(FindEditorGroup(editor), target)) return;
+            MoveEditorToGroup(editor, target);
+        }
+
         public void MoveEditorToOtherGroup(ITextEditor editor)
         {
-            if (editor == null || _secondarySets == null) return;
-            var source = FindEditorGroup(editor);
-            if (source == null) return;
-            if (!IsSplitEditorEnabled) SetSplitEditorOrientation(EditorSplitOrientation.Right);
-
-            if (ReferenceEquals(source, _sets) && _sets.Items.Count == 1)
+            var currentGroup = GetEditorGroupIndex(editor);
+            if (currentGroup < 0) return;
+            if (!IsSplitEditorEnabled)
             {
-                var previousActive = _activeSets;
-                _activeSets = _sets;
-                OpenNewTextEditor(_resourceLoader.GetString("TextEditor_DefaultNewFileName"));
-                _activeSets = previousActive;
+                SetSplitEditorOrientation(EditorSplitOrientation.Right);
             }
-            MoveEditorToGroup(editor, ReferenceEquals(source, _sets) ? _secondarySets : _sets);
+            MoveEditorToGroup(editor, currentGroup == 0 ? 1 : 0);
         }
 
         // Transfer the same editor (and its undo history). A fresh tab container
@@ -243,6 +284,7 @@ namespace Notepads.Core
                 _isMergingGroups = false;
             }
             _splitOrientation = EditorSplitOrientation.None;
+            SetTabDropTarget(-1);
             ActivateEditorGroup(0);
             SplitLayoutChanged?.Invoke(this, EventArgs.Empty);
             FocusOnSelectedTextEditor();
