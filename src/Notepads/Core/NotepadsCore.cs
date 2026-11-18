@@ -671,7 +671,12 @@ namespace Notepads.Core
             // empty and making cross-group dragging silently fail.
             var item = args.Items.FirstOrDefault();
             var editor = item as ITextEditor ?? (item as SetsViewItem)?.Content as ITextEditor;
-            if (editor == null || !ReferenceEquals(FindEditorGroup(editor), sender as SetsView)) return;
+            if (editor == null || !ReferenceEquals(FindEditorGroup(editor), sender as SetsView))
+            {
+                LoggingService.LogWarning($"[TabTransfer] No valid tab drag source: {item?.GetType().Name ?? "null"}");
+                return;
+            }
+            LoggingService.LogInfo($"[TabTransfer] Drag started for {editor.Id} from group {GetEditorGroupIndex(editor)}.");
 
             try
             {
@@ -743,7 +748,10 @@ namespace Notepads.Core
                     if (!IsSplitEditorEnabled) return;
                     args.AcceptedOperation = DataPackageOperation.Move;
                     args.Handled = true;
+                    LoggingService.LogInfo($"[TabTransfer] Drop received for {localEditor.Id}: " +
+                        $"{GetEditorGroupIndex(localEditor)} -> {(ReferenceEquals(sets, _secondarySets) ? 1 : 0)}.");
                     MoveEditorToGroup(localEditor, sets, GetTabInsertIndex(sets, args));
+                    LoggingService.LogInfo($"[TabTransfer] Drop completed for {localEditor.Id}.");
                     AnalyticsService.TrackEvent("OnTabMovedBetweenGroups");
                 }
                 catch (Exception ex)
@@ -877,6 +885,7 @@ namespace Notepads.Core
 
         private void Sets_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
         {
+            LoggingService.LogInfo($"[TabTransfer] Drag completed: result = {args.DropResult}.");
             if (ApplicationSettingsStore.Read(SetDragAndDropActionStatus) is string setDragAndDropActionStatus && setDragAndDropActionStatus == "Handled")
             {
                 var dragged = args.Items.FirstOrDefault();
