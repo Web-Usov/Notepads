@@ -17,6 +17,7 @@ namespace Notepads.Views.MainPage
         {
             var core = NotepadsCore;
             core.SplitLayoutChanged += (sender, args) => UpdateSplitEditorLayout();
+            core.TabDropTargetChanged += (sender, target) => ShowTabDropTarget(target);
             core.ActiveTextEditorChanged += (sender, editor) => SetupStatusBar(editor);
 
             var splitText = _resourceLoader.GetString("SplitEditor_MenuTitle");
@@ -100,6 +101,14 @@ namespace Notepads.Views.MainPage
             }
         }
 
+        private void ShowTabDropTarget(int target)
+        {
+            PrimaryTabDropHighlight.Visibility = target == 0 && NotepadsCore.IsSplitEditorEnabled
+                ? Visibility.Visible : Visibility.Collapsed;
+            SecondaryTabDropHighlight.Visibility = target == 1 && NotepadsCore.IsSplitEditorEnabled
+                ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         private void UpdateSplitEditorLayout()
         {
             var orientation = NotepadsCore.SplitOrientation;
@@ -118,6 +127,9 @@ namespace Notepads.Views.MainPage
             HorizontalDividerRow.Height = down ? new GridLength(6) : new GridLength(0);
             Grid.SetColumn(SecondarySets, right ? 2 : 0);
             Grid.SetRow(SecondarySets, down ? 2 : 0);
+            Grid.SetColumn(SecondaryTabDropHighlight, right ? 2 : 0);
+            Grid.SetRow(SecondaryTabDropHighlight, down ? 2 : 0);
+            ShowTabDropTarget(-1);
             // Window caption controls occupy the upper-right 180 DIPs.
             // When split right, reserve that area in the second tab strip,
             // not the primary strip. A split-down view keeps it in the first.
