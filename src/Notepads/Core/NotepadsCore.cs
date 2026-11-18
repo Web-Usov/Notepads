@@ -25,6 +25,7 @@ namespace Notepads.Core
     using Windows.UI;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Automation;
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Input;
     using Windows.UI.Xaml.Media;
@@ -405,6 +406,12 @@ namespace Notepads.Core
 
             textEditorSetsViewItem.Icon.Visibility = textEditor.IsModified ? Visibility.Visible : Visibility.Collapsed;
             textEditorSetsViewItem.ContextFlyout = new TabContextFlyout(this, textEditor);
+            // Stable UIA identifier and an accessible tab name, even when the
+            // editor is moved and a new SetsViewItem container is created.
+            AutomationProperties.SetAutomationId(textEditorSetsViewItem,
+                "PlainixEditorTab-" + textEditor.Id.ToString("N"));
+            AutomationProperties.SetName(textEditorSetsViewItem,
+                textEditor.EditingFileName ?? textEditor.FileNamePlaceholder);
 
             return textEditorSetsViewItem;
         }
@@ -574,8 +581,10 @@ namespace Notepads.Core
 
             bool canHandle = false;
             string dragUICaption = null;
-            var isLocalTab = sender is SetsView hoveredGroup &&
-                TryGetDraggedEditor(args.DataView, out ITextEditor localEditor);
+            var hoveredGroup = sender as SetsView;
+            ITextEditor localEditor = null;
+            var isLocalTab = hoveredGroup != null &&
+                TryGetDraggedEditor(args.DataView, out localEditor);
 
             if (isLocalTab)
             {
