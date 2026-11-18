@@ -4,6 +4,7 @@ namespace Notepads.Views.MainPage
 {
     using System;
     using Notepads.Core;
+    using Notepads.Services;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Automation;
@@ -46,16 +47,16 @@ namespace Notepads.Views.MainPage
             // Queue document operations after the popup input event completes.
             MenuSplitRightButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => core.SplitSelectedEditor(EditorSplitOrientation.Right));
+                    () => ExecuteSplitSafely(EditorSplitOrientation.Right));
             ToolbarSplitRightButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => core.SplitSelectedEditor(EditorSplitOrientation.Right));
+                    () => ExecuteSplitSafely(EditorSplitOrientation.Right));
             MenuSplitDownButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => core.SplitSelectedEditor(EditorSplitOrientation.Down));
+                    () => ExecuteSplitSafely(EditorSplitOrientation.Down));
             ToolbarSplitDownButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => core.SplitSelectedEditor(EditorSplitOrientation.Down));
+                    () => ExecuteSplitSafely(EditorSplitOrientation.Down));
             MenuCloseSplitButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
                     () => core.CloseSplitEditor());
@@ -80,6 +81,23 @@ namespace Notepads.Views.MainPage
             }
 
             UpdateSplitEditorLayout();
+        }
+
+        // Keep errors visible to users and to UI automation. UWP can report
+        // opaque HRESULTs for a failed XAML tree mutation during a split.
+        private void ExecuteSplitSafely(EditorSplitOrientation orientation)
+        {
+            try
+            {
+                NotepadsCore.SplitSelectedEditor(orientation);
+                AutomationProperties.SetHelpText(SplitEditorToolbarButton, string.Empty);
+            }
+            catch (Exception exception)
+            {
+                LoggingService.LogError($"[SplitEditor] {exception}");
+                AutomationProperties.SetHelpText(SplitEditorToolbarButton, exception.ToString());
+                NotificationCenter.Instance.PostNotification(exception.Message, 5000);
+            }
         }
 
         private void UpdateSplitEditorLayout()
