@@ -30,6 +30,20 @@ jobs:
           persist-credentials: false
       - uses: microsoft/setup-msbuild@v3
 
+      - name: Verify CI preview MSIX version allocation
+        shell: pwsh
+        run: ./tests/Installer/PreviewPackageVersionTests.ps1
+
+      - name: Assign a unique MSIX version to this CI preview
+        # Stable and published native-preview release branches must keep their
+        # explicit manifest version (matching the release/v* or native-preview/v* branch).
+        if: github.event_name != 'push'
+        shell: pwsh
+        run: |
+          ./tools/installer/Set-PreviewPackageVersion.ps1 `
+            -ManifestPath 'src/Notepads/Package.appxmanifest' `
+            -RunNumber $env:GITHUB_RUN_NUMBER -RunAttempt $env:GITHUB_RUN_ATTEMPT
+
       - name: Test language extensions for release
         if: github.event_name == 'push'
         run: dotnet run --project tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj --configuration Release
