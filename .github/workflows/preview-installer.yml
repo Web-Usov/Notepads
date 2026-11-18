@@ -12,12 +12,6 @@ on:
 permissions:
   contents: read
 
-# A human-readable postfix distinguishes each downloaded CI build.
-# The package's Identity.Version is independently made unique and numeric.
-# Published release/native-preview workflows retain their established asset names.
-env:
-  CI_ARTIFACT_SUFFIX: ${{ github.event_name != 'push' && format('-ci-{0}-a{1}', github.run_number, github.run_attempt) || '' }}
-
 # Only keep the newest build for a PR; never cancel release publishing jobs.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -29,12 +23,25 @@ jobs:
     environment: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/v') && 'notepads-release' || 'notepads-preview' }}
     outputs:
       version: ${{ steps.package.outputs.version }}
+      # Downstream jobs must download the version that installer actually built,
+      # even if only a failed job is re-run with a newer github.run_attempt.
+      artifact_suffix: ${{ steps.artifact_naming.outputs.suffix }}
     steps:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: microsoft/setup-msbuild@v3
+
+      - name: Name artifacts for this exact installer attempt
+        id: artifact_naming
+        shell: pwsh
+        run: |
+          $suffix = if ($env:GITHUB_EVENT_NAME -eq 'push') { '' } else {
+            "-ci-$env:GITHUB_RUN_NUMBER-a$env:GITHUB_RUN_ATTEMPT"
+          }
+          "suffix=$suffix" >> $env:GITHUB_OUTPUT
+          "Artifact suffix: $suffix" >> $env:GITHUB_STEP_SUMMARY
 
       - name: Verify CI preview MSIX version allocation
         shell: pwsh
@@ -190,14 +197,14 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
+          name: native-installer${{ steps.artifact_naming.outputs.suffix }}
           path: ${{ runner.temp }}/NativeInstaller/
           if-no-files-found: error
           retention-days: 30
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
+          name: Plainix-Windows-x64${{ steps.artifact_naming.outputs.suffix }}
           path: ${{ steps.package.outputs.folder }}/
           if-no-files-found: error
           retention-days: 30
@@ -214,7 +221,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
+          name: Plainix-Windows-x64${{ needs.installer.outputs.artifact_suffix }}
           path: ${{ runner.temp }}/notepads-smoke-package
       - name: Verify editing, Undo and source navigation
         shell: powershell
@@ -235,7 +242,7 @@ jobs:
           dotnet-version: '8.0.x'
       - uses: actions/download-artifact@v4
         with:
-          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
+          name: Plainix-Windows-x64${{ needs.installer.outputs.artifact_suffix }}
           path: ${{ runner.temp }}/plainix-ui-package
       - name: Exercise editor, find, preferences, extensions and visual landmarks
         shell: powershell
@@ -244,7 +251,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-test-results${{ env.CI_ARTIFACT_SUFFIX }}
+          name: ui-test-results${{ needs.installer.outputs.artifact_suffix }}
           path: ${{ runner.temp }}/plainix-ui-results/
           if-no-files-found: warn
           retention-days: 14
@@ -261,7 +268,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
+          name: native-installer${{ needs.installer.outputs.artifact_suffix }}
           path: ${{ runner.temp }}/native-installer
       - name: Upgrade an existing Notepads installation using the descriptor
         shell: powershell
@@ -298,11 +305,11 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: Plainix-Windows-x64${{ env.CI_ARTIFACT_SUFFIX }}
+          name: Plainix-Windows-x64${{ needs.installer.outputs.artifact_suffix }}
           path: installer
       - uses: actions/download-artifact@v4
         with:
-          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
+          name: native-installer${{ needs.installer.outputs.artifact_suffix }}
           path: native-installer
       - name: Upload all assets and publish the release
         run: bash tools/installer/publish.sh
@@ -318,7 +325,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: native-installer${{ env.CI_ARTIFACT_SUFFIX }}
+          name: native-installer${{ needs.installer.outputs.artifact_suffix }}
           path: ${{ runner.temp }}/native-installer
       - name: Verify public files and deploy the downloaded App Installer descriptor
         shell: powershell
