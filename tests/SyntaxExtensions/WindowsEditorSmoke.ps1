@@ -199,6 +199,13 @@ try {
         Write-Host "Invoking command $orientation"
         Invoke-Control (Wait-For "the $orientation command" { Find-AppControl $byId $orientation })
         $null = Wait-For "two editor surfaces after $orientation" {
+            $toolbar = Find-AppControl $byId 'SplitEditorToolbarButton'
+            if ($toolbar) {
+                $diagnostic = $toolbar.Current.HelpText
+                if (![string]::IsNullOrWhiteSpace($diagnostic)) {
+                    throw "Split operation failed with: $diagnostic"
+                }
+            }
             $panes = $window.FindAll($subtree, $editorCondition)
             if ($panes.Count -eq 2) { return $true }
         }
