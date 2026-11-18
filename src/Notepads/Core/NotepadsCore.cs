@@ -574,6 +574,20 @@ namespace Notepads.Core
 
             bool canHandle = false;
             string dragUICaption = null;
+            var isLocalTab = sender is SetsView hoveredGroup &&
+                TryGetDraggedEditor(args.DataView, out ITextEditor localEditor);
+
+            if (isLocalTab)
+            {
+                // Make the destination visible only for a cross-group transfer.
+                var target = IsSplitEditorEnabled && !ReferenceEquals(FindEditorGroup(localEditor), hoveredGroup)
+                    ? (ReferenceEquals(hoveredGroup, _secondarySets) ? 1 : 0) : -1;
+                SetTabDropTarget(target);
+            }
+            else
+            {
+                SetTabDropTarget(-1);
+            }
 
             if (args.DataView == null)
             {
@@ -613,13 +627,13 @@ namespace Notepads.Core
             if (canHandle)
             {
                 args.Handled = true;
-                args.AcceptedOperation = DataPackageOperation.Link;
+                args.AcceptedOperation = isLocalTab ? DataPackageOperation.Move : DataPackageOperation.Link;
                 try
                 {
                     if (args.DragUIOverride != null)
                     {
                         args.DragUIOverride.Caption = dragUICaption;
-                        args.DragUIOverride.IsCaptionVisible = true;
+                        args.DragUIOverride.IsCaptionVisible = !isLocalTab;
                         args.DragUIOverride.IsGlyphVisible = false;
                     }
                 }
@@ -632,11 +646,23 @@ namespace Notepads.Core
             deferral.Complete();
         }
 
+        private void Sets_DragLeave(object sender, DragEventArgs args)
+        {
+            if (sender is SetsView sets &&
+                _tabDropTargetGroup == (ReferenceEquals(sets, _secondarySets) ? 1 : 0))
+            {
+                SetTabDropTarget(-1);
+            }
+        }
+
         private void Sets_DragItemsStarting(object sender, DragItemsStartingEventArgs args)
         {
-            // In Initial Window we need to serialize our tab data.
+            // SetsView.Items contains SetsViewItem containers, not ITextEditor.
+            // Earlier code tested args.Items directly, leaving the drag payload
+            // empty and making cross-group dragging silently fail.
             var item = args.Items.FirstOrDefault();
-            if (!(item is ITextEditor editor)) return;
+            var editor = item as ITextEditor ?? (item as SetsViewItem)?.Content as ITextEditor;
+            if (editor == null || !ReferenceEquals(FindEditorGroup(editor), sender as SetsView)) return;
 
             try
             {
@@ -664,6 +690,7 @@ namespace Notepads.Core
                 args.Data.Properties.Add(NotepadsTextEditorGuid, editor.Id.ToString());
                 args.Data.Properties.Add(NotepadsInstanceId, App.InstanceId.ToString());
                 args.Data.Properties.ApplicationName = App.InstanceCompatibilityName;
+                args.Data.RequestedOperation = DataPackageOperation.Move;
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Started");
             }
@@ -673,10 +700,51 @@ namespace Notepads.Core
             }
         }
 
+        private int GetTabInsertIndex(SetsView sets, DragEventArgs args)
+        {
+            for (int i = 0; i < sets.Items.Count; i++)
+            {
+                var tab = sets.ContainerFromIndex(i) as SetsViewItem;
+                if (tab != null && tab.ActualWidth > 0 &&
+                    args.GetPosition(tab).X < tab.ActualWidth / 2)
+                {
+                    return i;
+                }
+            }
+            return sets.Items.Count;
+        }
+
         private async void Sets_Drop(object sender, DragEventArgs args)
         {
+            SetTabDropTarget(-1);
             if (!(sender is SetsView sets))
             {
+                return;
+            }
+
+            if (TryGetDraggedEditor(args.DataView, out ITextEditor localEditor))
+            {
+                // Native ListView handles reordering within a group. A transfer
+                // across groups must move the original document, not recreate it.
+                if (ReferenceEquals(FindEditorGroup(localEditor), sets)) return;
+
+                var localDeferral = args.GetDeferral();
+                try
+                {
+                    if (!IsSplitEditorEnabled) return;
+                    args.AcceptedOperation = DataPackageOperation.Move;
+                    args.Handled = true;
+                    MoveEditorToGroup(localEditor, sets, GetTabInsertIndex(sets, args));
+                    AnalyticsService.TrackEvent("OnTabMovedBetweenGroups");
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.LogException(ex);
+                }
+                finally
+                {
+                    localDeferral.Complete();
+                }
                 return;
             }
 
@@ -755,35 +823,15 @@ namespace Notepads.Core
                     pendingText = pendingContent;
                 }
 
-                var index = -1;
+                var atIndex = GetTabInsertIndex(sets, args);
 
-                // Determine which items in the list our pointer is in between.
-                for (int i = 0; i < sets.Items?.Count; i++)
-                {
-                    var item = sets.ContainerFromIndex(i) as SetsViewItem;
-
-                    if (args.GetPosition(item).X - item?.ActualWidth < 0)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-
-                var atIndex = index == -1 ? sets.Items.Count : index;
-
-                // Dragging a tab between groups must never duplicate the document.
+                // Reject a stale local tab drag: it must never be reconstructed
+                // into a duplicate document just because its source was removed.
                 if (args.DataView.Properties.TryGetValue(NotepadsInstanceId, out object appId) &&
-                    appId is string sourceInstanceId && sourceInstanceId == App.InstanceId.ToString() &&
-                    args.DataView.Properties.TryGetValue(NotepadsTextEditorGuid, out object tabId) &&
-                    tabId is string sourceTabId && Guid.TryParse(sourceTabId, out var editorId))
+                    appId is string sourceInstanceId &&
+                    string.Equals(sourceInstanceId, App.InstanceId.ToString(), StringComparison.Ordinal))
                 {
-                    var sourceEditor = GetAllTextEditors().FirstOrDefault(editor => editor.Id == editorId);
-                    if (sourceEditor != null)
-                    {
-                        MoveEditorToGroup(sourceEditor, sets, atIndex);
-                        deferral.Complete();
-                        return;
-                    }
+                    throw new InvalidOperationException("The source tab for this drag is no longer open.");
                 }
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Handled");
@@ -822,13 +870,16 @@ namespace Notepads.Core
         {
             if (ApplicationSettingsStore.Read(SetDragAndDropActionStatus) is string setDragAndDropActionStatus && setDragAndDropActionStatus == "Handled")
             {
-                if (args.Items.FirstOrDefault() is ITextEditor editor)
+                var dragged = args.Items.FirstOrDefault();
+                var editor = dragged as ITextEditor ?? (dragged as SetsViewItem)?.Content as ITextEditor;
+                if (editor != null)
                 {
                     TextEditorMovedToAnotherAppInstance?.Invoke(this, editor);
                 }
             }
 
             ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
+            SetTabDropTarget(-1);
         }
 
         private async void Sets_SetDraggedOutside(object sender, SetDraggedOutsideEventArgs e)
