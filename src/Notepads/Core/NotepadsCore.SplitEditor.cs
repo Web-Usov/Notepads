@@ -26,6 +26,10 @@ namespace Notepads.Core
         {
             if (_tabDropTargetGroup == targetGroup) return;
             _tabDropTargetGroup = targetGroup;
+            if (targetGroup >= 0)
+            {
+                LoggingService.LogInfo($"[TabTransfer] Hover destination group {targetGroup}.");
+            }
             TabDropTargetChanged?.Invoke(this, targetGroup);
         }
 
