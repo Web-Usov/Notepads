@@ -638,10 +638,12 @@ namespace Notepads.Core
             if (canHandle)
             {
                 args.Handled = true;
-                // The core transfers the existing editor after Drop. A native
-                // ListView Move result would also remove its source item and can
-                // orphan an unsaved document; accept Link for manual transfers.
-                args.AcceptedOperation = DataPackageOperation.Link;
+                // Keep native Move for reordering *within* one ListView.
+                // Accept Link when crossing groups; otherwise ListView may also
+                // remove the source item and orphan the original document.
+                args.AcceptedOperation = isLocalTab &&
+                    ReferenceEquals(FindEditorGroup(localEditor), hoveredGroup)
+                    ? DataPackageOperation.Move : DataPackageOperation.Link;
                 try
                 {
                     if (args.DragUIOverride != null)
@@ -710,9 +712,9 @@ namespace Notepads.Core
                 args.Data.Properties.Add(NotepadsTextEditorGuid, editor.Id.ToString());
                 args.Data.Properties.Add(NotepadsInstanceId, App.InstanceId.ToString());
                 args.Data.Properties.ApplicationName = App.InstanceCompatibilityName;
-                // Keep ListView from automatically removing the source item.
-                // Cross-group movement is committed transactionally by the core.
-                args.Data.RequestedOperation = DataPackageOperation.Link;
+                // Native in-group reorder remains a Move. Cross-group targets
+                // explicitly negotiate Link to leave tab ownership to the core.
+                args.Data.RequestedOperation = DataPackageOperation.Move;
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Started");
             }
