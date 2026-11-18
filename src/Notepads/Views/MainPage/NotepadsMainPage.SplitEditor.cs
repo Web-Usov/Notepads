@@ -2,6 +2,7 @@
 // NotepadsCore's authoritative editor groups (not an extension or a second core).
 namespace Notepads.Views.MainPage
 {
+    using System;
     using Notepads.Core;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
