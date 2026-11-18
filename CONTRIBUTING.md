@@ -20,7 +20,34 @@ For a new grammar, use the same command with `-- <manifest-file> <sample-file>` 
 
 ## Try a pull request build
 
-Open the **Windows preview installer** run for the pull request. When its `installer` job succeeds, download **Plainix-Windows-x64** under **Artifacts**, extract the ZIP, open PowerShell in the directory containing `Add-AppDevPackage.ps1` and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1`. Open **Plainix** from Start. Sign in to GitHub to download a preview artifact. It is available for 30 days. Published installers are available on the [fork’s Releases page](https://github.com/Web-Usov/Plainix/releases).
+Open the **Windows preview installer** run for the pull request. When its `installer` job succeeds, download the **Plainix-Windows-x64-ci-<run>-a<attempt>** artifact under **Artifacts**, extract the ZIP, open PowerShell in the directory containing `Add-AppDevPackage.ps1` and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Add-AppDevPackage.ps1`. Open **Plainix** from Start. Sign in to GitHub to download a preview artifact. It is available for 30 days. Published installers are available on the [fork’s Releases page](https://github.com/Web-Usov/Plainix/releases).
+
+### CI preview versioning and replacing an installed preview
+
+For pull requests, manually dispatched runs and nightly checks, the Windows preview workflow assigns a **build-only** MSIX version from its run number and rerun attempt (four revision slots per run). For example, run 66 attempt 1 produces `1.7.0.265` when the committed manifest is `1.7.0.3`. The downloaded artifacts are clearly labeled **`Plainix-Windows-x64-ci-66-a1.zip`** and **`native-installer-ci-66-a1.zip`**, while the actual Windows package has a valid numeric four-part version (`Plainix_1.7.0.265_x64.msixbundle`). MSIX does **not** allow a textual suffix in `Identity.Version`.
+
+This keeps the package family unchanged but makes successive CI artifacts upgradeable instead of failing with **"same identity, different content"** on unchanged version numbers. The checked-in manifest is never edited or committed by this mechanism. Pushed `release/v*` and `native-preview/v*` branches retain their explicitly versioned packages, artifact names and publication guards.
+
+**Each CI artifact still has its own temporary self-signed certificate.** Import the `.cer` from **the same artifact** into Trusted People before installing or updating. A new version alone cannot make an untrusted signing certificate trusted. Do not share production signing secrets with pull request builds.
+
+If an older equal-version package is already installed, first save documents and close Plainix, then back up its per-user package data (especially `LocalState` for extensions/session backups and `Settings`). Removing the existing `Notepads-Dev` MSIX may delete these folders. The commands below intentionally stop on a failed backup before removal:
+
+```powershell
+$pkg = Get-AppxPackage -Name 'Notepads-Dev'
+if (!$pkg) { throw 'Notepads-Dev is not installed.' }
+$profile = Join-Path $env:LOCALAPPDATA "Packages\$($pkg.PackageFamilyName)"
+$backup = Join-Path $env:USERPROFILE ("Plainix-backup-" + (Get-Date -Format yyyyMMdd-HHmmss))
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+foreach ($folder in @('LocalState', 'Settings')) {
+    $source = Join-Path $profile $folder
+    if (Test-Path -LiteralPath $source) {
+        Copy-Item -LiteralPath $source -Destination $backup -Recurse -Force -ErrorAction Stop
+    }
+}
+Remove-AppxPackage -Package $pkg.PackageFullName
+```
+
+Install the new matching `.msixbundle`/certificate and check settings and sessions before deleting the backup. Future stable versions must be **higher than every preview version users may have installed**; bump the appropriate leading version component when necessary.
 
 ## Automated UI tests
 

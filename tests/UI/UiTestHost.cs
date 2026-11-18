@@ -127,8 +127,31 @@ internal sealed class UiTestHost : IDisposable
 
     public void OpenSettings(string itemId)
     {
-        Invoke(RequireId("MainMenuButton"));
-        Invoke(RequireId("MenuSettingsButton"));
+        // The first UWP flyout after process startup occasionally fails to
+        // materialize for UIA even though its button was invoked. A second
+        // invocation works after dismissing the incomplete popup.
+        // Keep the retry bounded and fail if the command never appears.
+        AutomationElement? settingsCommand = null;
+        for (var attempt = 1; attempt <= 3 && settingsCommand is null; attempt++)
+        {
+            if (attempt > 1)
+            {
+                Keys("{ESC}");
+                Thread.Sleep(200);
+            }
+            Invoke(RequireId("MainMenuButton"));
+            try
+            {
+                settingsCommand = WaitFor(() => FindById("MenuSettingsButton"),
+                    "MenuSettingsButton", 8);
+            }
+            catch (AssertionException) when (attempt < 3)
+            {
+                TestContext.Progress.WriteLine("Retrying the initial settings flyout (" + attempt + "/3).");
+            }
+        }
+
+        Invoke(settingsCommand ?? throw new AssertionException("Settings command did not open."));
         var item = RequireId(itemId);
         item.Focus();
         Keys("{ENTER}");
