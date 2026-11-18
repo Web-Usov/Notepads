@@ -914,14 +914,49 @@ namespace Notepads.Core
             }
         }
 
+        private int GetGroupAtCurrentDragPointer()
+        {
+            if (!IsSplitEditorEnabled || _tabTransferSurface == null) return -1;
+            return GetTransferTargetGroup(ToTransferSurfacePoint(Window.Current.CoreWindow.PointerPosition));
+        }
+
         private void Sets_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
         {
             LoggingService.LogInfo($"[TabTransfer] Drag completed: result = {args.DropResult}.");
-            TraceTabTransfer($"completed {args.DropResult}");
+            var dragged = args.Items.FirstOrDefault();
+            var editor = dragged as ITextEditor ?? (dragged as SetsViewItem)?.Content as ITextEditor;
+            var source = GetEditorGroupIndex(editor);
+            var destination = GetGroupAtCurrentDragPointer();
+            TraceTabTransfer($"completed {args.DropResult}; source={source}; pointerTarget={destination}");
+
+            if (source >= 0 && destination >= 0 && source != destination)
+            {
+                // Some UWP tab-strip templates report DropResult.None and never
+                // raise Drop, even though a mouse drag ended over another group.
+                // The actual release position is authoritative for this window.
+                // Commit only after ListView has finished its native drag cycle.
+                _ = _dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+                {
+                    if (!IsSplitEditorEnabled || GetEditorGroupIndex(editor) < 0 ||
+                        GetEditorGroupIndex(editor) == destination) return;
+                    try
+                    {
+                        MoveEditorToGroup(editor, destination);
+                        TraceTabTransfer("completion transfer committed");
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.LogException(ex);
+                        TraceTabTransfer("completion transfer failed: " + ex.Message);
+                    }
+                });
+                ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
+                SetTabDropTarget(-1);
+                return;
+            }
+
             if (ApplicationSettingsStore.Read(SetDragAndDropActionStatus) is string setDragAndDropActionStatus && setDragAndDropActionStatus == "Handled")
             {
-                var dragged = args.Items.FirstOrDefault();
-                var editor = dragged as ITextEditor ?? (dragged as SetsViewItem)?.Content as ITextEditor;
                 if (editor != null)
                 {
                     TextEditorMovedToAnotherAppInstance?.Invoke(this, editor);
@@ -934,6 +969,17 @@ namespace Notepads.Core
 
         private async void Sets_SetDraggedOutside(object sender, SetDraggedOutsideEventArgs e)
         {
+            if (e.Set?.Content is ITextEditor dragEditor)
+            {
+                var target = GetGroupAtCurrentDragPointer();
+                if (target >= 0 && target != GetEditorGroupIndex(dragEditor))
+                {
+                    // A valid other pane is not an external tear-off, even when
+                    // native ListView reports DropResult.None.
+                    return;
+                }
+            }
+
             if (GetNumberOfOpenedTextEditors() > 1 && e.Set?.Content is ITextEditor textEditor)
             {
                 // Only allow untitled empty document to be dragged outside for now
