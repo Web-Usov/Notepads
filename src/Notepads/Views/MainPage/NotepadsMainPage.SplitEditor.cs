@@ -18,14 +18,6 @@ namespace Notepads.Views.MainPage
             var core = NotepadsCore;
             core.SplitLayoutChanged += (sender, args) => UpdateSplitEditorLayout();
             core.TabDropTargetChanged += (sender, target) => ShowTabDropTarget(target);
-            core.TabTransferDiagnosticChanged += (sender, stage) =>
-            {
-                // Temporary diagnostics for the installed UI drag E2E test.
-                // No visible UI, no private document content.
-                var current = AutomationProperties.GetHelpText(SplitEditorToolbarButton) ?? string.Empty;
-                AutomationProperties.SetHelpText(SplitEditorToolbarButton,
-                    (current + " | " + stage).TrimStart(' ', '|').Trim());
-            };
             core.ActiveTextEditorChanged += (sender, editor) => SetupStatusBar(editor);
 
             var splitText = _resourceLoader.GetString("SplitEditor_MenuTitle");
