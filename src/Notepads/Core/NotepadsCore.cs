@@ -406,8 +406,6 @@ namespace Notepads.Core
 
             textEditorSetsViewItem.Icon.Visibility = textEditor.IsModified ? Visibility.Visible : Visibility.Collapsed;
             textEditorSetsViewItem.ContextFlyout = new TabContextFlyout(this, textEditor);
-            textEditorSetsViewItem.AddHandler(UIElement.PointerPressedEvent,
-                new PointerEventHandler((sender, args) => TabHeader_PointerPressed(textEditor, args)), true);
             // Stable UIA identifier and an accessible tab name, even when the
             // editor is moved and a new SetsViewItem container is created.
             AutomationProperties.SetAutomationId(textEditorSetsViewItem,
