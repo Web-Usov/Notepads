@@ -295,7 +295,10 @@ public sealed class EditorUiTests
         PrepareSplitForTabMoves();
 
         var tab = CurrentFileTab();
-        var tabBounds = tab.BoundingRectangle;
+        // UWP ListView starts the native drag gesture from its selected item.
+        tab.Click();
+        Thread.Sleep(150);
+        var tabBounds = CurrentFileTab().BoundingRectangle;
         var divider = App.RequireId("VerticalSplitDivider").BoundingRectangle;
         var primaryTab = UiTestHost.WaitFor(() => App.Window.FindAllDescendants()
             .FirstOrDefault(element => element.ControlType == ControlType.ListItem &&
@@ -311,11 +314,13 @@ public sealed class EditorUiTests
         Mouse.Down();
         try
         {
+            Thread.Sleep(160);
             // Cross the Windows drag threshold first, then traverse to the
             // destination tab strip with real pointer movement.
-            Mouse.MoveTo(from.X - 12, from.Y);
+            Mouse.MoveTo(from.X - 20, from.Y);
+            Thread.Sleep(160);
             Mouse.MoveTo(to);
-            Thread.Sleep(200);
+            Thread.Sleep(300);
         }
         finally
         {
@@ -380,12 +385,46 @@ public sealed class EditorUiTests
         throw new ArgumentOutOfRangeException(nameof(groupAutomationId));
     }
 
+    private static AutomationElement OwningMenuItem(AutomationElement element)
+    {
+        var current = element;
+        for (var depth = 0; depth < 8; depth++)
+        {
+            if (current.ControlType == ControlType.MenuItem) return current;
+            var parent = current.Parent;
+            if (parent is null) break;
+            current = parent;
+        }
+        return element;
+    }
+
     private void MoveCurrentFileFromContextMenu(string destinationLabel)
     {
         CurrentFileTab().RightClick();
-        var menu = App.RequireName("Move to group");
-        menu.Click();
-        App.RequireName(destinationLabel).Click();
+
+        var submenu = OwningMenuItem(App.RequireName("Move to group"));
+        if (submenu.Patterns.ExpandCollapse.IsSupported)
+        {
+            submenu.Patterns.ExpandCollapse.Pattern.Expand();
+        }
+        else
+        {
+            submenu.Click();
+        }
+        var destination = OwningMenuItem(App.RequireName(destinationLabel));
+        if (destination.Patterns.Invoke.IsSupported)
+        {
+            destination.Patterns.Invoke.Pattern.Invoke();
+        }
+        else
+        {
+            // MenuFlyoutItem on some UWP builds only exposes its TextBlock to UIA.
+            var bounds = destination.BoundingRectangle;
+            Mouse.Position = new Point((int)(bounds.Left + bounds.Width / 2),
+                (int)(bounds.Top + bounds.Height / 2));
+            Thread.Sleep(180);
+            Mouse.Click();
+        }
     }
 
     private AutomationElement? TryFindExtension(string label)
