@@ -37,6 +37,7 @@ namespace Notepads.Core
         event KeyEventHandler TextEditorKeyDown;
         event EventHandler SplitLayoutChanged;
         event EventHandler<ITextEditor> ActiveTextEditorChanged;
+        event EventHandler<int> TabDropTargetChanged;
 
         EditorSplitOrientation SplitOrientation { get; }
         bool IsSplitEditorEnabled { get; }
