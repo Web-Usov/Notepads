@@ -347,16 +347,8 @@ public sealed class EditorUiTests
             Mouse.Up();
         }
 
-        try
-        {
-            UiTestHost.WaitUntil(() => IsCurrentFileInGroup(targetGroup),
-                "dragged tab to appear in " + targetGroup, 30);
-        }
-        catch (AssertionException ex)
-        {
-            var trace = App.RequireId("SplitEditorToolbarButton").Properties.HelpText.ValueOrDefault;
-            throw new AssertionException(ex.Message + " [tab drag events: " + trace + "]");
-        }
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup(targetGroup),
+            "dragged tab to appear in " + targetGroup, 30);
         Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Drag cannot create a duplicate tab.");
     }
 
