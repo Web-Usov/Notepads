@@ -1,4 +1,6 @@
 using System.Threading;
+using System.Drawing;
+using FlaUI.Core.Input;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using NUnit.Framework;
@@ -261,6 +263,113 @@ public sealed class EditorUiTests
         Assert.That(menu.Height, Is.GreaterThan(10));
         // This test also exports a screenshot, even on success, for nightly UI review.
         App.CaptureEvidence("Visual-layout-snapshot", failed: false, captureScreenshot: true);
+    }
+
+    [Test]
+    public void Tab_context_menu_moves_existing_document_between_groups_and_keeps_undo()
+    {
+        App.Editor.Focus();
+        UiTestHost.Keys("^{END}");
+        UiTestHost.Keys("x");
+        App.AssertDocument(Original + "x");
+
+        PrepareSplitForTabMoves();
+
+        MoveCurrentFileFromContextMenu("Group 1 — first pane");
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("PrimaryEditorGroup"),
+            "context menu move into the first group");
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Tab transfer must never duplicate the document.");
+        App.Editor.Focus();
+        UiTestHost.Keys("^z");
+        App.AssertDocument(Original);
+
+        MoveCurrentFileFromContextMenu("Group 2 — second pane");
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("SecondaryEditorGroup"),
+            "context menu move into the second group");
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Dragging_tab_into_other_group_moves_original_editor_without_duplication()
+    {
+        PrepareSplitForTabMoves();
+
+        var tab = CurrentFileTab();
+        var destination = App.RequireId("PrimaryEditorGroup").BoundingRectangle;
+        var tabBounds = tab.BoundingRectangle;
+        var from = new Point((int)(tabBounds.Left + Math.Min(tabBounds.Width / 3, 55)),
+            (int)(tabBounds.Top + tabBounds.Height / 2));
+        var to = new Point((int)(destination.Left + destination.Width / 2),
+            (int)(tabBounds.Top + tabBounds.Height / 2));
+
+        Mouse.Position = from;
+        Mouse.Down(MouseButton.Left);
+        try
+        {
+            // Cross the Windows drag threshold first, then traverse to the
+            // destination tab strip with real pointer movement.
+            Mouse.MoveTo(from.X - 12, from.Y);
+            Mouse.MoveTo(to);
+            Thread.Sleep(200);
+        }
+        finally
+        {
+            Mouse.Up(MouseButton.Left);
+        }
+
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("PrimaryEditorGroup"),
+            "dragged tab to appear in the first group", 30);
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Drag cannot create a duplicate tab.");
+        App.AssertDocument(Original);
+    }
+
+    private void PrepareSplitForTabMoves()
+    {
+        App.Invoke(App.RequireId("SplitEditorToolbarButton"));
+        App.Invoke(App.RequireId("ToolbarSplitRightButton"));
+        UiTestHost.WaitUntil(() => App.Window.FindAllDescendants()
+                .Count(element => element.AutomationId == "TextEditorCore") == 2,
+            "two text editors after splitting", 35);
+
+        // Keep both groups occupied when the file moves. Otherwise the normal
+        // editor lifecycle closes an empty secondary group automatically.
+        App.Invoke(App.RequireId("SecondaryNewSetButton"));
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("SecondaryEditorGroup"),
+            "original document in the secondary group");
+    }
+
+    private int CountDocumentTabs()
+    {
+        var name = Path.GetFileName(App.SourceFile);
+        return App.Window.FindAllDescendants().Count(element =>
+            element.AutomationId.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private AutomationElement CurrentFileTab()
+    {
+        var name = Path.GetFileName(App.SourceFile);
+        return UiTestHost.WaitFor(() => App.Window.FindAllDescendants().FirstOrDefault(element =>
+            element.AutomationId.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)),
+            "document tab named " + name);
+    }
+
+    private bool IsCurrentFileInGroup(string groupAutomationId)
+    {
+        var group = App.FindById(groupAutomationId);
+        var name = Path.GetFileName(App.SourceFile);
+        return group?.FindAllDescendants().Any(element =>
+            element.AutomationId.StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)) ?? false;
+    }
+
+    private void MoveCurrentFileFromContextMenu(string destinationLabel)
+    {
+        CurrentFileTab().RightClick();
+        var menu = App.RequireName("Move to group");
+        menu.Click();
+        App.RequireName(destinationLabel).Click();
     }
 
     private AutomationElement? TryFindExtension(string label)
