@@ -4,17 +4,26 @@ $ErrorActionPreference = 'Stop'
 
 $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../..')).ProviderPath
 $originalManifest = Join-Path $root 'src/Notepads/Package.appxmanifest'
+$originalManifestHash = (Get-FileHash -LiteralPath $originalManifest -Algorithm SHA256).Hash
 $allocator = Join-Path $root 'tools/installer/Set-PreviewPackageVersion.ps1'
 $work = Join-Path ([IO.Path]::GetTempPath()) ("PlainixPreviewVersion-" + [Guid]::NewGuid())
 $null = New-Item -ItemType Directory -Path $work
 $copy = Join-Path $work 'Package.appxmanifest'
+
+# A fixed synthetic version makes allocator regression tests independent of
+# future release versions checked into Package.appxmanifest.
+function Reset-Fixture {
+    [IO.File]::WriteAllText($copy,
+        '<Package><Identity Name="Plainix-Tests" Publisher="CN=Plainix Tests" Version="1.7.0.3" /></Package>',
+        [Text.UTF8Encoding]::new($false))
+}
 
 function Check([bool]$value, [string]$name) {
     if (-not $value) { throw "Failed version test: $name" }
 }
 
 function Compute([long]$run, [int]$attempt) {
-    Copy-Item -LiteralPath $originalManifest -Destination $copy -Force
+    Reset-Fixture
     $base = [version]([xml](Get-Content -LiteralPath $copy -Raw)).Package.Identity.Version
     & $allocator -ManifestPath $copy -RunNumber $run -RunAttempt $attempt | Out-Null
     $result = [version]([xml](Get-Content -LiteralPath $copy -Raw)).Package.Identity.Version
@@ -24,7 +33,7 @@ function Compute([long]$run, [int]$attempt) {
 }
 
 function Expect-Rejected([long]$run, [int]$attempt, [string]$name) {
-    Copy-Item -LiteralPath $originalManifest -Destination $copy -Force
+    Reset-Fixture
     $before = (Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash
     $rejected = $false
     try {
@@ -36,7 +45,7 @@ function Expect-Rejected([long]$run, [int]$attempt, [string]$name) {
 }
 
 try {
-    $base = [version]([xml](Get-Content -LiteralPath $originalManifest -Raw)).Package.Identity.Version
+    $base = [version]'1.7.0.3'
     $first = Compute 66 1
     $retry = Compute 66 2
     $later = Compute 67 1
@@ -54,7 +63,7 @@ try {
     Expect-Rejected 16383 4 'revision overflow'
     Expect-Rejected 16384 1 'workflow run overflow'
 
-    Copy-Item -LiteralPath $originalManifest -Destination $copy -Force
+    Reset-Fixture
     [xml]$highVersion = Get-Content -LiteralPath $copy -Raw
     $highVersion.Package.Identity.SetAttribute('Version', '1.7.0.500')
     $highVersion.Save($copy)
@@ -68,4 +77,5 @@ try {
 }
 finally {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
+    Check ((Get-FileHash -LiteralPath $originalManifest -Algorithm SHA256).Hash -eq $originalManifestHash) 'repository manifest unchanged'
 }
