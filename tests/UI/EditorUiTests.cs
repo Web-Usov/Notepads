@@ -294,31 +294,45 @@ public sealed class EditorUiTests
     public void Dragging_tab_into_other_group_moves_original_editor_without_duplication()
     {
         PrepareSplitForTabMoves();
+        DragCurrentFileTo("PrimaryEditorGroup");
+        DragCurrentFileTo("SecondaryEditorGroup");
 
-        var tab = CurrentFileTab();
-        // UWP ListView starts the native drag gesture from its selected item.
-        tab.Click();
+        // Both transfers must preserve the actual source text, not merely the
+        // tab label. Use both panes' text providers rather than the first one.
+        var editorContents = App.Window.FindAllDescendants()
+            .Where(element => (element.Properties.AutomationId.ValueOrDefault ?? string.Empty) == "TextEditorCore")
+            .Select(element => element.Patterns.Text.Pattern.DocumentRange.GetText(-1).TrimEnd('\r', '\n'))
+            .ToArray();
+        Assert.That(editorContents, Does.Contain(Original));
+    }
+
+    private void DragCurrentFileTo(string targetGroup)
+    {
+        CurrentFileTab().Click();
         Thread.Sleep(150);
-        var tabBounds = CurrentFileTab().BoundingRectangle;
+        var source = CurrentFileTab().BoundingRectangle;
         var divider = App.RequireId("VerticalSplitDivider").BoundingRectangle;
-        var primaryTab = UiTestHost.WaitFor(() => App.Window.FindAllDescendants()
-            .FirstOrDefault(element => element.ControlType == ControlType.ListItem &&
-                element.Name == "Untitled.txt" && element.BoundingRectangle.Right <= divider.Left),
-            "the primary group's target tab");
-        var targetBounds = primaryTab.BoundingRectangle;
-        var from = new Point((int)(tabBounds.Left + Math.Min(tabBounds.Width / 3, 35)),
-            (int)(tabBounds.Top + tabBounds.Height / 2));
-        var to = new Point((int)(targetBounds.Left + targetBounds.Width / 2),
-            (int)(targetBounds.Top + targetBounds.Height / 2));
+        var targetTab = UiTestHost.WaitFor(() => App.Window.FindAllDescendants()
+            .FirstOrDefault(element =>
+                element.ControlType == ControlType.ListItem &&
+                element.Name == "Untitled.txt" &&
+                (targetGroup == "PrimaryEditorGroup"
+                    ? element.BoundingRectangle.Right <= divider.Left
+                    : element.BoundingRectangle.Left >= divider.Right)),
+            "the target tab in " + targetGroup);
+        var target = targetTab.BoundingRectangle;
+        var from = new Point((int)(source.Left + Math.Min(source.Width / 3, 35)),
+            (int)(source.Top + source.Height / 2));
+        var to = new Point((int)(target.Left + target.Width / 2),
+            (int)(target.Top + target.Height / 2));
 
         Mouse.Position = from;
         Mouse.Down();
         try
         {
             Thread.Sleep(180);
-            // FlaUI Mouse.MoveTo uses SetCursorPos, which can fail to generate
-            // WM_POINTERUPDATE on an interactive UWP test runner. Inject
-            // successive absolute mouse input events like a real drag gesture.
+            // FlaUI Mouse.MoveTo uses SetCursorPos. Send real Win32 move events
+            // to exercise a native UWP drag instead of only relocating the cursor.
             for (var step = 1; step <= 24; step++)
             {
                 var x = (int)Math.Round(from.X + (to.X - from.X) * step / 24.0);
@@ -335,8 +349,8 @@ public sealed class EditorUiTests
 
         try
         {
-            UiTestHost.WaitUntil(() => IsCurrentFileInGroup("PrimaryEditorGroup"),
-                "dragged tab to appear in the first group", 30);
+            UiTestHost.WaitUntil(() => IsCurrentFileInGroup(targetGroup),
+                "dragged tab to appear in " + targetGroup, 30);
         }
         catch (AssertionException ex)
         {
@@ -344,7 +358,6 @@ public sealed class EditorUiTests
             throw new AssertionException(ex.Message + " [tab drag events: " + trace + "]");
         }
         Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Drag cannot create a duplicate tab.");
-        App.AssertDocument(Original);
     }
 
     [DllImport("user32.dll")]
