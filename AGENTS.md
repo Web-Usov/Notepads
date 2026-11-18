@@ -34,4 +34,6 @@ Run the portable suite from the repository root for changes to plugins or their 
 dotnet run --project tests/SyntaxExtensions/SyntaxExtensions.Tests.csproj -c Release
 ```
 
+For Windows UI changes, the [installed UI test guide](docs/ui-testing.md) describes the NUnit/FlaUI suite, screenshots and nightly CI. Run `powershell.exe -NoProfile -STA -File tests/UI/Run-UiTests.ps1 -PackageFolder <preview artifact folder>` on a disposable interactive Windows profile. Required UI tests must stay green before releases.
+
 For desktop changes, open [src/Notepads.sln](src/Notepads.sln) on Windows, choose **Notepads / Debug / x64 / Local Machine** and press **F5**. For UI text, exercise the affected flow in English and Russian after restarting the app. For package changes, check the signed bundle in the **Windows preview installer** PR workflow and its installed-editor smoke test. Report which checks ran in the PR. [Build and installer instructions](CONTRIBUTING.md)

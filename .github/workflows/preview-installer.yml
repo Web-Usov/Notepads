@@ -5,6 +5,9 @@ on:
   push:
     branches: ['release/v*', 'native-preview/v*']
   workflow_dispatch:
+  schedule:
+    # Nightly installed-app UI checks on the default branch.
+    - cron: '0 3 * * *'
 
 permissions:
   contents: read
@@ -176,14 +179,13 @@ jobs:
 
   editor-smoke:
     name: Exercise the installed editor
-    if: github.event_name == 'pull_request'
     needs: installer
     runs-on: windows-2022
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
@@ -192,6 +194,35 @@ jobs:
       - name: Verify editing, Undo and source navigation
         shell: powershell
         run: powershell.exe -NoProfile -STA -File tests/SyntaxExtensions/WindowsEditorSmoke.ps1 -PackageFolder "$env:RUNNER_TEMP\notepads-smoke-package"
+
+  ui-tests:
+    name: Windows UI E2E (NUnit / FlaUI)
+    needs: installer
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/download-artifact@v4
+        with:
+          name: Plainix-Windows-x64
+          path: ${{ runner.temp }}/plainix-ui-package
+      - name: Exercise editor, find, preferences, extensions and visual landmarks
+        shell: powershell
+        run: powershell.exe -NoProfile -STA -File tests/UI/Run-UiTests.ps1 -PackageFolder "$env:RUNNER_TEMP\\plainix-ui-package" -ResultsDirectory "$env:RUNNER_TEMP\\plainix-ui-results"
+      - name: Upload TRX and UI failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: ${{ runner.temp }}/plainix-ui-results/
+          if-no-files-found: warn
+          retention-days: 14
 
   native-install:
     name: Install with Windows App Installer
@@ -224,7 +255,7 @@ jobs:
   publish:
     name: Publish Windows x64 installer
     if: github.event_name == 'push'
-    needs: [installer, native-install, release-guards-tests]
+    needs: [installer, native-install, editor-smoke, ui-tests, release-guards-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: write

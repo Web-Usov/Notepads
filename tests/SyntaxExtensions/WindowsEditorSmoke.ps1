@@ -42,13 +42,18 @@ function Find-Control($Root, $Property, [string]$Value) {
     $Root.FindFirst($subtree, $condition)
 }
 
-# UWP may expose a flyout as a separate top-level popup owned by the editor process.
-# Restrict searches to the document window and those popups, even during startup.
+# UWP flyouts may use a separate top-level popup (sometimes hosted by a
+# different process from the editor). Only inspect popups overlapping our
+# disposable editor window; do not select unrelated desktop controls.
 function Find-AppControl($Property, [string]$Value) {
     $control = Find-Control $window $Property $Value
     if ($control) { return $control }
-    $popups = $desktop.FindAll([System.Windows.Automation.TreeScope]::Children, $ownedByEditor)
-    foreach ($popup in $popups) {
+
+    $appBounds = $window.Current.BoundingRectangle
+    $topLevel = $desktop.FindAll([System.Windows.Automation.TreeScope]::Children,
+        [System.Windows.Automation.Condition]::TrueCondition)
+    foreach ($popup in $topLevel) {
+        if (!$popup.Current.BoundingRectangle.IntersectsWith($appBounds)) { continue }
         $control = Find-Control $popup $Property $Value
         if ($control) { return $control }
     }
@@ -60,8 +65,20 @@ function Invoke-Control($Control) {
 }
 
 function Invoke-Extension([string]$Name, [string]$SubmenuName) {
-    Invoke-Control (Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' })
-    $submenu = Wait-For 'the Extension commands submenu' { Find-AppControl $byId 'MenuExtensionCommands' }
+    $button = Wait-For 'the main menu button' { Find-AppControl $byId 'MainMenuButton' }
+    $submenu = $null
+    # Popup opening can race first-frame startup on hosted Windows runners.
+    # Retry the actual menu interaction, never silently skip missing commands.
+    for ($attempt = 1; $attempt -le 3 -and !$submenu; $attempt++) {
+        if ($attempt -gt 1) { [System.Windows.Forms.SendKeys]::SendWait('{ESC}') }
+        Invoke-Control $button
+        $deadline = [DateTime]::UtcNow.AddSeconds(12)
+        do {
+            $submenu = Find-AppControl $byId 'MenuExtensionCommands'
+            if (!$submenu) { Start-Sleep -Milliseconds 200 }
+        } while (!$submenu -and [DateTime]::UtcNow -lt $deadline)
+    }
+    if (!$submenu) { throw 'Timed out waiting for the Extension commands submenu after 3 menu attempts.' }
     if ($SubmenuName -and $submenu.Current.Name -cne $SubmenuName) { throw "Unexpected submenu name: $($submenu.Current.Name)" }
     $submenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
     Invoke-Control (Wait-For $Name { Find-AppControl $byName $Name })
@@ -220,7 +237,8 @@ try {
     $fixture = [IO.File]::ReadAllText((Join-Path $root $manifestPath)) | ConvertFrom-Json
     $sha = git -C $root rev-parse HEAD
     if ($LASTEXITCODE -ne 0 -or $sha -notmatch '^[a-f0-9]{40}$') { throw 'Could not resolve the fixture commit.' }
-    $source = "https://raw.githubusercontent.com/Web-Usov/Notepads/$sha/$manifestPath"
+    $repository = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { 'Web-Usov/Plainix' }
+    $source = "https://raw.githubusercontent.com/$repository/$sha/$manifestPath"
     $storedFile = Join-Path $data "Extensions\ext-$($fixture.id).notepads-extension.json"
     if (Test-Path -LiteralPath $storedFile) { throw 'The example extension is already installed.' }
     Write-Output "Verifying the v2 package installer with $source"
