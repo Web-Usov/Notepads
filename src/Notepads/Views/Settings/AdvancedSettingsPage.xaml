@@ -34,7 +34,8 @@
                 <StackPanel Margin="0,10,0,0">
                     <ToggleSwitch x:Uid="/Settings/AdvancedPage_StatusBarSettings_ShowHideStatusBarToggleSwitch"
                                   Style="{StaticResource CustomToggleSwitchStyle}" 
-                                  x:Name="ShowStatusBarToggleSwitch" />
+                                  x:Name="ShowStatusBarToggleSwitch"
+                                  AutomationProperties.AutomationId="ShowStatusBarToggleSwitch" />
                 </StackPanel>
                 <TextBlock
                     x:Uid="/Settings/AdvancedPage_SmartCopySettings_Title"
