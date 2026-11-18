@@ -8,8 +8,12 @@ namespace Notepads.Core
     using Notepads.Controls;
     using Notepads.Controls.TextEditor;
     using Windows.ApplicationModel.DataTransfer;
+    using Windows.Devices.Input;
+    using Windows.Foundation;
     using Notepads.Services;
     using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Input;
+    using Windows.UI.Xaml.Media;
 
     public partial class NotepadsCore
     {
@@ -18,12 +22,143 @@ namespace Notepads.Core
         private EditorSplitOrientation _splitOrientation;
         private bool _isMergingGroups;
         private int _tabDropTargetGroup = -1;
+        private FrameworkElement _tabTransferSurface;
+        private ITextEditor _pressedTabEditor;
+        private uint _pressedTabPointerId;
+        private Point _pressedTabPosition;
+        private bool _tabPressExceededDragThreshold;
 
         // UI-only feedback. Document ownership and tab moves remain core-owned.
         public event EventHandler<int> TabDropTargetChanged;
         public event EventHandler<string> TabTransferDiagnosticChanged;
 
         private void TraceTabTransfer(string stage) => TabTransferDiagnosticChanged?.Invoke(this, stage);
+
+        // Native ListView handles reordering and regular cross-window drags.
+        // This pointer-based fallback also supports cross-group transfers when
+        // UWP does not initiate ListView's DragItemsStarting in a split titlebar.
+        public void AttachTabTransferSurface(FrameworkElement surface)
+        {
+            if (surface == null) throw new ArgumentNullException(nameof(surface));
+            if (_secondarySets == null) throw new InvalidOperationException("Attach the second tab group first.");
+            if (_tabTransferSurface != null) throw new InvalidOperationException("Transfer surface already attached.");
+            _tabTransferSurface = surface;
+
+            surface.AddHandler(UIElement.PointerMovedEvent,
+                new PointerEventHandler(TabTransferSurface_PointerMoved), true);
+            surface.AddHandler(UIElement.PointerReleasedEvent,
+                new PointerEventHandler(TabTransferSurface_PointerReleased), true);
+            surface.AddHandler(UIElement.PointerCanceledEvent,
+                new PointerEventHandler(TabTransferSurface_PointerCanceled), true);
+            surface.AddHandler(UIElement.PointerCaptureLostEvent,
+                new PointerEventHandler(TabTransferSurface_PointerCanceled), true);
+        }
+
+        private void TabHeader_PointerPressed(ITextEditor editor, PointerRoutedEventArgs args)
+        {
+            if (_tabTransferSurface == null || !IsSplitEditorEnabled ||
+                args.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+            {
+                return;
+            }
+
+            var pointer = args.GetCurrentPoint(_tabTransferSurface);
+            if (!pointer.Properties.IsLeftButtonPressed) return;
+
+            // The X button should never arm a drag gesture.
+            var current = args.OriginalSource as DependencyObject;
+            while (current != null && !(current is SetsViewItem))
+            {
+                if (current is Windows.UI.Xaml.Controls.Primitives.ButtonBase) return;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            if (current == null || FindEditorGroup(editor) == null) return;
+
+            _pressedTabEditor = editor;
+            _pressedTabPointerId = args.Pointer.PointerId;
+            _pressedTabPosition = pointer.Position;
+            _tabPressExceededDragThreshold = false;
+            TraceTabTransfer("pointer down group " + GetEditorGroupIndex(editor));
+        }
+
+        private int GetTransferTargetGroup(Point point)
+        {
+            if (!IsSplitEditorEnabled || _tabTransferSurface == null) return -1;
+            if (IsPointInsideGroup(_sets, point)) return 0;
+            if (IsPointInsideGroup(_secondarySets, point)) return 1;
+            return -1;
+        }
+
+        private bool IsPointInsideGroup(SetsView group, Point position)
+        {
+            if (group == null || group.Visibility != Visibility.Visible ||
+                group.ActualWidth <= 0 || group.ActualHeight <= 0)
+            {
+                return false;
+            }
+            var origin = group.TransformToVisual(_tabTransferSurface).TransformPoint(new Point(0, 0));
+            return position.X >= origin.X && position.X < origin.X + group.ActualWidth &&
+                   position.Y >= origin.Y && position.Y < origin.Y + group.ActualHeight;
+        }
+
+        private void TabTransferSurface_PointerMoved(object sender, PointerRoutedEventArgs args)
+        {
+            if (_pressedTabEditor == null || args.Pointer.PointerId != _pressedTabPointerId) return;
+            var current = args.GetCurrentPoint(_tabTransferSurface);
+            if (!current.Properties.IsLeftButtonPressed)
+            {
+                ClearTabPointerDrag();
+                return;
+            }
+
+            var pos = current.Position;
+            var dx = pos.X - _pressedTabPosition.X;
+            var dy = pos.Y - _pressedTabPosition.Y;
+            if (!_tabPressExceededDragThreshold && dx * dx + dy * dy >= 64)
+            {
+                _tabPressExceededDragThreshold = true;
+                TraceTabTransfer("pointer threshold crossed");
+            }
+            if (!_tabPressExceededDragThreshold) return;
+
+            var target = GetTransferTargetGroup(pos);
+            SetTabDropTarget(target >= 0 && target != GetEditorGroupIndex(_pressedTabEditor)
+                ? target : -1);
+        }
+
+        private void TabTransferSurface_PointerReleased(object sender, PointerRoutedEventArgs args)
+        {
+            if (_pressedTabEditor == null || args.Pointer.PointerId != _pressedTabPointerId) return;
+            var editor = _pressedTabEditor;
+            var target = _tabPressExceededDragThreshold
+                ? GetTransferTargetGroup(args.GetCurrentPoint(_tabTransferSurface).Position) : -1;
+            ClearTabPointerDrag();
+            if (target < 0 || target == GetEditorGroupIndex(editor)) return;
+            try
+            {
+                TraceTabTransfer("pointer transfer to group " + target);
+                MoveEditorToGroup(editor, target);
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex);
+            }
+        }
+
+        private void TabTransferSurface_PointerCanceled(object sender, PointerRoutedEventArgs args)
+        {
+            if (_pressedTabEditor != null && args.Pointer.PointerId == _pressedTabPointerId)
+            {
+                ClearTabPointerDrag();
+            }
+        }
+
+        private void ClearTabPointerDrag()
+        {
+            _pressedTabEditor = null;
+            _tabPressExceededDragThreshold = false;
+            SetTabDropTarget(-1);
+        }
 
         private void SetTabDropTarget(int targetGroup)
         {
@@ -292,7 +427,7 @@ namespace Notepads.Core
                 _isMergingGroups = false;
             }
             _splitOrientation = EditorSplitOrientation.None;
-            SetTabDropTarget(-1);
+            ClearTabPointerDrag();
             ActivateEditorGroup(0);
             SplitLayoutChanged?.Invoke(this, EventArgs.Empty);
             FocusOnSelectedTextEditor();
