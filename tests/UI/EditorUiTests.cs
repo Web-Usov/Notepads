@@ -303,7 +303,7 @@ public sealed class EditorUiTests
             (int)(tabBounds.Top + tabBounds.Height / 2));
 
         Mouse.Position = from;
-        Mouse.Down(MouseButton.Left);
+        Mouse.Down();
         try
         {
             // Cross the Windows drag threshold first, then traverse to the
@@ -314,7 +314,7 @@ public sealed class EditorUiTests
         }
         finally
         {
-            Mouse.Up(MouseButton.Left);
+            Mouse.Up();
         }
 
         UiTestHost.WaitUntil(() => IsCurrentFileInGroup("PrimaryEditorGroup"),
