@@ -12,6 +12,15 @@ namespace Notepads.Core
     using Notepads.Services;
     using Windows.UI.Xaml;
 
+    public enum EditorTabDropZone
+    {
+        None,
+        Left,
+        Right,
+        Top,
+        Bottom
+    }
+
     public partial class NotepadsCore
     {
         private SetsView _secondarySets;
@@ -19,10 +28,12 @@ namespace Notepads.Core
         private EditorSplitOrientation _splitOrientation;
         private bool _isMergingGroups;
         private int _tabDropTargetGroup = -1;
+        private EditorTabDropZone _splitCreationZone = EditorTabDropZone.None;
         private FrameworkElement _tabTransferSurface;
 
         // UI-only feedback. Document ownership and tab moves remain core-owned.
         public event EventHandler<int> TabDropTargetChanged;
+        public event EventHandler<EditorTabDropZone> SplitCreationTargetChanged;
 
 
         // The editor surface provides stable coordinates for native drop
@@ -33,6 +44,99 @@ namespace Notepads.Core
             if (_secondarySets == null) throw new InvalidOperationException("Attach the second tab group first.");
             if (_tabTransferSurface != null) throw new InvalidOperationException("Transfer surface already attached.");
             _tabTransferSurface = surface;
+            surface.AddHandler(UIElement.DragOverEvent,
+                new DragEventHandler(SplitCreationSurface_DragOver), true);
+        }
+
+        private void SplitCreationSurface_DragOver(object sender, DragEventArgs args)
+        {
+            if (!IsSplitEditorEnabled &&
+                TryGetDraggedEditor(args.DataView, out ITextEditor editor))
+            {
+                SetSplitCreationTarget(GetSplitCreationZone(editor,
+                    args.GetPosition(_tabTransferSurface)));
+            }
+        }
+
+        private void SetSplitCreationTarget(EditorTabDropZone zone)
+        {
+            if (_splitCreationZone == zone) return;
+            _splitCreationZone = zone;
+            SplitCreationTargetChanged?.Invoke(this, zone);
+        }
+
+        private EditorTabDropZone GetSplitCreationZoneAtCurrentPointer(ITextEditor editor)
+        {
+            if (_tabTransferSurface == null) return EditorTabDropZone.None;
+            return GetSplitCreationZone(editor,
+                ToTransferSurfacePoint(Window.Current.CoreWindow.PointerPosition));
+        }
+
+        private EditorTabDropZone GetSplitCreationZone(ITextEditor editor, Point position)
+        {
+            // Deliberately require two existing documents: one stays in the
+            // original group while the dragged tab becomes a new group.
+            if (IsSplitEditorEnabled || _tabTransferSurface == null ||
+                !ReferenceEquals(FindEditorGroup(editor), _sets) ||
+                _sets.Items.Count < 2 || !IsPointInsideGroup(_sets, position))
+            {
+                return EditorTabDropZone.None;
+            }
+
+            var origin = _sets.TransformToVisual(_tabTransferSurface).TransformPoint(new Point(0, 0));
+            var x = position.X - origin.X;
+            var y = position.Y - origin.Y;
+            var w = _sets.ActualWidth;
+            var h = _sets.ActualHeight;
+            var threshold = Math.Min(120, Math.Min(w, h) * 0.25);
+            // Avoid splitting when the user is merely reordering in the tab strip.
+            if (y < 42) return EditorTabDropZone.None;
+
+            var candidates = new[]
+            {
+                new { Zone = EditorTabDropZone.Left, Distance = x },
+                new { Zone = EditorTabDropZone.Right, Distance = w - x },
+                new { Zone = EditorTabDropZone.Top, Distance = y - 42 },
+                new { Zone = EditorTabDropZone.Bottom, Distance = h - y }
+            };
+            var closest = candidates.OrderBy(candidate => candidate.Distance).First();
+            return closest.Distance <= threshold ? closest.Zone : EditorTabDropZone.None;
+        }
+
+        private void SplitEditorByDragging(ITextEditor editor, EditorTabDropZone zone)
+        {
+            if (editor == null || IsSplitEditorEnabled ||
+                !ReferenceEquals(FindEditorGroup(editor), _sets) ||
+                _sets.Items.Count < 2 || zone == EditorTabDropZone.None) return;
+
+            var orientation = zone == EditorTabDropZone.Left || zone == EditorTabDropZone.Right
+                ? EditorSplitOrientation.Right : EditorSplitOrientation.Down;
+            var before = zone == EditorTabDropZone.Left || zone == EditorTabDropZone.Top;
+            var otherEditors = _sets.Items.Cast<SetsViewItem>()
+                .Select(item => item.Content as ITextEditor)
+                .Where(item => item != null && !ReferenceEquals(item, editor)).ToArray();
+
+            SetSplitCreationTarget(EditorTabDropZone.None);
+            try
+            {
+                SetSplitEditorOrientation(orientation);
+                if (before)
+                {
+                    // The new group occupies the left/top position. Keep the
+                    // dragged tab in primary; transfer all remaining tabs intact.
+                    foreach (var other in otherEditors) MoveEditorToGroup(other, _secondarySets);
+                    SwitchTo(editor);
+                }
+                else
+                {
+                    MoveEditorToGroup(editor, _secondarySets);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex);
+                if (IsSplitEditorEnabled) CloseSplitEditor();
+            }
         }
 
         private int GetTransferTargetGroup(Point point)
@@ -178,6 +282,7 @@ namespace Notepads.Core
                                            orientation != EditorSplitOrientation.Down)) return;
             if (_splitOrientation == orientation) return;
             _splitOrientation = orientation;
+            SetSplitCreationTarget(EditorTabDropZone.None);
             SplitLayoutChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -328,6 +433,7 @@ namespace Notepads.Core
             }
             _splitOrientation = EditorSplitOrientation.None;
             SetTabDropTarget(-1);
+            SetSplitCreationTarget(EditorTabDropZone.None);
             ActivateEditorGroup(0);
             SplitLayoutChanged?.Invoke(this, EventArgs.Empty);
             FocusOnSelectedTextEditor();
