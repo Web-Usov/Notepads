@@ -927,7 +927,11 @@ namespace Notepads.Core
             var editor = dragged as ITextEditor ?? (dragged as SetsViewItem)?.Content as ITextEditor;
             var source = GetEditorGroupIndex(editor);
             var destination = GetGroupAtCurrentDragPointer();
-            var splitZone = GetSplitCreationZoneAtCurrentPointer(editor);
+            var liveZone = GetSplitCreationZoneAtCurrentPointer(editor);
+            // The last valid drag-over zone is retained if the UWP native
+            // drag provider reports an imprecise final screen coordinate.
+            var splitZone = liveZone != EditorTabDropZone.None
+                ? liveZone : _splitCreationZone;
 
             if (!IsSplitEditorEnabled && source == 0 && splitZone != EditorTabDropZone.None)
             {
