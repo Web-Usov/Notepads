@@ -375,8 +375,13 @@ public sealed class EditorUiTests
 
     private void PrepareSplitForTabMoves()
     {
-        App.Invoke(App.RequireId("SplitEditorToolbarButton"));
-        App.Invoke(App.RequireId("ToolbarSplitRightButton"));
+        App.Invoke(App.RequireId("MainMenuButton"));
+        var submenu = OwningMenuItem(App.RequireId("MenuSplitEditor"));
+        if (submenu.Patterns.ExpandCollapse.IsSupported)
+            submenu.Patterns.ExpandCollapse.Pattern.Expand();
+        else
+            submenu.Click();
+        App.Invoke(App.RequireId("MenuSplitRightButton"));
         UiTestHost.WaitUntil(() =>
             App.RequireId("VerticalSplitDivider").BoundingRectangle.Width > 1 &&
             App.Window.FindAllDescendants()
