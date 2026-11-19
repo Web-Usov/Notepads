@@ -46,6 +46,8 @@ namespace Notepads.Core
             _tabTransferSurface = surface;
             surface.AddHandler(UIElement.DragOverEvent,
                 new DragEventHandler(SplitCreationSurface_DragOver), true);
+            surface.AddHandler(UIElement.DragLeaveEvent,
+                new DragEventHandler(SplitCreationSurface_DragLeave), true);
         }
 
         private void SplitCreationSurface_DragOver(object sender, DragEventArgs args)
@@ -56,6 +58,12 @@ namespace Notepads.Core
                 SetSplitCreationTarget(GetSplitCreationZone(editor,
                     args.GetPosition(_tabTransferSurface)));
             }
+        }
+
+        private void SplitCreationSurface_DragLeave(object sender, DragEventArgs args)
+        {
+            // An edge preview must not remain armed after leaving the editor.
+            if (!IsSplitEditorEnabled) SetSplitCreationTarget(EditorTabDropZone.None);
         }
 
         private void SetSplitCreationTarget(EditorTabDropZone zone)
@@ -78,7 +86,7 @@ namespace Notepads.Core
             // original group while the dragged tab becomes a new group.
             if (IsSplitEditorEnabled || _tabTransferSurface == null ||
                 !ReferenceEquals(FindEditorGroup(editor), _sets) ||
-                _sets.Items.Count < 2 || !IsPointInsideGroup(_sets, position))
+                _sets.Items.Count < 2)
             {
                 return EditorTabDropZone.None;
             }
@@ -88,6 +96,12 @@ namespace Notepads.Core
             var y = position.Y - origin.Y;
             var w = _sets.ActualWidth;
             var h = _sets.ActualHeight;
+            // Accept a small overshoot beyond the visible content bounds; OS
+            // drag images and DPI-rounded coordinates can land just past them.
+            const double overshoot = 32;
+            if (x < -overshoot || x > w + overshoot ||
+                y < 0 || y > h + overshoot) return EditorTabDropZone.None;
+
             var threshold = Math.Min(120, Math.Min(w, h) * 0.25);
             // Avoid splitting when the user is merely reordering in the tab strip.
             if (y < 42) return EditorTabDropZone.None;
