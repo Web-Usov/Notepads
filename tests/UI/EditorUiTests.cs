@@ -296,6 +296,15 @@ public sealed class EditorUiTests
     [TestCase("Top")]
     public void Dragging_a_tab_to_editor_edge_creates_a_split(string edge)
     {
+        // Keep the UWP window on top of transient runner windows, and leave
+        // a safe inset from the desktop edge while staying in the drop zone.
+        if (App.Window.Patterns.Window.IsSupported)
+        {
+            App.Window.Patterns.Window.Pattern.SetWindowVisualState(WindowVisualState.Maximized);
+        }
+        App.Window.Focus();
+        Thread.Sleep(200);
+
         // The fixture starts with one document. Create another so one remains
         // in the original group when the source file is dragged out.
         App.Invoke(App.RequireId("NewSetButton"));
@@ -305,14 +314,14 @@ public sealed class EditorUiTests
 
         var target = edge switch
         {
-            "Right" => new Point((int)(editorBounds.Right - 16),
+            "Right" => new Point((int)(editorBounds.Right - 75),
                 (int)(editorBounds.Top + editorBounds.Height / 2)),
-            "Left" => new Point((int)(editorBounds.Left + 16),
+            "Left" => new Point((int)(editorBounds.Left + 75),
                 (int)(editorBounds.Top + editorBounds.Height / 2)),
             "Top" => new Point((int)(editorBounds.Left + editorBounds.Width / 2),
-                (int)(editorBounds.Top + 20)),
+                (int)(editorBounds.Top + 75)),
             _ => new Point((int)(editorBounds.Left + editorBounds.Width / 2),
-                (int)(editorBounds.Bottom - 16))
+                (int)(editorBounds.Bottom - 75))
         };
         var from = new Point((int)(tabBounds.Left + Math.Min(tabBounds.Width / 3, 35)),
             (int)(tabBounds.Top + tabBounds.Height / 2));
