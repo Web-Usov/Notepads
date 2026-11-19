@@ -25,6 +25,20 @@ namespace Notepads.Controls
                 new PropertyMetadata(default(UIElement), OnElementPropertyChanged));
 
         /// <summary>
+        /// Whether to preview splitter motion without remeasuring editor content
+        /// on every pointer delta. Actual grid sizes commit on release.
+        /// </summary>
+        public static readonly DependencyProperty IsDeferredResizeProperty =
+            DependencyProperty.Register(nameof(IsDeferredResize), typeof(bool),
+                typeof(GridSplitter), new PropertyMetadata(false));
+
+        public bool IsDeferredResize
+        {
+            get => (bool)GetValue(IsDeferredResizeProperty);
+            set => SetValue(IsDeferredResizeProperty, value);
+        }
+
+        /// <summary>
         /// Identifies the <see cref="ResizeDirection"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty ResizeDirectionProperty
