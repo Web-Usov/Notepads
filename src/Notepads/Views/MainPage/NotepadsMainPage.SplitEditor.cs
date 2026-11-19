@@ -18,6 +18,7 @@ namespace Notepads.Views.MainPage
             var core = NotepadsCore;
             core.SplitLayoutChanged += (sender, args) => UpdateSplitEditorLayout();
             core.TabDropTargetChanged += (sender, target) => ShowTabDropTarget(target);
+            core.SplitCreationTargetChanged += (sender, zone) => ShowSplitCreationPreview(zone);
             core.ActiveTextEditorChanged += (sender, editor) => SetupStatusBar(editor);
 
             var splitText = _resourceLoader.GetString("SplitEditor_MenuTitle");
@@ -27,17 +28,11 @@ namespace Notepads.Views.MainPage
             var newTabText = _resourceLoader.GetString("SplitEditor_NewTab");
 
             MenuSplitEditor.Text = splitText;
-            MenuSplitRightButton.Text = ToolbarSplitRightButton.Text = rightText;
-            MenuSplitDownButton.Text = ToolbarSplitDownButton.Text = downText;
-            MenuCloseSplitButton.Text = ToolbarCloseSplitButton.Text = closeText;
+            MenuSplitRightButton.Text = rightText;
+            MenuSplitDownButton.Text = downText;
+            MenuCloseSplitButton.Text = closeText;
 
-            SplitEditorToolbarButton.Click += (sender, args) =>
-                FlyoutBase.ShowAttachedFlyout((FrameworkElement)sender);
-            ToolTipService.SetToolTip(SplitEditorToolbarButton, splitText);
-            ToolTipService.SetToolTip(SecondaryCloseSplitButton, closeText);
             ToolTipService.SetToolTip(SecondaryNewSetButton, newTabText);
-            AutomationProperties.SetName(SplitEditorToolbarButton, splitText);
-            AutomationProperties.SetName(SecondaryCloseSplitButton, closeText);
             AutomationProperties.SetName(SecondaryNewSetButton, newTabText);
             AutomationProperties.SetName(VerticalSplitDivider, _resourceLoader.GetString("SplitEditor_ResizeColumns"));
             AutomationProperties.SetName(HorizontalSplitDivider, _resourceLoader.GetString("SplitEditor_ResizeRows"));
@@ -49,22 +44,10 @@ namespace Notepads.Views.MainPage
             MenuSplitRightButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
                     () => ExecuteSplitSafely(EditorSplitOrientation.Right));
-            ToolbarSplitRightButton.Click += async (sender, args) =>
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => ExecuteSplitSafely(EditorSplitOrientation.Right));
             MenuSplitDownButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
                     () => ExecuteSplitSafely(EditorSplitOrientation.Down));
-            ToolbarSplitDownButton.Click += async (sender, args) =>
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => ExecuteSplitSafely(EditorSplitOrientation.Down));
             MenuCloseSplitButton.Click += async (sender, args) =>
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => core.CloseSplitEditor());
-            ToolbarCloseSplitButton.Click += async (sender, args) =>
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
-                    () => core.CloseSplitEditor());
-            SecondaryCloseSplitButton.Click += async (sender, args) =>
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
                     () => core.CloseSplitEditor());
 
@@ -77,7 +60,6 @@ namespace Notepads.Views.MainPage
             if (App.IsGameBarWidget)
             {
                 // Compact Game Bar widgets do not have enough space for two tab strips.
-                SplitEditorToolbarButton.Visibility = Visibility.Collapsed;
                 MenuSplitEditor.Visibility = Visibility.Collapsed;
             }
 
@@ -91,14 +73,32 @@ namespace Notepads.Views.MainPage
             try
             {
                 NotepadsCore.SplitSelectedEditor(orientation);
-                AutomationProperties.SetHelpText(SplitEditorToolbarButton, string.Empty);
+                AutomationProperties.SetHelpText(MainMenuButton, string.Empty);
             }
             catch (Exception exception)
             {
                 LoggingService.LogError($"[SplitEditor] {exception}");
-                AutomationProperties.SetHelpText(SplitEditorToolbarButton, exception.ToString());
+                AutomationProperties.SetHelpText(MainMenuButton, exception.ToString());
                 NotificationCenter.Instance.PostNotification(exception.Message, 5000);
             }
+        }
+
+        private void ShowSplitCreationPreview(EditorTabDropZone zone)
+        {
+            if (zone == EditorTabDropZone.None || NotepadsCore.IsSplitEditorEnabled)
+            {
+                SplitCreationPreview.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var side = zone == EditorTabDropZone.Left || zone == EditorTabDropZone.Right;
+            SplitCreationPreview.Width = side ? Sets.ActualWidth * 0.5 : double.NaN;
+            SplitCreationPreview.Height = side ? double.NaN : Sets.ActualHeight * 0.5;
+            SplitCreationPreview.HorizontalAlignment = zone == EditorTabDropZone.Left
+                ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            SplitCreationPreview.VerticalAlignment = zone == EditorTabDropZone.Top
+                ? VerticalAlignment.Top : VerticalAlignment.Bottom;
+            SplitCreationPreview.Visibility = Visibility.Visible;
         }
 
         private void ShowTabDropTarget(int target)
@@ -130,6 +130,7 @@ namespace Notepads.Views.MainPage
             Grid.SetColumn(SecondaryTabDropHighlight, right ? 2 : 0);
             Grid.SetRow(SecondaryTabDropHighlight, down ? 2 : 0);
             ShowTabDropTarget(-1);
+            ShowSplitCreationPreview(EditorTabDropZone.None);
             // Window caption controls occupy the upper-right 180 DIPs.
             // When split right, reserve that area in the second tab strip,
             // not the primary strip. A split-down view keeps it in the first.
@@ -138,7 +139,7 @@ namespace Notepads.Views.MainPage
             SecondarySets.Visibility = split ? Visibility.Visible : Visibility.Collapsed;
             VerticalSplitDivider.Visibility = right ? Visibility.Visible : Visibility.Collapsed;
             HorizontalSplitDivider.Visibility = down ? Visibility.Visible : Visibility.Collapsed;
-            MenuCloseSplitButton.IsEnabled = ToolbarCloseSplitButton.IsEnabled = split;
+            MenuCloseSplitButton.IsEnabled = split;
         }
     }
 }
