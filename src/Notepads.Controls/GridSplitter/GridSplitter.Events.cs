@@ -5,6 +5,7 @@
 
 namespace Notepads.Controls
 {
+    using System;
     using Windows.System;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
