@@ -62,8 +62,13 @@ namespace Notepads.Core
 
         private void SplitCreationSurface_DragLeave(object sender, DragEventArgs args)
         {
-            // An edge preview must not remain armed after leaving the editor.
-            if (!IsSplitEditorEnabled) SetSplitCreationTarget(EditorTabDropZone.None);
+            // DragLeave also bubbles from child controls inside the editor.
+            // Clear the preview only when the pointer leaves the editor itself.
+            if (!IsSplitEditorEnabled && _tabTransferSurface != null &&
+                !IsPointInsideGroup(_sets, args.GetPosition(_tabTransferSurface)))
+            {
+                SetSplitCreationTarget(EditorTabDropZone.None);
+            }
         }
 
         private void SetSplitCreationTarget(EditorTabDropZone zone)
