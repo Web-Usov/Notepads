@@ -588,6 +588,11 @@ namespace Notepads.Core
 
             if (isLocalTab)
             {
+                if (!IsSplitEditorEnabled)
+                {
+                    SetSplitCreationTarget(GetSplitCreationZone(localEditor,
+                        args.GetPosition(_tabTransferSurface)));
+                }
                 // Make the destination visible only for a cross-group transfer.
                 var target = IsSplitEditorEnabled && !ReferenceEquals(FindEditorGroup(localEditor), hoveredGroup)
                     ? (ReferenceEquals(hoveredGroup, _secondarySets) ? 1 : 0) : -1;
@@ -596,6 +601,7 @@ namespace Notepads.Core
             else
             {
                 SetTabDropTarget(-1);
+                SetSplitCreationTarget(EditorTabDropZone.None);
             }
 
             if (args.DataView == null)
@@ -921,6 +927,19 @@ namespace Notepads.Core
             var editor = dragged as ITextEditor ?? (dragged as SetsViewItem)?.Content as ITextEditor;
             var source = GetEditorGroupIndex(editor);
             var destination = GetGroupAtCurrentDragPointer();
+            var splitZone = GetSplitCreationZoneAtCurrentPointer(editor);
+
+            if (!IsSplitEditorEnabled && source == 0 && splitZone != EditorTabDropZone.None)
+            {
+                // Dragging to an edge creates the second pane instead of
+                // silently reordering within the only existing tab strip.
+                _ = _dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => SplitEditorByDragging(editor, splitZone));
+                ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
+                SetTabDropTarget(-1);
+                SetSplitCreationTarget(EditorTabDropZone.None);
+                return;
+            }
 
             if (source >= 0 && destination >= 0 && source != destination)
             {
@@ -956,12 +975,16 @@ namespace Notepads.Core
 
             ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
             SetTabDropTarget(-1);
+            SetSplitCreationTarget(EditorTabDropZone.None);
         }
 
         private async void Sets_SetDraggedOutside(object sender, SetDraggedOutsideEventArgs e)
         {
             if (e.Set?.Content is ITextEditor dragEditor)
             {
+                // A drag into a split creation zone is not an external tear-off.
+                if (GetSplitCreationZoneAtCurrentPointer(dragEditor) != EditorTabDropZone.None)
+                    return;
                 var target = GetGroupAtCurrentDragPointer();
                 if (target >= 0 && target != GetEditorGroupIndex(dragEditor))
                 {
