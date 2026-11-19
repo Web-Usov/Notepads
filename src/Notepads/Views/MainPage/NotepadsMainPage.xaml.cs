@@ -55,6 +55,7 @@ namespace Notepads.Views.MainPage
 
                 var core = new NotepadsCore(Sets, new NotepadsExtensionProvider(), Dispatcher);
                 core.AttachSecondarySetsView(SecondarySets);
+                core.AttachTabTransferSurface(EditorGroupsGrid);
                 _notepadsCore = core;
                 _notepadsCore.StorageItemsDropped += OnStorageItemsDropped;
                 _notepadsCore.TextEditorLoaded += OnTextEditorLoaded;

@@ -37,6 +37,8 @@ namespace Notepads.Core
         event KeyEventHandler TextEditorKeyDown;
         event EventHandler SplitLayoutChanged;
         event EventHandler<ITextEditor> ActiveTextEditorChanged;
+        event EventHandler<int> TabDropTargetChanged;
+        event EventHandler<EditorTabDropZone> SplitCreationTargetChanged;
 
         EditorSplitOrientation SplitOrientation { get; }
         bool IsSplitEditorEnabled { get; }
@@ -45,6 +47,8 @@ namespace Notepads.Core
         void SetSplitEditorOrientation(EditorSplitOrientation orientation);
         void SplitSelectedEditor(EditorSplitOrientation orientation);
         void MoveEditorToOtherGroup(ITextEditor editor);
+        int GetEditorGroupIndex(ITextEditor editor);
+        void MoveEditorToGroup(ITextEditor editor, int targetGroup);
         void CloseSplitEditor();
         IReadOnlyList<ITextEditor> GetEditorsInSameGroup(ITextEditor editor);
         EditorSplitLayout GetSplitEditorLayout();

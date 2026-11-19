@@ -796,4 +796,13 @@
   <data name="SplitEditor_MoveOtherGroup" xml:space="preserve">
     <value>Переместить в другую группу вкладок</value>
   </data>
+  <data name="SplitEditor_MoveToGroup" xml:space="preserve">
+    <value>Переместить в группу</value>
+  </data>
+  <data name="SplitEditor_Group1" xml:space="preserve">
+    <value>Группа 1 — первая область</value>
+  </data>
+  <data name="SplitEditor_Group2" xml:space="preserve">
+    <value>Группа 2 — вторая область</value>
+  </data>
 </root>

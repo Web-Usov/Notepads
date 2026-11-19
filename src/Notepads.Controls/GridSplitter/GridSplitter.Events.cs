@@ -5,6 +5,7 @@
 
 namespace Notepads.Controls
 {
+    using System;
     using Windows.System;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
@@ -17,6 +18,10 @@ namespace Notepads.Controls
     /// </summary>
     public partial class GridSplitter
     {
+        private TranslateTransform _deferredPreview;
+        private Transform _previousRenderTransform;
+        private double _deferredResizeDelta;
+
         // Symbols for GripperBar in Segoe MDL2 Assets
         private const string GripperBarVertical = "\xE784";
         private const string GripperBarHorizontal = "\xE76F";
@@ -132,6 +137,14 @@ namespace Notepads.Controls
                 Window.Current.CoreWindow.PointerCursor = RowSplitterCursor;
             }
 
+            if (IsDeferredResize)
+            {
+                _deferredResizeDelta = 0;
+                _previousRenderTransform = RenderTransform;
+                _deferredPreview = new TranslateTransform();
+                RenderTransform = _deferredPreview;
+            }
+
             base.OnManipulationStarted(e);
         }
 
@@ -140,12 +153,55 @@ namespace Notepads.Controls
         {
             Window.Current.CoreWindow.PointerCursor = PreviousCursor;
 
+            if (IsDeferredResize && _deferredPreview != null)
+            {
+                // Restoring the visual before the single grid resize avoids
+                // remeasuring RichEdit + tab strips on every intermediate pixel.
+                var delta = _deferredResizeDelta;
+                RenderTransform = _previousRenderTransform;
+                _deferredPreview = null;
+                _previousRenderTransform = null;
+                _deferredResizeDelta = 0;
+                if (_resizeDirection == GridResizeDirection.Columns)
+                {
+                    HorizontalMove(delta);
+                }
+                else if (_resizeDirection == GridResizeDirection.Rows)
+                {
+                    VerticalMove(delta);
+                }
+            }
+
             base.OnManipulationCompleted(e);
         }
 
         /// <inheritdoc />
         protected override void OnManipulationDelta(ManipulationDeltaRoutedEventArgs e)
         {
+            if (IsDeferredResize && _deferredPreview != null)
+            {
+                // Move only the lightweight divider preview while dragging.
+                // Clamp it to the pane minimum dimensions.
+                if (_resizeDirection == GridResizeDirection.Columns &&
+                    CurrentColumn != null && SiblingColumn != null)
+                {
+                    var min = CurrentColumn.MinWidth - CurrentColumn.ActualWidth;
+                    var max = SiblingColumn.ActualWidth - SiblingColumn.MinWidth;
+                    _deferredResizeDelta = Math.Max(min, Math.Min(max, e.Cumulative.Translation.X));
+                    _deferredPreview.X = _deferredResizeDelta;
+                }
+                else if (_resizeDirection == GridResizeDirection.Rows &&
+                         CurrentRow != null && SiblingRow != null)
+                {
+                    var min = CurrentRow.MinHeight - CurrentRow.ActualHeight;
+                    var max = SiblingRow.ActualHeight - SiblingRow.MinHeight;
+                    _deferredResizeDelta = Math.Max(min, Math.Min(max, e.Cumulative.Translation.Y));
+                    _deferredPreview.Y = _deferredResizeDelta;
+                }
+                e.Handled = true;
+                return;
+            }
+
             var horizontalChange = e.Delta.Translation.X;
             var verticalChange = e.Delta.Translation.Y;
 

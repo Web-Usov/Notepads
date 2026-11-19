@@ -25,6 +25,7 @@ namespace Notepads.Core
     using Windows.UI;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Automation;
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Input;
     using Windows.UI.Xaml.Media;
@@ -405,6 +406,12 @@ namespace Notepads.Core
 
             textEditorSetsViewItem.Icon.Visibility = textEditor.IsModified ? Visibility.Visible : Visibility.Collapsed;
             textEditorSetsViewItem.ContextFlyout = new TabContextFlyout(this, textEditor);
+            // Stable UIA identifier and an accessible tab name, even when the
+            // editor is moved and a new SetsViewItem container is created.
+            AutomationProperties.SetAutomationId(textEditorSetsViewItem,
+                "PlainixEditorTab-" + textEditor.Id.ToString("N"));
+            AutomationProperties.SetName(textEditorSetsViewItem,
+                textEditor.EditingFileName ?? textEditor.FileNamePlaceholder);
 
             return textEditorSetsViewItem;
         }
@@ -574,6 +581,28 @@ namespace Notepads.Core
 
             bool canHandle = false;
             string dragUICaption = null;
+            var hoveredGroup = sender as SetsView;
+            ITextEditor localEditor = null;
+            var isLocalTab = hoveredGroup != null &&
+                TryGetDraggedEditor(args.DataView, out localEditor);
+
+            if (isLocalTab)
+            {
+                if (!IsSplitEditorEnabled)
+                {
+                    SetSplitCreationTarget(GetSplitCreationZone(localEditor,
+                        args.GetPosition(_tabTransferSurface)));
+                }
+                // Make the destination visible only for a cross-group transfer.
+                var target = IsSplitEditorEnabled && !ReferenceEquals(FindEditorGroup(localEditor), hoveredGroup)
+                    ? (ReferenceEquals(hoveredGroup, _secondarySets) ? 1 : 0) : -1;
+                SetTabDropTarget(target);
+            }
+            else
+            {
+                SetTabDropTarget(-1);
+                SetSplitCreationTarget(EditorTabDropZone.None);
+            }
 
             if (args.DataView == null)
             {
@@ -613,13 +642,18 @@ namespace Notepads.Core
             if (canHandle)
             {
                 args.Handled = true;
-                args.AcceptedOperation = DataPackageOperation.Link;
+                // Keep native Move for reordering *within* one ListView.
+                // Accept Link when crossing groups; otherwise ListView may also
+                // remove the source item and orphan the original document.
+                args.AcceptedOperation = isLocalTab &&
+                    ReferenceEquals(FindEditorGroup(localEditor), hoveredGroup)
+                    ? DataPackageOperation.Move : DataPackageOperation.Link;
                 try
                 {
                     if (args.DragUIOverride != null)
                     {
                         args.DragUIOverride.Caption = dragUICaption;
-                        args.DragUIOverride.IsCaptionVisible = true;
+                        args.DragUIOverride.IsCaptionVisible = !isLocalTab;
                         args.DragUIOverride.IsGlyphVisible = false;
                     }
                 }
@@ -632,11 +666,28 @@ namespace Notepads.Core
             deferral.Complete();
         }
 
+        private void Sets_DragLeave(object sender, DragEventArgs args)
+        {
+            if (sender is SetsView sets &&
+                _tabDropTargetGroup == (ReferenceEquals(sets, _secondarySets) ? 1 : 0))
+            {
+                SetTabDropTarget(-1);
+            }
+        }
+
         private void Sets_DragItemsStarting(object sender, DragItemsStartingEventArgs args)
         {
-            // In Initial Window we need to serialize our tab data.
+            // SetsView.Items contains SetsViewItem containers, not ITextEditor.
+            // Earlier code tested args.Items directly, leaving the drag payload
+            // empty and making cross-group dragging silently fail.
             var item = args.Items.FirstOrDefault();
-            if (!(item is ITextEditor editor)) return;
+            var editor = item as ITextEditor ?? (item as SetsViewItem)?.Content as ITextEditor;
+            if (editor == null || !ReferenceEquals(FindEditorGroup(editor), sender as SetsView))
+            {
+                LoggingService.LogWarning($"[TabTransfer] No valid tab drag source: {item?.GetType().Name ?? "null"}");
+                return;
+            }
+            LoggingService.LogInfo($"[TabTransfer] Drag started for {editor.Id} from group {GetEditorGroupIndex(editor)}.");
 
             try
             {
@@ -664,6 +715,9 @@ namespace Notepads.Core
                 args.Data.Properties.Add(NotepadsTextEditorGuid, editor.Id.ToString());
                 args.Data.Properties.Add(NotepadsInstanceId, App.InstanceId.ToString());
                 args.Data.Properties.ApplicationName = App.InstanceCompatibilityName;
+                // Native in-group reorder remains a Move. Cross-group targets
+                // explicitly negotiate Link to leave tab ownership to the core.
+                args.Data.RequestedOperation = DataPackageOperation.Move;
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Started");
             }
@@ -673,10 +727,72 @@ namespace Notepads.Core
             }
         }
 
+        private int GetTabInsertIndex(SetsView sets, DragEventArgs args)
+        {
+            for (int i = 0; i < sets.Items.Count; i++)
+            {
+                var tab = sets.ContainerFromIndex(i) as SetsViewItem;
+                if (tab != null && tab.ActualWidth > 0 &&
+                    args.GetPosition(tab).X < tab.ActualWidth / 2)
+                {
+                    return i;
+                }
+            }
+            return sets.Items.Count;
+        }
+
         private async void Sets_Drop(object sender, DragEventArgs args)
         {
+            SetTabDropTarget(-1);
             if (!(sender is SetsView sets))
             {
+                return;
+            }
+
+            if (TryGetDraggedEditor(args.DataView, out ITextEditor localEditor))
+            {
+                // Native ListView handles reordering within a group. A transfer
+                // across groups must move the original document, not recreate it.
+                if (ReferenceEquals(FindEditorGroup(localEditor), sets)) return;
+
+                var localDeferral = args.GetDeferral();
+                try
+                {
+                    if (!IsSplitEditorEnabled) return;
+                    // Link is deliberate: the source ListView must not remove
+                    // a tab before our core-owned, rollback-safe transfer.
+                    args.AcceptedOperation = DataPackageOperation.Link;
+                    args.Handled = true;
+                    var index = GetTabInsertIndex(sets, args);
+
+                    // Reparenting during the native drag completion callback can
+                    // invalidate the visual tree. Defer until the drop is finished
+                    // and the source ListView has released its drag state.
+                    _ = _dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+                    {
+                        if (FindEditorGroup(localEditor) == null || !IsSplitEditorEnabled ||
+                            ReferenceEquals(FindEditorGroup(localEditor), sets)) return;
+                        try
+                        {
+                            LoggingService.LogInfo($"[TabTransfer] Commit {localEditor.Id} to " +
+                                $"{(ReferenceEquals(sets, _secondarySets) ? 1 : 0)}.");
+                            MoveEditorToGroup(localEditor, sets, index);
+                            AnalyticsService.TrackEvent("OnTabMovedBetweenGroups");
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingService.LogException(ex);
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.LogException(ex);
+                }
+                finally
+                {
+                    localDeferral.Complete();
+                }
                 return;
             }
 
@@ -755,35 +871,15 @@ namespace Notepads.Core
                     pendingText = pendingContent;
                 }
 
-                var index = -1;
+                var atIndex = GetTabInsertIndex(sets, args);
 
-                // Determine which items in the list our pointer is in between.
-                for (int i = 0; i < sets.Items?.Count; i++)
-                {
-                    var item = sets.ContainerFromIndex(i) as SetsViewItem;
-
-                    if (args.GetPosition(item).X - item?.ActualWidth < 0)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-
-                var atIndex = index == -1 ? sets.Items.Count : index;
-
-                // Dragging a tab between groups must never duplicate the document.
+                // Reject a stale local tab drag: it must never be reconstructed
+                // into a duplicate document just because its source was removed.
                 if (args.DataView.Properties.TryGetValue(NotepadsInstanceId, out object appId) &&
-                    appId is string sourceInstanceId && sourceInstanceId == App.InstanceId.ToString() &&
-                    args.DataView.Properties.TryGetValue(NotepadsTextEditorGuid, out object tabId) &&
-                    tabId is string sourceTabId && Guid.TryParse(sourceTabId, out var editorId))
+                    appId is string sourceInstanceId &&
+                    string.Equals(sourceInstanceId, App.InstanceId.ToString(), StringComparison.Ordinal))
                 {
-                    var sourceEditor = GetAllTextEditors().FirstOrDefault(editor => editor.Id == editorId);
-                    if (sourceEditor != null)
-                    {
-                        MoveEditorToGroup(sourceEditor, sets, atIndex);
-                        deferral.Complete();
-                        return;
-                    }
+                    throw new InvalidOperationException("The source tab for this drag is no longer open.");
                 }
 
                 ApplicationSettingsStore.Write(SetDragAndDropActionStatus, "Handled");
@@ -818,21 +914,90 @@ namespace Notepads.Core
             }
         }
 
+        private int GetGroupAtCurrentDragPointer()
+        {
+            if (!IsSplitEditorEnabled || _tabTransferSurface == null) return -1;
+            return GetTransferTargetGroup(ToTransferSurfacePoint(Window.Current.CoreWindow.PointerPosition));
+        }
+
         private void Sets_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
         {
+            LoggingService.LogInfo($"[TabTransfer] Drag completed: result = {args.DropResult}.");
+            var dragged = args.Items.FirstOrDefault();
+            var editor = dragged as ITextEditor ?? (dragged as SetsViewItem)?.Content as ITextEditor;
+            var source = GetEditorGroupIndex(editor);
+            var destination = GetGroupAtCurrentDragPointer();
+            var liveZone = GetSplitCreationZoneAtCurrentPointer(editor);
+            // The last valid drag-over zone is retained if the UWP native
+            // drag provider reports an imprecise final screen coordinate.
+            var splitZone = liveZone != EditorTabDropZone.None
+                ? liveZone : _splitCreationZone;
+
+            if (!IsSplitEditorEnabled && source == 0 && splitZone != EditorTabDropZone.None)
+            {
+                // Dragging to an edge creates the second pane instead of
+                // silently reordering within the only existing tab strip.
+                _ = _dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => SplitEditorByDragging(editor, splitZone));
+                ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
+                SetTabDropTarget(-1);
+                SetSplitCreationTarget(EditorTabDropZone.None);
+                return;
+            }
+
+            if (source >= 0 && destination >= 0 && source != destination)
+            {
+                // Some UWP tab-strip templates report DropResult.None and never
+                // raise Drop, even though a mouse drag ended over another group.
+                // The actual release position is authoritative for this window.
+                // Commit only after ListView has finished its native drag cycle.
+                _ = _dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+                {
+                    if (!IsSplitEditorEnabled || GetEditorGroupIndex(editor) < 0 ||
+                        GetEditorGroupIndex(editor) == destination) return;
+                    try
+                    {
+                        MoveEditorToGroup(editor, destination);
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.LogException(ex);
+                    }
+                });
+                ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
+                SetTabDropTarget(-1);
+                return;
+            }
+
             if (ApplicationSettingsStore.Read(SetDragAndDropActionStatus) is string setDragAndDropActionStatus && setDragAndDropActionStatus == "Handled")
             {
-                if (args.Items.FirstOrDefault() is ITextEditor editor)
+                if (editor != null)
                 {
                     TextEditorMovedToAnotherAppInstance?.Invoke(this, editor);
                 }
             }
 
             ApplicationSettingsStore.Remove(SetDragAndDropActionStatus);
+            SetTabDropTarget(-1);
+            SetSplitCreationTarget(EditorTabDropZone.None);
         }
 
         private async void Sets_SetDraggedOutside(object sender, SetDraggedOutsideEventArgs e)
         {
+            if (e.Set?.Content is ITextEditor dragEditor)
+            {
+                // A drag into a split creation zone is not an external tear-off.
+                if (GetSplitCreationZoneAtCurrentPointer(dragEditor) != EditorTabDropZone.None)
+                    return;
+                var target = GetGroupAtCurrentDragPointer();
+                if (target >= 0 && target != GetEditorGroupIndex(dragEditor))
+                {
+                    // A valid other pane is not an external tear-off, even when
+                    // native ListView reports DropResult.None.
+                    return;
+                }
+            }
+
             if (GetNumberOfOpenedTextEditors() > 1 && e.Set?.Content is ITextEditor textEditor)
             {
                 // Only allow untitled empty document to be dragged outside for now

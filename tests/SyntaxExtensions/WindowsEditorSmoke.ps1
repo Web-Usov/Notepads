@@ -209,16 +209,16 @@ try {
     # document or replacing its undo history. Check both orientations.
     $editor.SetFocus()
     $editorCondition = [System.Windows.Automation.PropertyCondition]::new($byId, 'TextEditorCore')
-    foreach ($orientation in @('ToolbarSplitRightButton', 'ToolbarSplitDownButton')) {
-        Write-Host "Opening split editor controls for $orientation"
-        $toolbar = Wait-For 'the split editor toolbar' { Find-AppControl $byId 'SplitEditorToolbarButton' }
-        Invoke-Control $toolbar
-        Write-Host "Invoking command $orientation"
+    foreach ($orientation in @('MenuSplitRightButton', 'MenuSplitDownButton')) {
+        Write-Host "Opening split editor menu for $orientation"
+        Invoke-Control (Wait-For 'main menu button' { Find-AppControl $byId 'MainMenuButton' })
+        $splitMenu = Wait-For 'split editor submenu' { Find-AppControl $byId 'MenuSplitEditor' }
+        $splitMenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
         Invoke-Control (Wait-For "the $orientation command" { Find-AppControl $byId $orientation })
         $null = Wait-For "two editor surfaces after $orientation" {
-            $toolbar = Find-AppControl $byId 'SplitEditorToolbarButton'
-            if ($toolbar) {
-                $diagnostic = $toolbar.Current.HelpText
+            $main = Find-AppControl $byId 'MainMenuButton'
+            if ($main) {
+                $diagnostic = $main.Current.HelpText
                 if (![string]::IsNullOrWhiteSpace($diagnostic)) {
                     throw "Split operation failed with: $diagnostic"
                 }
@@ -226,7 +226,10 @@ try {
             $panes = $window.FindAll($subtree, $editorCondition)
             if ($panes.Count -eq 2) { return $true }
         }
-        Invoke-Control (Wait-For 'the close split button' { Find-AppControl $byId 'SecondaryCloseSplitButton' })
+        Invoke-Control (Wait-For 'main menu button' { Find-AppControl $byId 'MainMenuButton' })
+        $splitMenu = Wait-For 'split editor submenu' { Find-AppControl $byId 'MenuSplitEditor' }
+        $splitMenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
+        Invoke-Control (Wait-For 'close split menu command' { Find-AppControl $byId 'MenuCloseSplitButton' })
         $null = Wait-For 'one editor surface after merging groups' {
             $panes = $window.FindAll($subtree, $editorCondition)
             if ($panes.Count -eq 1) { return $true }

@@ -1,4 +1,7 @@
 using System.Threading;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using FlaUI.Core.Input;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using NUnit.Framework;
@@ -261,6 +264,294 @@ public sealed class EditorUiTests
         Assert.That(menu.Height, Is.GreaterThan(10));
         // This test also exports a screenshot, even on success, for nightly UI review.
         App.CaptureEvidence("Visual-layout-snapshot", failed: false, captureScreenshot: true);
+    }
+
+    [Test]
+    public void Tab_context_menu_moves_existing_document_between_groups_and_keeps_undo()
+    {
+        App.Editor.Focus();
+        UiTestHost.Keys("^{END}");
+        UiTestHost.Keys("x");
+        App.AssertDocument(Original + "x");
+
+        PrepareSplitForTabMoves();
+
+        MoveCurrentFileFromContextMenu("Group 1 — first pane");
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("PrimaryEditorGroup"),
+            "context menu move into the first group");
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Tab transfer must never duplicate the document.");
+        App.Editor.Focus();
+        UiTestHost.Keys("^z");
+        App.AssertDocument(Original);
+
+        MoveCurrentFileFromContextMenu("Group 2 — second pane");
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("SecondaryEditorGroup"),
+            "context menu move into the second group");
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1));
+    }
+
+    [TestCase("Right")]
+    [TestCase("Left")]
+    [TestCase("Bottom")]
+    [TestCase("Top")]
+    public void Dragging_a_tab_to_editor_edge_creates_a_split(string edge)
+    {
+        // Keep the UWP window on top of transient runner windows, and leave
+        // a safe inset from the desktop edge while staying in the drop zone.
+        if (App.Window.Patterns.Window.IsSupported)
+        {
+            App.Window.Patterns.Window.Pattern.SetWindowVisualState(WindowVisualState.Maximized);
+        }
+        App.Window.Focus();
+        Thread.Sleep(200);
+
+        // The fixture starts with one document. Create another so one remains
+        // in the original group when the source file is dragged out.
+        App.Invoke(App.RequireId("NewSetButton"));
+        CurrentFileTab().Click();
+        var tabBounds = CurrentFileTab().BoundingRectangle;
+        var editorBounds = App.Editor.BoundingRectangle;
+
+        var target = edge switch
+        {
+            "Right" => new Point((int)(editorBounds.Right - 75),
+                (int)(editorBounds.Top + editorBounds.Height / 2)),
+            "Left" => new Point((int)(editorBounds.Left + 75),
+                (int)(editorBounds.Top + editorBounds.Height / 2)),
+            "Top" => new Point((int)(editorBounds.Left + editorBounds.Width / 2),
+                (int)(editorBounds.Top + 75)),
+            _ => new Point((int)(editorBounds.Left + editorBounds.Width / 2),
+                (int)(editorBounds.Bottom - 75))
+        };
+        var from = new Point((int)(tabBounds.Left + Math.Min(tabBounds.Width / 3, 35)),
+            (int)(tabBounds.Top + tabBounds.Height / 2));
+
+        Mouse.Position = from;
+        Mouse.Down();
+        try
+        {
+            Thread.Sleep(180);
+            for (var step = 1; step <= 24; step++)
+            {
+                MoveMouseAsInput(
+                    (int)Math.Round(from.X + (target.X - from.X) * step / 24.0),
+                    (int)Math.Round(from.Y + (target.Y - from.Y) * step / 24.0));
+                Thread.Sleep(22);
+            }
+            Thread.Sleep(200);
+        }
+        finally
+        {
+            Mouse.Up();
+        }
+
+        var vertical = edge is "Left" or "Right";
+        var dividerId = vertical ? "VerticalSplitDivider" : "HorizontalSplitDivider";
+        UiTestHost.WaitUntil(() =>
+        {
+            var divider = App.FindById(dividerId);
+            if (divider == null || divider.BoundingRectangle.Width < 1 ||
+                divider.BoundingRectangle.Height < 1) return false;
+            var file = CurrentFileTab().BoundingRectangle;
+            var bound = divider.BoundingRectangle;
+            return edge switch
+            {
+                "Left" => file.Right <= bound.Left,
+                "Right" => file.Left >= bound.Right,
+                "Top" => file.Bottom <= bound.Top,
+                _ => file.Top >= bound.Bottom
+            };
+        }, "drag-to-" + edge + " to create a split", 35);
+
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1),
+            "Creating a split must move the original editor, not clone it.");
+        var allText = App.Window.FindAllDescendants()
+            .Where(element => (element.Properties.AutomationId.ValueOrDefault ?? string.Empty) == "TextEditorCore")
+            .Select(element => element.Patterns.Text.Pattern.DocumentRange.GetText(-1).TrimEnd('\r', '\n'))
+            .ToArray();
+        Assert.That(allText, Does.Contain(Original));
+    }
+
+    [Test]
+    public void Dragging_tab_into_other_group_moves_original_editor_without_duplication()
+    {
+        PrepareSplitForTabMoves();
+        DragCurrentFileTo("PrimaryEditorGroup");
+        DragCurrentFileTo("SecondaryEditorGroup");
+
+        // Both transfers must preserve the actual source text, not merely the
+        // tab label. Use both panes' text providers rather than the first one.
+        var editorContents = App.Window.FindAllDescendants()
+            .Where(element => (element.Properties.AutomationId.ValueOrDefault ?? string.Empty) == "TextEditorCore")
+            .Select(element => element.Patterns.Text.Pattern.DocumentRange.GetText(-1).TrimEnd('\r', '\n'))
+            .ToArray();
+        Assert.That(editorContents, Does.Contain(Original));
+    }
+
+    private void DragCurrentFileTo(string targetGroup)
+    {
+        CurrentFileTab().Click();
+        Thread.Sleep(150);
+        var source = CurrentFileTab().BoundingRectangle;
+        var divider = App.RequireId("VerticalSplitDivider").BoundingRectangle;
+        var targetTab = UiTestHost.WaitFor(() => App.Window.FindAllDescendants()
+            .FirstOrDefault(element =>
+                element.ControlType == ControlType.ListItem &&
+                element.Name == "Untitled.txt" &&
+                (targetGroup == "PrimaryEditorGroup"
+                    ? element.BoundingRectangle.Right <= divider.Left
+                    : element.BoundingRectangle.Left >= divider.Right)),
+            "the target tab in " + targetGroup);
+        var target = targetTab.BoundingRectangle;
+        var from = new Point((int)(source.Left + Math.Min(source.Width / 3, 35)),
+            (int)(source.Top + source.Height / 2));
+        var to = new Point((int)(target.Left + target.Width / 2),
+            (int)(target.Top + target.Height / 2));
+
+        Mouse.Position = from;
+        Mouse.Down();
+        try
+        {
+            Thread.Sleep(180);
+            // FlaUI Mouse.MoveTo uses SetCursorPos. Send real Win32 move events
+            // to exercise a native UWP drag instead of only relocating the cursor.
+            for (var step = 1; step <= 24; step++)
+            {
+                var x = (int)Math.Round(from.X + (to.X - from.X) * step / 24.0);
+                var y = (int)Math.Round(from.Y + (to.Y - from.Y) * step / 24.0);
+                MoveMouseAsInput(x, y);
+                Thread.Sleep(22);
+            }
+            Thread.Sleep(200);
+        }
+        finally
+        {
+            Mouse.Up();
+        }
+
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup(targetGroup),
+            "dragged tab to appear in " + targetGroup, 30);
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1), "Drag cannot create a duplicate tab.");
+    }
+
+    [DllImport("user32.dll")]
+    private static extern int GetSystemMetrics(int index);
+
+    [DllImport("user32.dll", EntryPoint = "mouse_event")]
+    private static extern void SendMouseEvent(uint flags, uint x, uint y, uint data, UIntPtr extraInfo);
+
+    private static void MoveMouseAsInput(int screenX, int screenY)
+    {
+        const uint mouseMove = 0x0001;
+        const uint absolute = 0x8000;
+        const uint virtualDesktop = 0x4000;
+        var left = GetSystemMetrics(76);
+        var top = GetSystemMetrics(77);
+        var width = Math.Max(GetSystemMetrics(78) - 1, 1);
+        var height = Math.Max(GetSystemMetrics(79) - 1, 1);
+
+        var x = (uint)Math.Clamp((long)Math.Round((screenX - left) * 65535.0 / width), 0, 65535);
+        var y = (uint)Math.Clamp((long)Math.Round((screenY - top) * 65535.0 / height), 0, 65535);
+        SendMouseEvent(mouseMove | absolute | virtualDesktop, x, y, 0, UIntPtr.Zero);
+    }
+
+    private void PrepareSplitForTabMoves()
+    {
+        App.Invoke(App.RequireId("MainMenuButton"));
+        var submenu = OwningMenuItem(App.RequireId("MenuSplitEditor"));
+        if (submenu.Patterns.ExpandCollapse.IsSupported)
+            submenu.Patterns.ExpandCollapse.Pattern.Expand();
+        else
+            submenu.Click();
+        App.Invoke(App.RequireId("MenuSplitRightButton"));
+        UiTestHost.WaitUntil(() =>
+            App.RequireId("VerticalSplitDivider").BoundingRectangle.Width > 1 &&
+            App.Window.FindAllDescendants()
+                .Count(element => (element.Properties.AutomationId.ValueOrDefault ?? string.Empty) == "TextEditorCore") == 2,
+            "two text editors after splitting", 35);
+
+        // Keep both groups occupied when the file moves. Otherwise the normal
+        // editor lifecycle closes an empty secondary group automatically.
+        App.Invoke(App.RequireId("SecondaryNewSetButton"));
+        UiTestHost.WaitUntil(() => IsCurrentFileInGroup("SecondaryEditorGroup"),
+            "original document in the secondary group");
+    }
+
+    private int CountDocumentTabs()
+    {
+        var name = Path.GetFileName(App.SourceFile);
+        return App.Window.FindAllDescendants().Count(element =>
+            (element.Properties.AutomationId.ValueOrDefault ?? string.Empty).StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private AutomationElement CurrentFileTab()
+    {
+        var name = Path.GetFileName(App.SourceFile);
+        return UiTestHost.WaitFor(() => App.Window.FindAllDescendants().FirstOrDefault(element =>
+            (element.Properties.AutomationId.ValueOrDefault ?? string.Empty).StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)),
+            "document tab named " + name);
+    }
+
+    private bool IsCurrentFileInGroup(string groupAutomationId)
+    {
+        // The custom SetsView template does not expose its parent ListView as a
+        // UIA element. Its *tabs* and the themed divider are accessible, so
+        // assert destination group ownership by their screen coordinates.
+        var name = Path.GetFileName(App.SourceFile);
+        var tab = App.Window.FindAllDescendants().FirstOrDefault(element =>
+            (element.Properties.AutomationId.ValueOrDefault ?? string.Empty).StartsWith("PlainixEditorTab-", StringComparison.Ordinal) &&
+            string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase));
+        var divider = App.FindById("VerticalSplitDivider");
+        if (tab == null || divider == null) return false;
+        var boundary = divider.BoundingRectangle;
+        var tabRect = tab.BoundingRectangle;
+        if (groupAutomationId == "PrimaryEditorGroup") return tabRect.Right <= boundary.Left;
+        if (groupAutomationId == "SecondaryEditorGroup") return tabRect.Left >= boundary.Right;
+        throw new ArgumentOutOfRangeException(nameof(groupAutomationId));
+    }
+
+    private static AutomationElement OwningMenuItem(AutomationElement element)
+    {
+        var current = element;
+        for (var depth = 0; depth < 8; depth++)
+        {
+            if (current.ControlType == ControlType.MenuItem) return current;
+            var parent = current.Parent;
+            if (parent is null) break;
+            current = parent;
+        }
+        return element;
+    }
+
+    private void MoveCurrentFileFromContextMenu(string destinationLabel)
+    {
+        CurrentFileTab().RightClick();
+
+        var submenu = OwningMenuItem(App.RequireName("Move to group"));
+        if (submenu.Patterns.ExpandCollapse.IsSupported)
+        {
+            submenu.Patterns.ExpandCollapse.Pattern.Expand();
+        }
+        else
+        {
+            submenu.Click();
+        }
+        var destination = OwningMenuItem(App.RequireName(destinationLabel));
+        if (destination.Patterns.Invoke.IsSupported)
+        {
+            destination.Patterns.Invoke.Pattern.Invoke();
+        }
+        else
+        {
+            // MenuFlyoutItem on some UWP builds only exposes its TextBlock to UIA.
+            var bounds = destination.BoundingRectangle;
+            Mouse.Position = new Point((int)(bounds.Left + bounds.Width / 2),
+                (int)(bounds.Top + bounds.Height / 2));
+            Thread.Sleep(180);
+            Mouse.Click();
+        }
     }
 
     private AutomationElement? TryFindExtension(string label)
