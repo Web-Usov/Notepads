@@ -35,7 +35,7 @@
 
             <SplitView.Content>
                 <Grid>
-                    <Grid x:Name="EditorGroupsGrid">
+                    <Grid x:Name="EditorGroupsGrid" AllowDrop="True">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition x:Name="PrimaryEditorColumn" Width="*"/>
                             <ColumnDefinition x:Name="VerticalDividerColumn" Width="0"/>
