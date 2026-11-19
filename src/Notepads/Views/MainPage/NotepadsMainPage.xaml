@@ -230,7 +230,6 @@
                         </controls:SetsView.SetsStartHeader>
 
                         <controls:SetsView.SetsActionHeader>
-                            <StackPanel Orientation="Horizontal">
                             <Button x:Name="NewSetButton"
                                     Grid.Column="0"
                                     IsTabStop="False"
@@ -246,25 +245,6 @@
                                             Glyph="&#xE710;" />
                                     </Viewbox>
                             </Button>
-                            <Button x:Name="SplitEditorToolbarButton"
-                                    Width="36"
-                                    Height="32"
-                                    IsTabStop="True"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="0"
-                                    Style="{ThemeResource ButtonRevealStyle}">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="14"/>
-                                <FlyoutBase.AttachedFlyout>
-                                    <MenuFlyout>
-                                        <MenuFlyoutItem x:Name="ToolbarSplitRightButton"/>
-                                        <MenuFlyoutItem x:Name="ToolbarSplitDownButton"/>
-                                        <MenuFlyoutSeparator/>
-                                        <MenuFlyoutItem x:Name="ToolbarCloseSplitButton"/>
-                                    </MenuFlyout>
-                                </FlyoutBase.AttachedFlyout>
-                            </Button>
-                            </StackPanel>
                         </controls:SetsView.SetsActionHeader>
 
                         <controls:SetsView.SetsPaddingHeader>
@@ -280,6 +260,8 @@
                     <!-- Two-pane editor: independent tab strips and a
                          keyboard-accessible, theme-aware resize handle. -->
                     <controls:GridSplitter x:Name="VerticalSplitDivider"
+                                           IsDeferredResize="True"
+                                           AutomationProperties.AutomationId="VerticalSplitDivider"
                                            Grid.Row="0" Grid.Column="1"
                                            ResizeDirection="Columns"
                                            ResizeBehavior="PreviousAndNext"
@@ -288,6 +270,8 @@
                                            GripperForeground="Transparent"
                                            Visibility="Collapsed"/>
                     <controls:GridSplitter x:Name="HorizontalSplitDivider"
+                                           IsDeferredResize="True"
+                                           AutomationProperties.AutomationId="HorizontalSplitDivider"
                                            Grid.Row="1" Grid.Column="0"
                                            ResizeDirection="Rows"
                                            ResizeBehavior="PreviousAndNext"
@@ -308,27 +292,40 @@
                                        Template="{StaticResource SetsViewTemplate}"
                                        Background="Transparent"
                                        Visibility="Collapsed">
+                        <controls:SetsView.Resources>
+                            <!-- The same tab metrics as the primary group. -->
+                            <x:Double x:Key="SetsViewItemHeaderMinHeight">32</x:Double>
+                            <x:Double x:Key="SetsViewItemHeaderMinWidth">90</x:Double>
+                            <x:Double x:Key="SetsViewItemHeaderMaxWidth">210</x:Double>
+                        </controls:SetsView.Resources>
                         <controls:SetsView.SetsActionHeader>
-                            <StackPanel Orientation="Horizontal">
-                                <Button x:Name="SecondaryNewSetButton"
-                                        Width="36" Height="32" IsTabStop="True"
-                                        Background="Transparent" BorderThickness="0"
-                                        Style="{ThemeResource ButtonRevealStyle}">
-                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="13"/>
-                                </Button>
-                                <Button x:Name="SecondaryCloseSplitButton"
-                                        Width="36" Height="32" IsTabStop="True"
-                                        Background="Transparent" BorderThickness="0"
-                                        Style="{ThemeResource ButtonRevealStyle}">
-                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8BB;" FontSize="13"/>
-                                </Button>
-                            </StackPanel>
+                            <Button x:Name="SecondaryNewSetButton"
+                                    Width="42" Height="32" IsTabStop="True"
+                                    Margin="-1,0,0,0"
+                                    Background="Transparent" BorderThickness="0"
+                                    Style="{ThemeResource ButtonRevealStyle}">
+                                <Viewbox MaxWidth="14" MaxHeight="14">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;"/>
+                                </Viewbox>
+                            </Button>
                         </controls:SetsView.SetsActionHeader>
                         <controls:SetsView.SetsEndHeader>
                             <Grid x:Name="SecondaryTitleBarReservedArea"
                                   Background="Transparent" Width="0" Height="32"/>
                         </controls:SetsView.SetsEndHeader>
                     </controls:SetsView>
+
+                    <!-- Split creation preview appears only while a tab is dragged
+                         to the edge of the single editor group. -->
+                    <Border x:Name="SplitCreationPreview"
+                            Grid.Row="0" Grid.Column="0" Canvas.ZIndex="101"
+                            Background="{ThemeResource SystemControlHighlightAccentBrush}"
+                            Opacity="0.32"
+                            BorderThickness="2" CornerRadius="4"
+                            BorderBrush="{ThemeResource SystemControlForegroundAccentBrush}"
+                            IsHitTestVisible="False" Visibility="Collapsed"
+                            AutomationProperties.AutomationId="SplitCreationPreview"
+                            AutomationProperties.AccessibilityView="Raw"/>
 
                     <!-- Transient drag targets; no permanent move buttons.
                          Do not intercept pointer input or cover text editor drag events. -->
