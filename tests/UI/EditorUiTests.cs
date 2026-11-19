@@ -290,6 +290,79 @@ public sealed class EditorUiTests
         Assert.That(CountDocumentTabs(), Is.EqualTo(1));
     }
 
+    [TestCase("Right")]
+    [TestCase("Left")]
+    [TestCase("Bottom")]
+    [TestCase("Top")]
+    public void Dragging_a_tab_to_editor_edge_creates_a_split(string edge)
+    {
+        // The fixture starts with one document. Create another so one remains
+        // in the original group when the source file is dragged out.
+        App.Invoke(App.RequireId("NewSetButton"));
+        CurrentFileTab().Click();
+        var tabBounds = CurrentFileTab().BoundingRectangle;
+        var editorBounds = App.Editor.BoundingRectangle;
+
+        var target = edge switch
+        {
+            "Right" => new Point((int)(editorBounds.Right - 16),
+                (int)(editorBounds.Top + editorBounds.Height / 2)),
+            "Left" => new Point((int)(editorBounds.Left + 16),
+                (int)(editorBounds.Top + editorBounds.Height / 2)),
+            "Top" => new Point((int)(editorBounds.Left + editorBounds.Width / 2),
+                (int)(editorBounds.Top + 20)),
+            _ => new Point((int)(editorBounds.Left + editorBounds.Width / 2),
+                (int)(editorBounds.Bottom - 16))
+        };
+        var from = new Point((int)(tabBounds.Left + Math.Min(tabBounds.Width / 3, 35)),
+            (int)(tabBounds.Top + tabBounds.Height / 2));
+
+        Mouse.Position = from;
+        Mouse.Down();
+        try
+        {
+            Thread.Sleep(180);
+            for (var step = 1; step <= 24; step++)
+            {
+                MoveMouseAsInput(
+                    (int)Math.Round(from.X + (target.X - from.X) * step / 24.0),
+                    (int)Math.Round(from.Y + (target.Y - from.Y) * step / 24.0));
+                Thread.Sleep(22);
+            }
+            Thread.Sleep(200);
+        }
+        finally
+        {
+            Mouse.Up();
+        }
+
+        var vertical = edge is "Left" or "Right";
+        var dividerId = vertical ? "VerticalSplitDivider" : "HorizontalSplitDivider";
+        UiTestHost.WaitUntil(() =>
+        {
+            var divider = App.FindById(dividerId);
+            if (divider == null || divider.BoundingRectangle.Width < 1 ||
+                divider.BoundingRectangle.Height < 1) return false;
+            var file = CurrentFileTab().BoundingRectangle;
+            var bound = divider.BoundingRectangle;
+            return edge switch
+            {
+                "Left" => file.Right <= bound.Left,
+                "Right" => file.Left >= bound.Right,
+                "Top" => file.Bottom <= bound.Top,
+                _ => file.Top >= bound.Bottom
+            };
+        }, "drag-to-" + edge + " to create a split", 35);
+
+        Assert.That(CountDocumentTabs(), Is.EqualTo(1),
+            "Creating a split must move the original editor, not clone it.");
+        var allText = App.Window.FindAllDescendants()
+            .Where(element => (element.Properties.AutomationId.ValueOrDefault ?? string.Empty) == "TextEditorCore")
+            .Select(element => element.Patterns.Text.Pattern.DocumentRange.GetText(-1).TrimEnd('\r', '\n'))
+            .ToArray();
+        Assert.That(allText, Does.Contain(Original));
+    }
+
     [Test]
     public void Dragging_tab_into_other_group_moves_original_editor_without_duplication()
     {
